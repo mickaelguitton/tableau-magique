@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "Le tableau magique",
+  "short_name": "Tableau magique",
+  "description": "Les outils de classe de M. Guitton : calcul mental, gym des mots, machine à conjuguer, à qui le tour.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "background_color": "#E9E3FF",
+  "theme_color": "#8E6CEF",
+  "categories": ["education"],
+  "related_applications": [
+    { "platform": "webapp", "url": "https://mickaelguitton.github.io/tableau-magique/manifest.webmanifest" }
+  ],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
