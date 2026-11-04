@@ -14,7 +14,7 @@ CONTENU DU DÉPÔT
   portail.js               bouton « Accueil », version et mise à jour dans chaque outil (ne pas modifier)
   sw.js                    fonctionnement hors ligne + mises à jour (à compléter seulement pour ajouter un outil)
   manifest.webmanifest     nom, icônes et affichage plein écran de l'application
-  fonts/, icon-*.png, apple-touch-icon.png, favicon.png
+  fonts/, icon-*.png, icone-tbi-apple.png, icone-tbi-favicon.png
   LICENSE                  la licence CC BY-NC 4.0
   .nojekyll                fichier vide utile à GitHub Pages
 
