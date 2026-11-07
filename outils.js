@@ -8,12 +8,17 @@
    1. créer son dossier (ex. frise/) avec son index.html (copier les lignes « Portail » du <head> d'un autre outil) ;
    2. mettre sa capture d'écran dans images/ (format 16/9, ex. 800 × 450) ;
    3. ajouter un bloc ci-dessous, dans l'ordre d'affichage voulu ;
-   4. changer le numéro dans version.js.
+   4. ajouter son adresse dans sitemap.xml.
+
+   METTRE À JOUR UN OUTIL : modifier son index.html, puis changer son numéro « version » ci-dessous.
+   Seul cet outil est retéléchargé par les applis installées ; son numéro s'affiche dans sa signature.
+   Le numéro de version.js ne concerne que le portail lui-même (page d'accueil, icônes, police, portail.js).
 
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
 self.OUTILS = [
   {
     dossier: 'calcul-mental',
+    version: '1.0',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calcul mental',
     niveau: 'du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
@@ -22,6 +27,7 @@ self.OUTILS = [
   },
   {
     dossier: 'gym-des-mots',
+    version: '1.0',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée du blog de Charivari. Les élèves identifient la nature de chaque mot de la phrase '
@@ -32,6 +38,7 @@ self.OUTILS = [
   },
   {
     dossier: 'machine-conjugaison',
+    version: '1.0',
     nom: 'Machine à conjuguer',
     niveau: 'cycles 2 et 3',
     texte: 'La machine tire au sort un sujet, un verbe et un temps. Les élèves conjuguent sur l’ardoise puis on affiche '
@@ -40,6 +47,7 @@ self.OUTILS = [
   },
   {
     dossier: 'a-qui-le-tour',
+    version: '1.0',
     nom: 'À qui le tour ?',
     niveau: 'tous niveaux',
     texte: 'Une roue colorée tire au sort un élève de la liste de la classe, avec l’historique des tirages.',
@@ -47,6 +55,7 @@ self.OUTILS = [
   },
   {
     dossier: 'cartes-a-la-carte',
+    version: '1.0',
     nom: 'Cartes à la carte',
     niveau: 'du CP à la 6e',
     texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
@@ -56,6 +65,7 @@ self.OUTILS = [
   },
   {
     dossier: 'copie-guidee',
+    version: '1.0',
     nom: 'La copie guidée',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil Copilote de Mathilde Lollier, pour faciliter la copie d’un texte. '

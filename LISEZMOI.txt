@@ -10,10 +10,10 @@ CONTENU DU DÉPÔT
   machine-conjugaison/
   a-qui-le-tour/
   images/                  les captures affichées sur les tuiles
-  outils.js                LA liste des outils (tuiles, aperçus, bulles, hors ligne)
-  version.js               LE numéro de version (seul fichier à modifier pour déclencher une mise à jour : 1.0 → 1.1…)
+  outils.js                LA liste des outils (tuiles, aperçus, bulles, hors ligne) avec le numéro de chaque outil
+  version.js               le numéro de version du PORTAIL (accueil, icônes, police, portail.js)
   portail.js               bouton « Accueil », version et mise à jour dans chaque outil (ne pas modifier)
-  sw.js                    fonctionnement hors ligne + mises à jour (à compléter seulement pour ajouter un outil)
+  sw.js                    fonctionnement hors ligne + mises à jour outil par outil (ne pas modifier)
   manifest.webmanifest     nom, icônes et affichage plein écran de l'application
   fonts/, icon-*.png, icone-tbi-apple.png, icone-tbi-favicon.png
   LICENSE                  la licence CC BY-NC 4.0
@@ -21,17 +21,22 @@ CONTENU DU DÉPÔT
 
 PUBLIER UNE NOUVELLE VERSION D'UN OUTIL
   1. Remplacer le fichier index.html dans le dossier de l'outil.
-  2. Changer le numéro dans version.js (1.0 → 1.1).
-  Au prochain lancement avec internet, l'application se met à jour toute seule.
+  2. Changer le numéro « version » de cet outil dans outils.js (1.0 → 1.1).
+  Au prochain lancement avec internet, l'application se met à jour toute seule : seul cet outil
+  est retéléchargé, et son nouveau numéro s'affiche dans sa signature.
+
+PUBLIER UNE NOUVELLE VERSION DU PORTAIL
+  Après une modification de la page d'accueil, de portail.js, des icônes ou de la police :
+  changer le numéro dans version.js.
 
 AJOUTER UN OUTIL
-  1. Créer son dossier avec son index.html (copier les lignes « Portail » et « Référencement » du <head>
+  1. Créer son dossier avec son index.html (copier les lignes « Portail » (dont ../outils.js) et « Référencement » du <head>
      d'un autre outil, puis adapter le titre, data-court = nom court, la description et les adresses).
   2. Mettre sa capture d'écran dans images/ (même nom que le dossier, format 16/9, ex. 800 × 450, en .jpg).
   3. Ajouter son bloc dans outils.js (nom, niveau, texte de la bulle, couleurs) : tuile, aperçu, bulle
      et fonctionnement hors ligne sont fabriqués automatiquement à partir de cette liste.
   4. Ajouter son adresse dans sitemap.xml (plan du site pour les moteurs de recherche).
-  5. Changer le numéro dans version.js.
+  (Pas besoin de changer version.js : l'ajout dans outils.js suffit à mettre à jour les applis.)
 
 RÉFÉRENCEMENT (moteurs de recherche)
   Chaque page a un titre long (lu par Google) et un nom court (data-court, affiché dans l'appli et les

@@ -95,12 +95,15 @@
     if (document.body) poser(); else document.addEventListener('DOMContentLoaded', poser);
   }
 
-  /* 3. Numéro de version dans la signature */
+  /* 3. Numéro de version dans la signature : celui de l'outil (outils.js), ou celui du portail sur l'accueil */
   function afficherVersion() {
-    if (typeof APP_VERSION === 'undefined') return;
-    document.querySelectorAll('.app-version').forEach(e => { e.textContent = ' – v' + APP_VERSION; });
+    const dossier = location.pathname.replace(racine.pathname, '').split('/')[0];
+    const outil = (self.OUTILS || []).find(o => o.dossier === dossier);
+    const version = outil ? outil.version : (typeof APP_VERSION !== 'undefined' ? APP_VERSION : null);
+    if (!version) return;
+    document.querySelectorAll('.app-version').forEach(e => { e.textContent = ' – v' + version; });
     const vnum = document.getElementById('vnum');                    // ligne existante du calcul mental
-    if (vnum) vnum.textContent = ' – v' + APP_VERSION;
+    if (vnum) vnum.textContent = ' – v' + version;
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', afficherVersion);
   else afficherVersion();
