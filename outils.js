@@ -27,10 +27,10 @@ self.OUTILS = [
   },
   {
     dossier: 'gym-des-mots',
-    version: '1.0',
+    version: '1.1',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
-    texte: 'Application inspirée du blog de Charivari. Les élèves identifient la nature de chaque mot de la phrase '
+    texte: 'Application inspirée de l’outil du Blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
          + 'projetée au tableau. Ils la miment par un geste. La bonne réponse s’affiche ensuite. '
          + 'Déroulement manuel ou automatique. Phrases fournies ou les vôtres.',
     couleur: '#E07B00', ombre: '#FFD69A',
