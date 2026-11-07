@@ -28,6 +28,7 @@
 <script src="version.js"></script>
 <script src="outils.js"></script>   <!-- liste des outils : tuiles, aperçus, bulles -->
 <script src="portail.js"></script>
+<script src="sauvegarde.js"></script>   <!-- sauvegarde unique de toutes les données -->
 <style>
   /* Police Fredoka (SIL OFL) fournie avec le portail : fonctionne sans internet */
   @font-face{font-family:"Fredoka";font-style:normal;font-weight:300 700;font-display:swap;src:url(fonts/fredoka.woff2) format("woff2")}
@@ -267,11 +268,21 @@
   #donnees-carte{
     position:fixed;left:clamp(12px,2vw,28px);bottom:calc(clamp(14px,calc(2vh + 4px),28px) + 40px);z-index:7;
     width:min(460px,calc(100vw - 24px));background:#fff;border-radius:20px;padding:16px 20px;text-align:left;
+    max-height:calc(100vh - 100px);overflow-y:auto;            /* petit écran : la fenêtre défile au lieu de déborder */
     box-shadow:0 8px 0 #CFC4F7,0 18px 34px rgba(31,42,68,.16);font-size:16px;line-height:1.4;color:var(--encre);
   }
   #donnees-carte h2{font-size:19px;font-weight:600;color:var(--violet);margin-bottom:8px}
   #donnees-carte p{margin-bottom:8px}
-  #donnees-carte p:last-child{margin-bottom:0;font-size:14px;color:var(--encre-douce)}
+  #donnees-carte .petit{font-size:14px;color:var(--encre-douce);margin-bottom:4px}
+  .boutons-sauvegarde{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+  .boutons-sauvegarde button{
+    font:600 15px "Fredoka",system-ui,sans-serif;border-radius:999px;padding:7px 14px;cursor:pointer;
+    border:2px solid var(--violet);background:#fff;color:var(--violet);
+  }
+  .boutons-sauvegarde button.plein{background:var(--violet);color:#fff}
+  .boutons-sauvegarde button:hover{transform:scale(1.04)}
+  #donnees-message{font-size:14px;color:var(--violet);margin:8px 0 0}
+  #donnees-confirmation .attention{font-weight:600;color:#C0392B}
 </style>
 </head>
 <body>
@@ -320,11 +331,28 @@
 <!-- Où sont enregistrées les données (listes, phrases, séances…) -->
 <div id="donnees-carte" role="dialog" aria-label="Où sont enregistrées tes données" hidden>
   <h2>Tes données restent sur cet appareil</h2>
-  <p>Les listes d’élèves, les phrases, les séances et les réglages sont enregistrés uniquement dans ce navigateur,
-     sur cet appareil. Rien n’est envoyé sur internet.</p>
-  <p>Pour les retrouver sur un autre ordinateur, utilise « Exporter » puis « Importer » dans l’outil concerné.</p>
-  <p>Attention : effacer les données de navigation du navigateur les supprime aussi.</p>
-  <p>Seules des statistiques de visite anonymes sont comptées, sans cookie.</p>
+  <div id="donnees-infos">
+    <p>Les listes d’élèves, les phrases, les séances et les réglages sont enregistrés uniquement dans ce navigateur,
+       sur cet appareil. Rien n’est envoyé sur internet.</p>
+    <p>Pour tout retrouver sur un autre ordinateur : «&nbsp;Sauvegarder&nbsp;» ici, puis «&nbsp;Restaurer&nbsp;» là-bas.</p>
+    <div class="boutons-sauvegarde">
+      <button id="sauver" class="plein" type="button">Sauvegarder mes données</button>
+      <button id="restaurer" type="button">Restaurer une sauvegarde</button>
+      <input id="fichier-sauvegarde" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="petit">Le fichier contient tes listes d’élèves : garde-le pour toi.</p>
+    <p class="petit">Effacer les données de navigation du navigateur supprime aussi tes données.</p>
+    <p class="petit">Seules des statistiques de visite anonymes sont comptées, sans cookie.</p>
+  </div>
+  <div id="donnees-confirmation" hidden>
+    <p id="resume-sauvegarde"></p>
+    <p class="attention">Les données de cet appareil seront remplacées par celles de la sauvegarde.</p>
+    <div class="boutons-sauvegarde">
+      <button id="confirmer-restauration" class="plein" type="button">Restaurer</button>
+      <button id="annuler-restauration" type="button">Annuler</button>
+    </div>
+  </div>
+  <p id="donnees-message" role="status" hidden></p>
 </div>
 <button id="donnees" type="button" title="Données sur cet appareil" aria-expanded="false" aria-controls="donnees-carte"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="texte">Données sur cet appareil</span></button>
 <footer>M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
