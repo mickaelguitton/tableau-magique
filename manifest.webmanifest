@@ -2,7 +2,7 @@
   "id": "/tableau-magique/",
   "name": "Le tableau magique",
   "short_name": "Tableau magique",
-  "description": "Les outils de classe de M. Guitton : calcul mental, gym des mots, machine à conjuguer, à qui le tour.",
+  "description": "Outils de classe gratuits à projeter au TBI, du CP au CM2, par M. Guitton.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
