@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Le tableau magique</title>
+<!--
+  Page affichée par GitHub quand une adresse du site n'existe pas.
+  Plutôt qu'une erreur 404, on renvoie vers la bonne page :
+  - si l'adresse contient un caractère invisible collé par erreur (souvent ajouté par Word ou une messagerie,
+    il apparaît sous la forme %EF%BB%BF) ou une espace, on l'enlève et on ouvre la page voulue ;
+  - sinon (faute de frappe, ancienne adresse…), on ouvre la page d'accueil du portail.
+  M. Guitton — fichier mis au point avec l'aide de Claude AI — licence CC BY-NC 4.0
+-->
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font:500 18px system-ui,sans-serif;color:#5B6785;background:linear-gradient(120deg,#DDEFFF,#E9E3FF 50%,#FFE6F1)}
+  a{color:#6A4BD1}
+</style>
+<script>
+  (function(){
+    var ACCUEIL = '/tableau-magique/';
+    var chemin = location.pathname;
+    try { chemin = decodeURIComponent(chemin); } catch(e) {}
+    // caractères invisibles (U+FEFF, espaces de largeur nulle…) et espaces
+    var propre = chemin.replace(/[﻿​-‍⁠ \s]+/g, '');
+    // on ne garde que les adresses du portail ; une adresse déjà nettoyée et toujours introuvable mène à l'accueil
+    var cible = (propre !== chemin && propre.indexOf(ACCUEIL) === 0) ? propre : ACCUEIL;
+    location.replace(cible + location.search + location.hash);
+  })();
+</script>
+</head>
+<body>
+  <p>Ouverture du <a href="/tableau-magique/">Tableau magique</a>…</p>
+</body>
+</html>
