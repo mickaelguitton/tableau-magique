@@ -2,16 +2,19 @@
    et installe automatiquement les nouvelles versions.
    Le numéro de version vient de version.js (seul fichier à modifier à chaque nouvelle version).
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
-importScripts('version.js');
+importScripts('version.js', 'outils.js');
 const CACHE = 'tableau-magique-' + self.APP_VERSION;
 
-/* Tous les fichiers à garder pour le hors ligne.
-   POUR AJOUTER UN OUTIL : ajouter ici son dossier (ex. './frise/'), comme les quatre ci-dessous. */
+/* Tous les fichiers à garder pour le hors ligne : ceux du portail, puis ceux de chaque outil,
+   tirés de la liste outils.js (rien à modifier ici pour ajouter un outil). */
 const FILES = [
-  './', 'version.js', 'portail.js', 'manifest.webmanifest', 'fonts/fredoka.woff2',
+  './', 'version.js', 'outils.js', 'portail.js', 'manifest.webmanifest', 'fonts/fredoka.woff2',
   'icone-tbi-192.png', 'icone-tbi-512.png', 'icone-tbi-maskable-512.png', 'icone-tbi-apple.png', 'icone-tbi-favicon.png',
-  'images/calcul-mental.jpg', 'images/gym-des-mots.jpg', 'images/machine-conjugaison.jpg', 'images/a-qui-le-tour.jpg',
-  './calcul-mental/', './gym-des-mots/', './gym-des-mots/lexique.js', './machine-conjugaison/', './a-qui-le-tour/'
+  ...self.OUTILS.flatMap(o => [
+    './' + o.dossier + '/',
+    'images/' + o.dossier + '.jpg',
+    ...(o.fichiers || []).map(f => './' + o.dossier + '/' + f)
+  ])
 ];
 
 /* Installation : on télécharge toute la nouvelle version (sans passer par le cache du navigateur),

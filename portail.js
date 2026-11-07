@@ -2,7 +2,7 @@
    Chargé par le portail ET par chaque outil (<script src="../portail.js">).
    - affiche le numéro de version (venu de version.js) dans la signature ;
    - affiche les boutons « Accueil » (cachés quand l'outil est ouvert seul, hors du portail) ;
-   - rend l'installation obligatoire sur le site (écran « Installer ») ;
+   - gère la page d'accueil du site : « Installer l'application » ou « Découvrir en ligne » ;
    - envoie des statistiques anonymes d'utilisation (aucun affichage) ;
    - active le fonctionnement hors ligne et la mise à jour automatique.
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
@@ -13,39 +13,59 @@
   /* 1. On est dans le portail : les boutons « Accueil » deviennent visibles */
   document.documentElement.classList.add('dans-portail');
 
-  /* 2. Installation obligatoire : sur le site, ouvert dans un simple onglet du navigateur
-     (et non dans l'appli installée), on ne laisse pas utiliser les outils :
-     - un outil renvoie aussitôt vers l'accueil ;
-     - l'accueil affiche l'écran « Installer » à la place des tuiles (voir index.html).
-     Ainsi tout le monde utilise l'appli installée, qui se met à jour toute seule.
+  /* 2. Trois façons d'arriver :
+     - dans l'APPLI INSTALLÉE : les tuiles s'affichent directement ;
+     - sur le SITE, dans un onglet : la page d'accueil (titre, « Installer l'application », « Découvrir en ligne »,
+       aperçus des outils) s'affiche à chaque nouvelle visite (classe « bienvenue », voir index.html) ;
+     - après « Découvrir en ligne » : les tuiles et les outils s'utilisent dans l'onglet, jusqu'à sa fermeture
+       (marque gardée en mémoire de session ; classe « en-ligne »). Un outil ouvert directement sans ce choix
+       renvoie à la page d'accueil.
      Le fichier ouvert depuis le disque (file://) n'est pas concerné. */
   const dansAppli = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
     .some(m => matchMedia('(display-mode: ' + m + ')').matches) || navigator.standalone === true;
   const surAccueil = new URL('./', location.href).href === racine.href;
+  let modeEnLigne = false;
+  try { modeEnLigne = sessionStorage.getItem('tableau-en-ligne') === '1'; } catch (e) {}
   // L'appli installée laisse une marque (même site = même mémoire) : l'onglet du navigateur
   // saura ainsi qu'elle est déjà installée sur cet ordinateur.
   if (enLigne && dansAppli) { try { localStorage.setItem('tableau-installe', '1'); } catch (e) {} }
   if (enLigne && !dansAppli) {
-    if (!surAccueil) { location.replace(racine.href); return; }
-    document.documentElement.classList.add('a-installer');
+    if (!surAccueil && !modeEnLigne) { location.replace(racine.href); return; }
+    document.documentElement.classList.add(modeEnLigne ? 'en-ligne' : 'bienvenue');
     // Chrome / Edge / Brave proposent l'installation par cet événement, parfois très tôt :
-    // on le garde de côté pour le bouton « Installer » de l'accueil.
+    // on le garde de côté pour le bouton « Installer l'application ».
     addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       window.propositionInstall = e;
       document.dispatchEvent(new Event('installation-possible'));
     });
   }
+  /* Utilisé par la page d'accueil : passer en mode « Découvrir en ligne », ou revenir à l'accueil */
+  window.TableauMagique = {
+    decouvrirEnLigne() {
+      try { sessionStorage.setItem('tableau-en-ligne', '1'); } catch (e) {}
+      document.documentElement.classList.replace('bienvenue', 'en-ligne');
+      modeEnLigne = true;
+      compterPage();
+    },
+    revenirAccueil() {
+      try { sessionStorage.removeItem('tableau-en-ligne'); } catch (e) {}
+      document.documentElement.classList.replace('en-ligne', 'bienvenue');
+      modeEnLigne = false;
+      compterPage();
+    }
+  };
 
-  /* 2 bis. Téléphone tenu en portrait (dans l'appli installée) : message « Tourne ton téléphone ».
+  /* 2 bis. Téléphone tenu en portrait (appli installée, ou outils utilisés en ligne) : message « Tourne ton téléphone ».
      Les outils sont pensés pour l'écran projeté, donc pour le paysage. Seuls les petits écrans tactiles
-     sont concernés (téléphones) : les tablettes et les ordinateurs ne voient jamais ce message. */
-  if (enLigne && dansAppli) {
+     sont concernés (téléphones) : les tablettes et les ordinateurs ne voient jamais ce message.
+     La page d'accueil (avant le choix) n'est pas concernée : on peut installer en portrait. */
+  if (enLigne) {
     const style = document.createElement('style');
     style.textContent = `
       #tourne-telephone{display:none}
       @media (orientation:portrait) and (max-width:599px) and (pointer:coarse){
-        #tourne-telephone{
+        html:not(.bienvenue) #tourne-telephone{
           display:flex;position:fixed;inset:0;z-index:2147483647;flex-direction:column;align-items:center;justify-content:center;
           gap:24px;padding:32px;text-align:center;color:#26215c;font:600 24px 'Fredoka',system-ui,sans-serif;
           background:linear-gradient(120deg,#DDEFFF 0%,#E9E3FF 50%,#FFE6F1 100%);
@@ -82,7 +102,9 @@
      Rien n'est affiché dans l'appli. Aucune donnée personnelle, aucun cookie, aucun identifiant :
      - « Installation »        : quelqu'un vient d'installer l'appli ;
      - « Nouvel ordinateur »   : première ouverture de l'appli sur un ordinateur (envoyé une seule fois par ordinateur) ;
-     - pages « /accueil », « /calcul-mental »… : chaque ouverture du portail ou d'un outil dans l'appli.
+     - pages « /accueil », « /calcul-mental »… : chaque ouverture du portail ou d'un outil dans l'appli ;
+     - pages « /bienvenue » : la page d'accueil du site (avant le choix « Installer » / « Découvrir en ligne ») ;
+     - pages « /en-ligne/accueil », « /en-ligne/calcul-mental »… : le même usage, sans installation.
      Le nombre de « Nouvel ordinateur » = nombre d'ordinateurs différents qui utilisent l'appli.
      Sans internet, rien n'est envoyé (l'appli fonctionne normalement). */
   const STATS = 'https://cartable-magique.goatcounter.com/count';
@@ -94,6 +116,15 @@
             + (evenement ? '&e=true' : '') + '&rnd=' + Math.random().toString(36).slice(2);
   }
   addEventListener('appinstalled', () => compter('installation', 'Installation de l’appli', true));
+  /* Ouverture de la page en cours (accueil ou outil), selon la façon d'utiliser le tableau magique */
+  function compterPage() {
+    if (!enLigne) return;
+    const page = surAccueil ? 'accueil' : location.pathname.replace(racine.pathname, '').replace(/\/(index\.html)?$/, '');
+    if (dansAppli) compter('/' + page, document.title || page, false);
+    else if (modeEnLigne) compter('/en-ligne/' + page, 'En ligne : ' + (document.title || page), false);
+    else compter('/bienvenue', 'Page d’accueil (avant installation)', false);
+  }
+  compterPage();
   if (enLigne && dansAppli) {
     // Une seule fois par ordinateur : la marque n'est posée qu'une fois l'envoi réussi
     let dejaCompte = false;
@@ -101,12 +132,9 @@
     try { dejaCompte = localStorage.getItem('cartable-compte') === '1'; } catch (e) {}
     if (!dejaCompte) compter('nouvel-ordinateur', 'Nouvel ordinateur', true,
       () => { try { localStorage.setItem('cartable-compte', '1'); } catch (e) {} });
-    // Ouverture de la page (accueil ou outil)
-    const page = surAccueil ? 'accueil' : location.pathname.replace(racine.pathname, '').replace(/\/(index\.html)?$/, '');
-    compter('/' + page, document.title || page, false);
   }
 
-  /* 4. Hors ligne et mise à jour automatique (seulement sur le site hébergé) */
+  /* 5. Hors ligne et mise à jour automatique (seulement sur le site hébergé) */
   if (!enLigne || !('serviceWorker' in navigator)) return;
   const avaitVersion = !!navigator.serviceWorker.controller;          // faux à la toute première visite
   navigator.serviceWorker.addEventListener('controllerchange', () => {

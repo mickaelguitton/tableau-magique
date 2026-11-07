@@ -10,6 +10,7 @@ CONTENU DU DÉPÔT
   machine-conjugaison/
   a-qui-le-tour/
   images/                  les captures affichées sur les tuiles
+  outils.js                LA liste des outils (tuiles, aperçus, bulles, hors ligne)
   version.js               LE numéro de version (seul fichier à modifier pour déclencher une mise à jour : 1.0 → 1.1…)
   portail.js               bouton « Accueil », version et mise à jour dans chaque outil (ne pas modifier)
   sw.js                    fonctionnement hors ligne + mises à jour (à compléter seulement pour ajouter un outil)
@@ -24,9 +25,10 @@ PUBLIER UNE NOUVELLE VERSION D'UN OUTIL
   Au prochain lancement avec internet, l'application se met à jour toute seule.
 
 AJOUTER UN OUTIL
-  1. Créer son dossier avec son index.html (et les lignes du portail : voir les autres outils).
-  2. Ajouter sa capture dans images/ et sa tuile dans index.html (copier une tuile existante).
-  3. Ajouter son dossier et sa capture dans la liste FILES de sw.js.
+  1. Créer son dossier avec son index.html (copier les lignes « Portail » du <head> d'un autre outil).
+  2. Mettre sa capture d'écran dans images/ (même nom que le dossier, format 16/9, ex. 800 × 450, en .jpg).
+  3. Ajouter son bloc dans outils.js (nom, niveau, texte de la bulle, couleurs) : tuile, aperçu, bulle
+     et fonctionnement hors ligne sont fabriqués automatiquement à partir de cette liste.
   4. Changer le numéro dans version.js.
 
 STATISTIQUES ANONYMES

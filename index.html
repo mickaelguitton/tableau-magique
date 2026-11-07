@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" href="icone-tbi-favicon.png">
 <link rel="apple-touch-icon" href="icone-tbi-apple.png">
 <script src="version.js"></script>
+<script src="outils.js"></script>   <!-- liste des outils : tuiles, aperçus, bulles -->
 <script src="portail.js"></script>
 <style>
   /* Police Fredoka (SIL OFL) fournie avec le portail : fonctionne sans internet */
@@ -75,12 +76,12 @@
 
   /* ---------- Grille des tuiles ----------
      Le nombre de colonnes et la taille des tuiles sont calculés par le script
-     (fonction disposerTuiles) pour que tout tienne dans l'écran, quel que soit
+     (fonction disposer) pour que tout tienne dans l’écran, quel que soit
      le nombre de tuiles. */
   main{
     flex:1;min-height:0;width:100%;
-    display:grid;justify-content:center;align-content:center;
-    gap:var(--ecart,32px);
+    display:flex;flex-wrap:wrap;justify-content:center;align-content:center;   /* rangée incomplète centrée */
+    gap:var(--ecart,32px);padding:0 var(--bord,0px);
   }
   .tuile{
     width:var(--largeur,400px);
@@ -107,58 +108,97 @@
   .nom{
     font-size:var(--police,28px);font-weight:600;line-height:1.2;
     text-align:center;margin-top:8px;color:var(--couleur);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    line-height:1.1;overflow-wrap:break-word;   /* sur très petit écran, le nom passe à la ligne plutôt que d'être coupé */
   }
 
-  /* Couleur propre à chaque outil */
-  .calcul{--couleur:#3D6FD9;--ombre:#B7D3FB}
-  .gym   {--couleur:#E07B00;--ombre:#FFD69A}
-  .conj  {--couleur:#D9443C;--ombre:#F9B9B4}
-  .tour  {--couleur:#16A497;--ombre:#A6E6DF}
+  /* (la couleur propre à chaque outil, --couleur et --ombre, vient de outils.js) */
 
-  /* ---------- Écran « Installer » ----------
-     Affiché à la place des tuiles quand le portail est ouvert dans un simple onglet
-     du navigateur (classe « a-installer » posée par portail.js). */
-  #installation{display:none}
-  html.a-installer main{display:none}
-  html.a-installer #installation{
-    flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;
+  /* Bouton « Installer l'application » discret, en haut à droite, quand on découvre en ligne */
+  #installer-coin{display:none}
+  html.en-ligne #installer-coin{
+    display:block;position:fixed;top:clamp(10px,2vh,22px);right:clamp(12px,2vw,28px);z-index:5;
+    font:600 15px "Fredoka",system-ui,sans-serif;color:#fff;cursor:pointer;
+    background:var(--violet);border:none;border-radius:999px;padding:.5em 1.2em;box-shadow:0 4px 0 #6A4BD1;
   }
-  .carte-install{
-    background:#fff;border-radius:32px;max-width:820px;width:100%;
-    padding:clamp(24px,4vh,44px) clamp(24px,4vw,52px);text-align:center;
-    box-shadow:0 10px 0 #CFC4F7, 0 18px 30px rgba(31,42,68,.08);
+
+  /* ---------- Page d'accueil du site (classe « bienvenue » posée par portail.js) ----------
+     Titre, deux boutons (« Installer l'application », « Découvrir en ligne »), puis l'aperçu des outils.
+     Dans l'appli installée et après « Découvrir en ligne », on voit les tuiles à la place. */
+  #bienvenue{display:none}
+  html.bienvenue main{display:none}
+  html.bienvenue #bienvenue{
+    flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;
   }
-  .carte-install img{width:clamp(90px,14vh,140px);height:auto;margin-bottom:1.5vh}
-  .carte-install p{font-size:clamp(18px,2.3vh,24px);line-height:1.4;font-weight:500;margin-bottom:2.5vh}
-  #installer{
-    font:600 clamp(20px,2.8vh,28px) "Fredoka",system-ui,sans-serif;color:#fff;cursor:pointer;
-    background:var(--violet);border:none;border-radius:999px;padding:.6em 1.8em;
-    box-shadow:0 6px 0 #6A4BD1;
+  .choix{display:flex;gap:clamp(12px,2vw,24px);flex-wrap:wrap;justify-content:center;align-items:center;flex:none}
+  .gros{
+    font:600 clamp(18px,2.6vh,26px) "Fredoka",system-ui,sans-serif;cursor:pointer;border-radius:999px;
+    padding:.55em 1.5em;border:3px solid var(--violet);transition:transform .12s ease, filter .12s ease;
   }
-  #installer:hover{filter:brightness(1.07)}
-  #installer:active{transform:translateY(4px);box-shadow:0 2px 0 #6A4BD1}
-  #aide-install{margin-top:2.5vh;font-size:clamp(15px,1.9vh,19px);color:var(--encre-douce);line-height:1.4}
+  .gros:hover{filter:brightness(1.06)}
+  .gros:active{transform:translateY(3px)}
+  #installer{background:var(--violet);color:#fff;box-shadow:0 6px 0 #6A4BD1}
+  #installer:active{box-shadow:0 2px 0 #6A4BD1}
+  #decouvrir{background:#fff;color:#5B3FC4;box-shadow:0 6px 0 #CFC4F7}
+  #decouvrir:active{box-shadow:0 2px 0 #CFC4F7}
+  #etat-installee{
+    background:#fff;border-radius:18px;padding:.5em 1em;max-width:430px;text-align:center;
+    font-size:clamp(14px,1.8vh,17px);line-height:1.35;box-shadow:0 4px 0 #CFC4F7;
+  }
+  #etat-installee b{color:#5B3FC4}
+  button.lien{
+    background:none;border:none;cursor:pointer;color:var(--violet);padding:0;
+    font:500 clamp(13px,1.7vh,16px) "Fredoka",system-ui,sans-serif;text-decoration:underline;
+  }
+  #aide-install{
+    flex:none;max-width:760px;margin-top:1.2vh;text-align:center;
+    font-size:clamp(14px,1.8vh,17px);color:var(--encre-douce);line-height:1.4;
+  }
   #aide-install:empty{display:none}
-  .carte-install button.lien{
-    background:none;border:none;cursor:pointer;color:var(--violet);
-    font:500 clamp(15px,1.9vh,18px) "Fredoka",system-ui,sans-serif;text-decoration:underline;
+  .consigne{flex:none;margin:2.2vh 0 1vh;font-size:clamp(14px,1.9vh,18px);color:var(--encre-douce);font-weight:500}
+
+  /* Aperçus des outils : même calcul de disposition que les tuiles (fonction disposer) */
+  #apercus{
+    flex:1;min-height:0;width:100%;
+    display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:var(--ecart,24px);
+    padding:0 var(--bord,0px);
   }
-  .carte-install p.navigateurs{
-    margin:3vh 0 0;padding-top:2vh;border-top:2px dashed #E3DDF8;
-    font-size:clamp(14px,1.8vh,17px);font-weight:500;line-height:1.5;color:var(--encre-douce);
+  .apercu{
+    width:var(--largeur,300px);position:relative;cursor:pointer;
+    background:#fff;border:3px solid transparent;border-radius:calc(var(--largeur,300px) * .06);
+    padding:8px 8px 6px;text-align:center;font:inherit;color:var(--encre);
+    box-shadow:0 7px 0 var(--ombre), 0 12px 22px rgba(31,42,68,.07);
+    transition:transform .15s ease, border-color .15s ease;
   }
+  .apercu:hover,.apercu:focus-visible,.apercu[aria-expanded="true"]{transform:translateY(-4px);border-color:var(--couleur);outline:none}
+  .apercu img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:calc(var(--largeur,300px) * .04)}
+  .apercu .nom{margin-top:5px;font-size:var(--police,20px);white-space:normal;line-height:1.1}
+  .apercu .niveau{font-size:max(10px,calc(var(--police,20px) * .62));color:var(--encre-douce);margin-top:1px}
+
+  /* Bulle d'explication d'un outil */
+  #bulle-outil{
+    position:fixed;z-index:8;width:min(380px,calc(100vw - 24px));
+    background:#fff;border:3px solid var(--couleur,#8E6CEF);border-radius:18px;padding:12px 16px 14px;
+    box-shadow:0 8px 0 var(--ombre,#CFC4F7),0 18px 34px rgba(31,42,68,.18);
+    font-size:16px;line-height:1.42;text-align:left;
+  }
+  #bulle-outil h2{font-size:20px;color:var(--couleur);line-height:1.2}
+  #bulle-outil .niveau{font-size:14px;color:var(--encre-douce);font-weight:600;margin:2px 0 6px}
+  #bulle-outil::after{                       /* petite pointe vers la vignette */
+    content:"";position:absolute;left:var(--pointe,50%);width:16px;height:16px;background:#fff;
+    border:3px solid var(--couleur,#8E6CEF);transform:translateX(-50%) rotate(45deg);
+  }
+  #bulle-outil.dessus::after{bottom:-11px;border-top:none;border-left:none}
+  #bulle-outil.dessous::after{top:-11px;border-bottom:none;border-right:none}
+
+  .navigateurs{flex:none;margin-top:1.4vh;font-size:clamp(12px,1.55vh,15px);color:var(--encre-douce);text-align:center}
   .navigateurs b{color:var(--encre);font-weight:600}
 
-  /* Écran « Installer » sur un écran très bas (téléphone en paysage) : on resserre */
+  /* Écran très bas (téléphone en paysage) : on resserre la page d'accueil */
   @media (max-height:500px){
-    html.a-installer header{margin-bottom:1vh}
-    .carte-install{padding:12px 24px;border-radius:22px}
-    .carte-install img{display:none}
-    .carte-install p{font-size:15px;margin-bottom:8px}
-    #installer{font-size:18px;padding:.4em 1.4em}
-    #aide-install{font-size:13px;margin-top:8px}
-    .carte-install p.navigateurs{font-size:12px;margin-top:8px;padding-top:6px}
+    html.bienvenue header{margin-bottom:.6vh}
+    .gros{font-size:16px;padding:.35em 1.1em}
+    .consigne{margin:1vh 0 .5vh;font-size:13px}
+    .navigateurs{display:none}
   }
 
   /* ---------- Bulle « Une remarque ? Une idée ? » (coin en bas à droite) ---------- */
@@ -207,50 +247,26 @@
   <h1 id="titre" aria-label="Le tableau magique">Le tableau magique</h1>
 </header>
 
-<main>
-  <a class="tuile calcul" href="calcul-mental/">
-    <img src="images/calcul-mental.jpg" alt="">
-    <div class="nom">Calcul mental</div>
-  </a>
+<!-- Tuiles des outils : fabriquées à partir de outils.js (voir le script en bas) -->
+<main id="tuiles"></main>
+<button id="installer-coin" type="button">Installer l’application</button>
 
-  <a class="tuile gym" href="gym-des-mots/">
-    <img src="images/gym-des-mots.jpg" alt="">
-    <div class="nom">La gym des mots</div>
-  </a>
-
-  <a class="tuile conj" href="machine-conjugaison/">
-    <img src="images/machine-conjugaison.jpg" alt="">
-    <div class="nom">Machine à conjuguer</div>
-  </a>
-
-  <a class="tuile tour" href="a-qui-le-tour/">
-    <img src="images/a-qui-le-tour.jpg" alt="">
-    <div class="nom">À qui le tour ?</div>
-  </a>
-</main>
-
-<section id="installation" aria-label="Installer l'application">
-  <div class="carte-install">
-    <img src="icone-tbi-192.png" alt="">
-    <div id="etat-a-installer">
-      <p>Pour utiliser les outils en classe, installe l'application.<br>
-         Elle fonctionnera même sans internet et se mettra à jour toute seule.</p>
-      <button id="installer" type="button">Installer</button>
-    </div>
+<!-- Page d'accueil du site : deux choix, puis l'aperçu des outils (fabriqué à partir de outils.js) -->
+<section id="bienvenue" aria-label="Bienvenue">
+  <div class="choix">
+    <button id="installer" class="gros" type="button">Installer l’application</button>
     <div id="etat-installee" hidden>
-      <p><b>L'application est installée sur cet ordinateur.</b><br>
-         Ouvre « Le tableau magique » depuis son icône : sur le bureau, dans le menu Démarrer,
-         ou avec le bouton « Ouvrir dans l'application » à droite de la barre d'adresse.</p>
-      <button id="reinstaller" class="lien" type="button">Elle n'est plus installée ? L'installer à nouveau</button>
+      <b>Déjà installée sur cet appareil :</b> ouvre « Le tableau magique » depuis son icône.<br>
+      <button id="reinstaller" class="lien" type="button">Elle n’est plus installée ? L’installer à nouveau</button>
     </div>
-    <div id="aide-install" role="status"></div>
-    <p class="navigateurs">
-      <b>Navigateurs compatibles</b><br>
-      Ordinateur : Chrome, Edge ou Brave · iPad, iPhone, Mac : Safari · Android : Chrome<br>
-      Firefox ne permet pas d'installer l'application.
-    </p>
+    <button id="decouvrir" class="gros" type="button">Découvrir en ligne</button>
   </div>
+  <div id="aide-install" role="status"></div>
+  <p class="consigne">Clique sur un outil pour en savoir plus.</p>
+  <div id="apercus"></div>
+  <p class="navigateurs"><b>Installation</b> : Chrome, Edge ou Brave sur ordinateur · Safari sur iPad et iPhone · Chrome sur Android (pas Firefox)</p>
 </section>
+<div id="bulle-outil" role="dialog" hidden></div>
 
 <!-- Bulle de contact : l'adresse n'est jamais écrite en entier dans la page (protection contre les robots) -->
 <button id="contact" type="button" aria-label="Une remarque ? Une idée ? Écrire à M. Guitton" aria-expanded="false" aria-controls="contact-carte">
@@ -285,39 +301,110 @@
     ).join(' ');
   })();
 
-  /* Dispose les tuiles pour qu'elles tiennent toutes dans l'écran.
-     On essaie 1, 2, 3… colonnes et on garde celle qui donne les plus
-     grandes tuiles. S'adapte tout seul quand on ajoute une tuile. */
-  function disposerTuiles(){
-    const zone   = document.querySelector('main');
-    const tuiles = zone.querySelectorAll('.tuile');
-    const n = tuiles.length;
-    if(!n) return;
+  const OUTILS = self.OUTILS || [];
+  const echapper = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const couleurs = o => '--couleur:' + o.couleur + ';--ombre:' + o.ombre;
+
+  /* Tuiles (appli installée et « Découvrir en ligne ») */
+  document.getElementById('tuiles').innerHTML = OUTILS.map(o =>
+    '<a class="tuile" style="' + couleurs(o) + '" href="' + o.dossier + '/">'
+    + '<img src="images/' + o.dossier + '.jpg" alt="">'
+    + '<div class="nom">' + echapper(o.nom) + '</div></a>').join('');
+
+  /* Aperçus de la page d'accueil (non cliquables pour jouer : un clic ouvre la bulle d'explication) */
+  document.getElementById('apercus').innerHTML = OUTILS.map((o, i) =>
+    '<button class="apercu" type="button" data-i="' + i + '" aria-expanded="false" style="' + couleurs(o) + '">'
+    + '<img src="images/' + o.dossier + '.jpg" alt="">'
+    + '<div class="nom" style="color:' + o.couleur + '">' + echapper(o.nom) + '</div>'
+    + '<div class="niveau">' + echapper(o.niveau) + '</div></button>').join('');
+
+  /* Dispose des cartes (tuiles ou aperçus) pour qu'elles tiennent toutes dans leur zone.
+     On essaie 1, 2, 3… colonnes et on garde celle qui donne les plus grandes cartes.
+     S'adapte tout seul quand on ajoute un outil. */
+  function disposer(zone, selecteur, marge, texte){
+    const cartes = zone.querySelectorAll(selecteur);
+    const n = cartes.length;
+    if(!n || !zone.clientHeight) return;
 
     const W = zone.clientWidth, H = zone.clientHeight;
-    const ecart = Math.round(Math.min(40, Math.max(14, Math.min(W, H) * 0.035)));
-    const marge = 32;           // bordure + marges intérieures de la tuile
-    const ombre = 16;           // ombre colorée sous la tuile
+    const ecart = Math.round(Math.min(40, Math.max(12, Math.min(W, H) * 0.035)));
+    const ombre = 16;           // ombre colorée sous la carte
     let meilleur = { largeur:0, colonnes:1 };
 
     for(let colonnes = 1; colonnes <= n; colonnes++){
       const lignes = Math.ceil(n / colonnes);
       // largeur permise par la place en largeur…
       const parLargeur = (W - ecart * (colonnes - 1)) / colonnes;
-      // …et par la place en hauteur (image 16/9 + nom ≈ 12 % de la largeur)
+      // …et par la place en hauteur (image 16/9 + texte ≈ « texte » × la largeur)
       const hTuile = (H - ecart * (lignes - 1)) / lignes - ombre;
-      const parHauteur = (hTuile - marge) / (9/16 + 0.12) + 24;
+      const parHauteur = (hTuile - marge) / (9/16 + texte) + 24;
       const largeur = Math.min(parLargeur, parHauteur);
       if(largeur > meilleur.largeur) meilleur = { largeur, colonnes };
     }
 
     const l = Math.floor(meilleur.largeur);
-    zone.style.gridTemplateColumns = 'repeat(' + meilleur.colonnes + ', auto)';
+    // marges sur les côtés pour que chaque rangée contienne exactement « colonnes » cartes
+    const rangee = meilleur.colonnes * l + (meilleur.colonnes - 1) * ecart;
+    zone.style.setProperty('--bord', Math.max(0, Math.floor((W - rangee) / 2) - 1) + 'px');
     zone.style.setProperty('--largeur', l + 'px');
     zone.style.setProperty('--ecart', ecart + 'px');
-    zone.style.setProperty('--police', Math.max(16, Math.min(34, l * 0.065)) + 'px');
+    zone.style.setProperty('--police', Math.max(12, Math.min(34, l * 0.065)) + 'px');   // police plus petite sur téléphone : le nom reste entier
   }
-  disposerTuiles();
+  function disposerTout(){
+    disposer(document.getElementById('tuiles'), '.tuile', 32, 0.12);
+    disposer(document.getElementById('apercus'), '.apercu', 24, 0.19);
+    fermerBulle();
+  }
+
+  /* Bulle d'explication : s'ouvre au-dessus (ou en dessous) de l'aperçu cliqué */
+  const bulle = document.getElementById('bulle-outil');
+  let ouverte = null;
+  function fermerBulle(){
+    bulle.hidden = true;
+    if (ouverte) ouverte.setAttribute('aria-expanded', 'false');
+    ouverte = null;
+  }
+  function ouvrirBulle(carte){
+    const o = OUTILS[+carte.dataset.i];
+    if (ouverte === carte) { fermerBulle(); return; }
+    fermerBulle();
+    bulle.setAttribute('style', couleurs(o));
+    bulle.innerHTML = '<h2>' + echapper(o.nom) + '</h2><div class="niveau">' + echapper(o.niveau) + '</div><p>' + echapper(o.texte) + '</p>';
+    bulle.setAttribute('aria-label', o.nom);
+    bulle.hidden = false;
+    // placement : centrée sur la carte, au-dessus si la place le permet, sinon en dessous
+    const r = carte.getBoundingClientRect(), b = bulle.getBoundingClientRect();
+    const x = Math.max(12, Math.min(innerWidth - b.width - 12, r.left + r.width / 2 - b.width / 2));
+    const dessus = r.top - b.height - 16 > 8;
+    const y = dessus ? r.top - b.height - 14 : Math.min(innerHeight - b.height - 8, r.bottom + 14);
+    bulle.style.left = x + 'px';
+    bulle.style.top = y + 'px';
+    bulle.style.setProperty('--pointe', Math.max(24, Math.min(b.width - 24, r.left + r.width / 2 - x)) + 'px');
+    bulle.className = dessus ? 'dessus' : 'dessous';
+    carte.setAttribute('aria-expanded', 'true');
+    ouverte = carte;
+  }
+  document.getElementById('apercus').addEventListener('click', e => {
+    const carte = e.target.closest('.apercu');
+    if (carte) { e.stopPropagation(); ouvrirBulle(carte); }
+  });
+  bulle.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', fermerBulle);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerBulle(); });
+
+  /* « Découvrir en ligne » : les tuiles s'affichent, dans cet onglet (voir portail.js) */
+  document.getElementById('decouvrir').addEventListener('click', () => {
+    fermerBulle();
+    window.TableauMagique && TableauMagique.decouvrirEnLigne();
+    requestAnimationFrame(disposerTout);
+  });
+  /* Petit bouton « Installer l'application » en haut à droite des tuiles en ligne */
+  document.getElementById('installer-coin').addEventListener('click', () => {
+    if (window.propositionInstall) { document.getElementById('installer').click(); return; }
+    window.TableauMagique && TableauMagique.revenirAccueil();
+    requestAnimationFrame(disposerTout);
+  });
+  disposerTout();
 
   /* Bulle de contact : l'adresse est reconstituée seulement au clic, à partir de morceaux,
      pour que les robots qui récoltent les adresses dans les pages ne la trouvent pas. */
@@ -343,18 +430,19 @@
     });
   })();
 
-  /* Écran « Installer » : bouton qui ouvre la fenêtre d'installation de Chrome / Edge.
-     (Il n'est visible que si portail.js a posé la classe « a-installer ».) */
+  /* Bouton « Installer l'application » : ouvre la fenêtre d'installation de Chrome / Edge / Brave.
+     (Utile seulement sur le site, dans un onglet : classes « bienvenue » ou « en-ligne » posées par portail.js.) */
   (function boutonInstaller(){
-    if(!document.documentElement.classList.contains('a-installer')) return;
+    const cl = document.documentElement.classList;
+    if(!cl.contains('bienvenue') && !cl.contains('en-ligne')) return;
     const btn = document.getElementById('installer'), aide = document.getElementById('aide-install');
-    const aInstaller = document.getElementById('etat-a-installer');
     const installee  = document.getElementById('etat-installee');
 
-    /* Affiche l'un ou l'autre état de l'écran */
+    /* Affiche l'un ou l'autre état : bouton « Installer », ou « Déjà installée sur cet appareil » */
     function montrerInstallee(oui){
-      aInstaller.hidden = oui;
+      btn.hidden = oui;
       installee.hidden  = !oui;
+      document.getElementById('installer-coin').hidden = oui;
       aide.textContent  = '';
     }
 
@@ -387,17 +475,18 @@
         p.prompt();
         const choix = await p.userChoice.catch(() => null);
         window.propositionInstall = null;
-        if(choix && choix.outcome === 'dismissed') aide.textContent = 'Installation annulée. Tu peux recliquer sur « Installer » quand tu veux.';
+        if(choix && choix.outcome === 'dismissed') aide.textContent = 'Installation annulée. Tu peux recliquer sur « Installer l’application » quand tu veux.';
         return;
       }
       aide.textContent = 'Dans Chrome, Edge ou Brave : menu du navigateur (⋮, … ou ☰), puis « Installer Le tableau magique » '
                        + '(ou petite icône d’installation à droite de la barre d’adresse). '
                        + 'Sur iPad ou iPhone avec Safari : bouton Partager, puis « Sur l’écran d’accueil ». '
                        + 'Si l’application est déjà installée, ouvre-la depuis son icône.';
+      if (cl.contains('en-ligne')) { TableauMagique.revenirAccueil(); requestAnimationFrame(disposerTout); }
     };
   })();
-  addEventListener('resize', disposerTuiles);
-  document.fonts && document.fonts.ready.then(disposerTuiles);   // le titre change de taille quand la police arrive
+  addEventListener('resize', disposerTout);
+  document.fonts && document.fonts.ready.then(disposerTout);   // le titre change de taille quand la police arrive
 </script>
 </body>
 </html>
