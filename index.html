@@ -249,6 +249,21 @@
     flex:none;padding-top:4vh;font-size:13px;color:var(--encre-douce);
     text-align:center;opacity:.8;
   }
+  /* « Données sur cet appareil » : petit lien du pied de page et sa fenêtre d'explication */
+  #donnees{
+    font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;
+    display:inline-flex;align-items:center;gap:4px;vertical-align:bottom;
+  }
+  #donnees:hover,#donnees[aria-expanded="true"]{text-decoration:underline}
+  #donnees svg{width:13px;height:13px}
+  #donnees-carte{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(clamp(10px,2vh,24px) + 34px);z-index:7;
+    width:min(460px,calc(100vw - 24px));background:#fff;border-radius:20px;padding:16px 20px;text-align:left;
+    box-shadow:0 8px 0 #CFC4F7,0 18px 34px rgba(31,42,68,.16);font-size:16px;line-height:1.4;color:var(--encre);
+  }
+  #donnees-carte h2{font-size:19px;font-weight:600;color:var(--violet);margin-bottom:8px}
+  #donnees-carte p{margin-bottom:8px}
+  #donnees-carte p:last-child{margin-bottom:0;font-size:14px;color:var(--encre-douce)}
 </style>
 </head>
 <body>
@@ -294,7 +309,16 @@
   </div>
 </div>
 
-<footer>M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
+<!-- Où sont enregistrées les données (listes, phrases, séances…) -->
+<div id="donnees-carte" role="dialog" aria-label="Où sont enregistrées tes données" hidden>
+  <h2>Tes données restent sur cet appareil</h2>
+  <p>Les listes d’élèves, les phrases, les séances et les réglages sont enregistrés uniquement dans ce navigateur,
+     sur cet appareil. Rien n’est envoyé sur internet.</p>
+  <p>Pour les retrouver sur un autre ordinateur, utilise « Exporter » puis « Importer » dans l’outil concerné.</p>
+  <p>Attention : effacer les données de navigation du navigateur les supprime aussi.</p>
+  <p>Seules des statistiques de visite anonymes sont comptées, sans cookie.</p>
+</div>
+<footer><button id="donnees" type="button" aria-expanded="false" aria-controls="donnees-carte"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Données sur cet appareil</button> · M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
 
 <script>
   /* Colore le titre lettre par lettre (les espaces restent neutres) */
@@ -437,6 +461,16 @@
       catch (err) { e.target.textContent = 'Sélectionne l’adresse ci-dessus'; }
       setTimeout(() => { e.target.textContent = 'Copier l’adresse'; }, 2500);
     });
+  })();
+
+  /* « Données sur cet appareil » : la fenêtre s'ouvre au clic et se referme au clic ailleurs ou avec Échap */
+  (function fenetreDonnees(){
+    const lien = document.getElementById('donnees'), carte = document.getElementById('donnees-carte');
+    const ouvrir = oui => { carte.hidden = !oui; lien.setAttribute('aria-expanded', oui ? 'true' : 'false'); };
+    lien.addEventListener('click', e => { e.stopPropagation(); ouvrir(carte.hidden); });
+    carte.addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', () => ouvrir(false));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') ouvrir(false); });
   })();
 
   /* Bouton « Installer l'application » : ouvre la fenêtre d'installation de Chrome / Edge / Brave.
