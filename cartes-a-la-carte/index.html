@@ -3067,7 +3067,7 @@ card.addEventListener('click', ev => {
       P.revealed.has(key) ? P.revealed.delete(key) : P.revealed.add(key);
       if (state.evalMode) render(); else refreshSelection();   // en évaluation, le numéro devient « numéro. nom »
       break;
-    case 'move-school': card.hidden = true; setMode('school'); break;
+    case 'move-school': card.hidden = true; askSchool(true); break;   // on propose de taper la commune, comme au début
     case 'delete-pin':
       if (e.isSchool) state.school = null; else P.pins = P.pins.filter(p => p !== e.pin);
       save(); state.selected = null; render(); break;
@@ -3136,16 +3136,26 @@ function placeSchool(ev) {
   if (input) { input.focus(); input.select(); }
 }
 /* « Où est votre école ? » : à la première ouverture (et en cochant « Notre école » quand elle n'est pas placée).
-   La commune (ou le département) tapée centre la carte de France ; un clic place ensuite l'école. */
-function askSchool() {
-  openDialog('Où est votre école ?', `<p>L’école sert de repère sur la carte de France (thème « Autour de l’école », emboîtement des échelles…).
-    Tapez le nom de sa commune, puis cliquez à l’emplacement de l’école.</p>
+   La commune (ou le département) tapée centre la carte de France ; un clic place ensuite l'école.
+   deplacer = true : appelée par « Déplacer » sur la fiche de l'école. L'école déjà placée est gardée tant qu'on n'a pas
+   cliqué ailleurs ; sans commune tapée, on la déplace directement sur la carte. */
+function askSchool(deplacer = false) {
+  openDialog(deplacer ? 'Déplacer l’école' : 'Où est votre école ?', `${deplacer
+    ? `<p>Tapez le nom de la commune de la nouvelle école, puis cliquez à son emplacement.
+      Pour la déplacer dans la même commune, laissez la case vide et cliquez sur « Placer l’école ».</p>`
+    : `<p>L’école sert de repère sur la carte de France (thème « Autour de l’école », emboîtement des échelles…).
+    Tapez le nom de sa commune, puis cliquez à l’emplacement de l’école.</p>`}
     <label class="field" for="school-town">Commune ou département<input id="school-town" list="school-towns" autocomplete="off" placeholder="Ex. : Rennes, Gironde, Saint-Malo…"></label>
     <datalist id="school-towns">${SCHOOL_TOWNS.map(([n]) => `<option value="${escapeHtml(n)}">`).join('')}</datalist>
-    <div class="acts"><button class="btn primary" data-act="school-go">Placer l’école</button><button class="btn" data-act="school-later">Plus tard</button></div>`, act => {
-    if (act === 'school-later') { state.school = null; save(); closeDialog(); return; }
+    <div class="acts"><button class="btn primary" data-act="school-go">Placer l’école</button><button class="btn" data-act="school-later">${deplacer ? 'Annuler' : 'Plus tard'}</button></div>`, act => {
+    if (act === 'school-later') { if (!deplacer) { state.school = null; save(); } closeDialog(); return; }
     if (act !== 'school-go') return;
     const q = norm($('school-town').value);
+    if (!q && deplacer) {                                                    // même commune : on clique directement
+      closeDialog();
+      if (state.view !== 'france') { state.view = 'france'; state.preset = null; changeView(); }
+      zoomToSchool(16); setMode('school'); return;
+    }
     if (!q) return seanceDialogNote('Tapez le nom de la commune de l’école.');
     const hit = SCHOOL_TOWNS.find(([n]) => norm(n) === q) || SCHOOL_TOWNS.find(([n]) => norm(n).startsWith(q));
     closeDialog();

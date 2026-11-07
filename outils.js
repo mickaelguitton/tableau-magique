@@ -50,7 +50,8 @@ self.OUTILS = [
     nom: 'Cartes à la carte',
     niveau: 'du CP à la 6e',
     texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
-         + 'On choisit ce qu’on affiche (régions, pays, fleuves, population, climats…), on zoome et on situe l’école.',
+         + 'On choisit ce qu’on affiche (régions, pays, fleuves, population, climats…), on zoome et on situe l’école. '
+         + 'Cartes muettes. Préparation de séances. Conception d’évaluations. Impression ou copie pour Word.',
     couleur: '#6A4BD1', ombre: '#CFC4F7'
   }
 ];
