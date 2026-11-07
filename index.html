@@ -373,7 +373,10 @@
     const ombre = 16;           // ombre colorée sous la carte
     let meilleur = { largeur:0, colonnes:1 };
 
-    for(let colonnes = 1; colonnes <= n; colonnes++){
+    // Au moins deux rangées dès 4 outils (3 + 3 pour 6 outils), sauf sur un écran très bas (téléphone
+    // à l'horizontale) où une seule rangée laisse des cartes plus lisibles.
+    const maxColonnes = (n >= 4 && H >= 260) ? Math.ceil(n / 2) : n;
+    for(let colonnes = 1; colonnes <= maxColonnes; colonnes++){
       const lignes = Math.ceil(n / colonnes);
       // largeur permise par la place en largeur…
       const parLargeur = (W - ecart * (colonnes - 1)) / colonnes;
