@@ -212,7 +212,7 @@
   }
   /* Téléphone : le bouton se réduit au cadenas, pour ne pas cacher les outils */
   @media (max-height:500px),(max-width:600px){
-    #donnees{width:44px;padding:0;justify-content:center}
+    #donnees{width:28px;padding:0;justify-content:center}
     #donnees .texte{display:none}
   }
 
@@ -257,15 +257,15 @@
   /* « Données sur cet appareil » : bouton violet en bas à gauche (pendant de la bulle de contact) et sa fenêtre */
   #donnees{
     position:fixed;left:clamp(12px,2vw,28px);bottom:clamp(14px,calc(2vh + 4px),28px);z-index:6;
-    display:inline-flex;align-items:center;gap:7px;height:44px;padding:0 16px 0 13px;cursor:pointer;
-    font:600 16px "Fredoka",system-ui,sans-serif;color:var(--violet);background:#fff;
-    border:2px solid var(--violet);border-radius:999px;box-shadow:0 4px 0 rgba(106,75,209,.35);
+    display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 11px 0 9px;cursor:pointer;
+    font:600 14px "Fredoka",system-ui,sans-serif;color:var(--violet);background:#fff;
+    border:2px solid var(--violet);border-radius:999px;box-shadow:0 3px 0 rgba(106,75,209,.35);
     transition:transform .15s ease;
   }
   #donnees:hover,#donnees:focus-visible,#donnees[aria-expanded="true"]{transform:scale(1.05);outline:none}
-  #donnees svg{width:20px;height:20px;flex:none}
+  #donnees svg{width:14px;height:14px;flex:none}
   #donnees-carte{
-    position:fixed;left:clamp(12px,2vw,28px);bottom:calc(clamp(14px,calc(2vh + 4px),28px) + 58px);z-index:7;
+    position:fixed;left:clamp(12px,2vw,28px);bottom:calc(clamp(14px,calc(2vh + 4px),28px) + 40px);z-index:7;
     width:min(460px,calc(100vw - 24px));background:#fff;border-radius:20px;padding:16px 20px;text-align:left;
     box-shadow:0 8px 0 #CFC4F7,0 18px 34px rgba(31,42,68,.16);font-size:16px;line-height:1.4;color:var(--encre);
   }
