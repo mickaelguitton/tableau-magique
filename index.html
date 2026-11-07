@@ -210,6 +210,11 @@
     .gros{font-size:16px;padding:.35em 1.1em}
     .consigne{margin:1vh 0 .5vh;font-size:13px}
   }
+  /* Téléphone : le bouton se réduit au cadenas, pour ne pas cacher les outils */
+  @media (max-height:500px),(max-width:600px){
+    #donnees{width:44px;padding:0;justify-content:center}
+    #donnees .texte{display:none}
+  }
 
   /* ---------- Bulle « Une remarque ? Une idée ? » (coin en bas à droite) ---------- */
   #contact{
@@ -249,15 +254,18 @@
     flex:none;padding-top:4vh;font-size:13px;color:var(--encre-douce);
     text-align:center;opacity:.8;
   }
-  /* « Données sur cet appareil » : petit lien du pied de page et sa fenêtre d'explication */
+  /* « Données sur cet appareil » : bouton violet en bas à gauche (pendant de la bulle de contact) et sa fenêtre */
   #donnees{
-    font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;
-    display:inline-flex;align-items:center;gap:4px;vertical-align:bottom;
+    position:fixed;left:clamp(12px,2vw,28px);bottom:clamp(14px,calc(2vh + 4px),28px);z-index:6;
+    display:inline-flex;align-items:center;gap:7px;height:44px;padding:0 16px 0 13px;cursor:pointer;
+    font:600 16px "Fredoka",system-ui,sans-serif;color:var(--violet);background:#fff;
+    border:2px solid var(--violet);border-radius:999px;box-shadow:0 4px 0 rgba(106,75,209,.35);
+    transition:transform .15s ease;
   }
-  #donnees:hover,#donnees[aria-expanded="true"]{text-decoration:underline}
-  #donnees svg{width:13px;height:13px}
+  #donnees:hover,#donnees:focus-visible,#donnees[aria-expanded="true"]{transform:scale(1.05);outline:none}
+  #donnees svg{width:20px;height:20px;flex:none}
   #donnees-carte{
-    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(clamp(10px,2vh,24px) + 34px);z-index:7;
+    position:fixed;left:clamp(12px,2vw,28px);bottom:calc(clamp(14px,calc(2vh + 4px),28px) + 58px);z-index:7;
     width:min(460px,calc(100vw - 24px));background:#fff;border-radius:20px;padding:16px 20px;text-align:left;
     box-shadow:0 8px 0 #CFC4F7,0 18px 34px rgba(31,42,68,.16);font-size:16px;line-height:1.4;color:var(--encre);
   }
@@ -318,7 +326,8 @@
   <p>Attention : effacer les données de navigation du navigateur les supprime aussi.</p>
   <p>Seules des statistiques de visite anonymes sont comptées, sans cookie.</p>
 </div>
-<footer><button id="donnees" type="button" aria-expanded="false" aria-controls="donnees-carte"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Données sur cet appareil</button> · M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
+<button id="donnees" type="button" title="Données sur cet appareil" aria-expanded="false" aria-controls="donnees-carte"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="texte">Données sur cet appareil</span></button>
+<footer>M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
 
 <script>
   /* Colore le titre lettre par lettre (les espaces restent neutres) */
