@@ -53,5 +53,16 @@ self.OUTILS = [
          + 'On choisit ce qu’on affiche (régions, pays, fleuves, population, climats…), on zoome et on situe l’école. '
          + 'Cartes muettes. Préparation de séances. Conception d’évaluations. Impression ou copie pour Word.',
     couleur: '#6A4BD1', ombre: '#CFC4F7'
+  },
+  {
+    dossier: 'copie-guidee',
+    nom: 'La copie guidée',
+    niveau: 'cycles 2 et 3',
+    texte: 'Application inspirée de l’outil Copilote de Mathilde Lollier, pour faciliter la copie d’un texte. '
+         + 'Le texte est projeté au tableau et découpé en groupes de sens qui s’affichent un par un, au rythme choisi. '
+         + 'Majuscules, ponctuation et repères « à la ligne » / « saute une ligne » sont mis en valeur. '
+         + 'La mise en page du texte collé est respectée. Lecture à voix haute possible. '
+         + 'Polices Arial, Belle Allure ou OpenDyslexic.',
+    couleur: '#2F9E44', ombre: '#B9E8C3'
   }
 ];
