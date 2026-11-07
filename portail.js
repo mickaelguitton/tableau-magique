@@ -30,6 +30,17 @@
   if (dansAppli) document.title = titreCourt;
   let modeEnLigne = false;
   try { modeEnLigne = sessionStorage.getItem('tableau-en-ligne') === '1'; } catch (e) {}
+  // Sur l'accueil, les tuiles ne restent affichées que si l'on revient d'un outil (bouton « Accueil »,
+  // retour arrière) ou si l'on recharge la page. Adresse tapée, favori, lien venu d'ailleurs :
+  // la page d'accueil (« Installer l'application » / « Découvrir en ligne ») s'affiche à nouveau.
+  if (modeEnLigne && surAccueil && !dansAppli) {
+    const nav = (performance.getEntriesByType('navigation')[0] || {}).type;
+    const depuisPortail = document.referrer.startsWith(racine.href);
+    if (!depuisPortail && nav !== 'reload' && nav !== 'back_forward') {
+      modeEnLigne = false;
+      try { sessionStorage.removeItem('tableau-en-ligne'); } catch (e) {}
+    }
+  }
   // L'appli installée laisse une marque (même site = même mémoire) : l'onglet du navigateur
   // saura ainsi qu'elle est déjà installée sur cet ordinateur.
   if (enLigne && dansAppli) { try { localStorage.setItem('tableau-installe', '1'); } catch (e) {} }
