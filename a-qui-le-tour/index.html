@@ -110,7 +110,7 @@ textarea::placeholder { color:rgba(43,33,80,.4); font-weight:400; }
 .top-btn--fullscreen { background:linear-gradient(135deg,var(--green),var(--blue)); }
 .top-btn--sound      { background:linear-gradient(135deg,var(--purple),var(--blue)); }   /* mêmes couleurs que le bouton Options, à côté */
 .toolbar-right { position:fixed; top:14px; right:14px; z-index:150; display:flex; gap:8px; align-items:stretch; }
-.top-btn--sound { display:flex; align-items:center; justify-content:center; padding:4px 10px; }
+.top-btn--sound, #fsBtn { display:flex; align-items:center; justify-content:center; padding:4px 10px; }
 .top-btn--options {
   display:flex; align-items:center; gap:6px;
   background:linear-gradient(135deg,var(--purple),var(--blue));
@@ -382,6 +382,7 @@ body.fs-active .history-panel { max-width:760px; padding:10px 16px; }
 
 /* Picto du son (le même dans la gym des mots, la machine à conjuguer et à qui le tour) : barré quand le son est coupé */
 .ico-son{width:1.35em;height:1.35em;display:block}
+.ico-pe{width:1.35em;height:1.35em;display:block}
 </style>
 
 <!-- Polices intégrées dans le fichier (licence SIL Open Font License) : aucune connexion Internet nécessaire.
@@ -409,7 +410,7 @@ body.fs-active .history-panel { max-width:760px; padding:10px 16px; }
 <!-- Barre du haut, à gauche : accueil et plein écran -->
 <div class="toolbar-left">
   <button class="top-btn top-btn--fullscreen portail-accueil" onclick="location.href='../'">🏠 Accueil</button>
-  <button class="top-btn top-btn--fullscreen" id="fsBtn">🖥️ Plein écran</button>
+  <button class="top-btn top-btn--fullscreen" id="fsBtn" aria-label="Plein écran"></button>
 </div>
 
 <!-- Barre du haut, à droite : son (picto) et options -->
@@ -1395,6 +1396,17 @@ function playWin() {
 
 // --- Réglages sonores (boutons et menus) ------------------------------------
 /* Picto du son : haut-parleur, barré quand le son est coupé (même picto dans les trois outils) */
+/* Picto du plein écran (le même dans tous les outils) : coins vers l'extérieur pour entrer, vers l'intérieur pour quitter */
+const ICONE_PE = actif => '<svg class="ico-pe" viewBox="0 0 24 24" aria-hidden="true"><path d="'
+  + (actif ? 'M3.5 8.5h5v-5M20.5 8.5h-5v-5M3.5 15.5h5v5M20.5 15.5h-5v5' : 'M8.5 3.5h-5v5M15.5 3.5h5v5M8.5 20.5h-5v-5M15.5 20.5h5v-5')
+  + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function majBoutonPE(btn){
+  const actif = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  btn.innerHTML = ICONE_PE(actif);
+  btn.title = actif ? 'Quitter le plein écran' : 'Plein écran';
+  btn.setAttribute('aria-label', btn.title);
+}
+
 const ICONE_SON = on => on ? '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
                           : '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".45"/><path d="M3 3.5l18 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
 function updateSoundButton() {
@@ -1990,6 +2002,7 @@ function celebrate(winnerColor) {
    ========================================================================== */
 function bindEvents() {
   // Barre du haut
+  majBoutonPE($('fsBtn'));
   $('fsBtn').addEventListener('click', toggleFullscreen);
   $('soundBtn').addEventListener('click', toggleSound);
   $('optBtn').addEventListener('click', toggleOptions);
@@ -2039,7 +2052,7 @@ function bindEvents() {
   document.addEventListener('fullscreenchange', () => {
     const active = !!document.fullscreenElement;
     document.body.classList.toggle('fs-active', active);
-    $('fsBtn').textContent = active ? '↩️ Quitter le plein écran' : '🖥️ Plein écran';
+    majBoutonPE($('fsBtn'));
   });
 }
 

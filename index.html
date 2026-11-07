@@ -125,6 +125,7 @@
      Titre, deux boutons (« Installer l'application », « Découvrir en ligne »), puis l'aperçu des outils.
      Dans l'appli installée et après « Découvrir en ligne », on voit les tuiles à la place. */
   #bienvenue{display:none}
+  html.bienvenue header{margin-bottom:4.5vh}       /* de l’air entre le titre et les deux boutons */
   html.bienvenue main{display:none}
   html.bienvenue #bienvenue{
     flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;
@@ -154,7 +155,8 @@
     font-size:clamp(14px,1.8vh,17px);color:var(--encre-douce);line-height:1.4;
   }
   #aide-install:empty{display:none}
-  .consigne{flex:none;margin:2.2vh 0 1vh;font-size:clamp(14px,1.9vh,18px);color:var(--encre-douce);font-weight:500}
+  #aide-install b{color:var(--encre);font-weight:600}
+  .consigne{flex:none;margin:3.5vh 0 1vh;font-size:clamp(14px,1.9vh,18px);color:var(--encre-douce);font-weight:500}
 
   /* Aperçus des outils : même calcul de disposition que les tuiles (fonction disposer) */
   #apercus{
@@ -190,15 +192,12 @@
   #bulle-outil.dessus::after{bottom:-11px;border-top:none;border-left:none}
   #bulle-outil.dessous::after{top:-11px;border-bottom:none;border-right:none}
 
-  .navigateurs{flex:none;margin-top:1.4vh;font-size:clamp(12px,1.55vh,15px);color:var(--encre-douce);text-align:center}
-  .navigateurs b{color:var(--encre);font-weight:600}
 
   /* Écran très bas (téléphone en paysage) : on resserre la page d'accueil */
   @media (max-height:500px){
     html.bienvenue header{margin-bottom:.6vh}
     .gros{font-size:16px;padding:.35em 1.1em}
     .consigne{margin:1vh 0 .5vh;font-size:13px}
-    .navigateurs{display:none}
   }
 
   /* ---------- Bulle « Une remarque ? Une idée ? » (coin en bas à droite) ---------- */
@@ -264,7 +263,6 @@
   <div id="aide-install" role="status"></div>
   <p class="consigne">Clique sur un outil pour en savoir plus.</p>
   <div id="apercus"></div>
-  <p class="navigateurs"><b>Installation</b> : Chrome, Edge ou Brave sur ordinateur · Safari sur iPad et iPhone · Chrome sur Android (pas Firefox)</p>
 </section>
 <div id="bulle-outil" role="dialog" hidden></div>
 
@@ -478,10 +476,12 @@
         if(choix && choix.outcome === 'dismissed') aide.textContent = 'Installation annulée. Tu peux recliquer sur « Installer l’application » quand tu veux.';
         return;
       }
-      aide.textContent = 'Dans Chrome, Edge ou Brave : menu du navigateur (⋮, … ou ☰), puis « Installer Le tableau magique » '
+      aide.innerHTML = '<b>Navigateurs compatibles</b> : Chrome, Edge ou Brave sur ordinateur · Safari sur iPad et iPhone · '
+                     + 'Chrome sur Android (pas Firefox).<br>';
+      aide.append('Dans Chrome, Edge ou Brave : menu du navigateur (⋮, … ou ☰), puis « Installer Le tableau magique » '
                        + '(ou petite icône d’installation à droite de la barre d’adresse). '
                        + 'Sur iPad ou iPhone avec Safari : bouton Partager, puis « Sur l’écran d’accueil ». '
-                       + 'Si l’application est déjà installée, ouvre-la depuis son icône.';
+                       + 'Si l’application est déjà installée, ouvre-la depuis son icône.');
       if (cl.contains('en-ligne')) { TableauMagique.revenirAccueil(); requestAnimationFrame(disposerTout); }
     };
   })();

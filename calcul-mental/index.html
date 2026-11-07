@@ -84,7 +84,8 @@ h1{margin:0;font-size:clamp(2.1rem,5vw,4rem);line-height:1.05;
 .domhead{grid-column:1/-1;display:flex;align-items:center;gap:.7rem;margin-top:1.2vh;padding:.35rem 1.1rem;border-radius:999px;color:#fff;
   font-size:clamp(1rem,1.7vw,1.5rem);font-weight:700;text-shadow:0 2px 0 rgba(0,0,0,.2);box-shadow:0 .25rem 0 rgba(0,0,0,.15)}
 .dom1{background:#4d96ff}.dom2{background:#2ec4b6}.dom3{background:#a66cff}
-.fsbtn{white-space:nowrap}
+.fsbtn{display:inline-flex;align-items:center;justify-content:center;align-self:stretch}
+.ico-pe{width:1.35em;height:1.35em;display:block}
 .fs-menu{position:absolute;top:2vh;left:3vw;z-index:2}
 .leftbtns{display:flex;gap:1vw;flex-wrap:wrap}
 .skill .ic{flex:none;width:2.2em;height:2.2em;border-radius:50%;background:var(--col);display:grid;place-items:center;font-size:1.3em}
@@ -206,7 +207,7 @@ body.gate .screen{display:none!important}
 </section>
 
 <section id="menu" class="screen active">
-  <div class="fs-menu leftbtns"><button class="btn small portail-accueil" onclick="location.href='../'">Accueil</button><button class="btn small fsbtn">Plein écran</button></div>
+  <div class="fs-menu leftbtns"><button class="btn small portail-accueil" onclick="location.href='../'">Accueil</button><button class="btn small fsbtn" aria-label="Plein écran"></button></div>
   <div class="menu-right">
     <button id="btnOpt" class="btn small" aria-haspopup="dialog" aria-expanded="false">Options</button>
     <button id="btnPrint" class="btn small" aria-haspopup="dialog" aria-expanded="false">Imprimer</button>
@@ -223,7 +224,7 @@ body.gate .screen{display:none!important}
   <div class="topbar">
     <div class="leftbtns">
       <button class="btn small portail-accueil" onclick="location.href='../'">Accueil</button>
-      <button class="btn small fsbtn">Plein écran</button>
+      <button class="btn small fsbtn" aria-label="Plein écran"></button>
       <button id="btnMenu" class="btn small">Menu</button>
     </div>
     <span id="lvTag" class="tag lvtag"></span>
@@ -1701,7 +1702,18 @@ const DOCX=(function(){
   /* ---------- 9. Plein écran ---------- */
   const fsEls=[...document.querySelectorAll('.fsbtn')];
   const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
-  function fsLabel(){fsEls.forEach(b=>{b.textContent=isFs()?'Quitter le plein écran':'Plein écran';});}
+  /* Picto du plein écran (le même dans tous les outils) : coins vers l'extérieur pour entrer, vers l'intérieur pour quitter */
+  const ICONE_PE = actif => '<svg class="ico-pe" viewBox="0 0 24 24" aria-hidden="true"><path d="'
+    + (actif ? 'M3.5 8.5h5v-5M20.5 8.5h-5v-5M3.5 15.5h5v5M20.5 15.5h-5v5' : 'M8.5 3.5h-5v5M15.5 3.5h5v5M8.5 20.5h-5v-5M15.5 20.5h5v-5')
+    + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function majBoutonPE(btn){
+    const actif = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    btn.innerHTML = ICONE_PE(actif);
+    btn.title = actif ? 'Quitter le plein écran' : 'Plein écran';
+    btn.setAttribute('aria-label', btn.title);
+  }
+  function fsLabel(){fsEls.forEach(majBoutonPE);}
+  fsLabel();
   function toggleFs(){
     try{
       if(isFs()){const f=document.exitFullscreen||document.webkitExitFullscreen;const p=f.call(document);if(p&&p.catch)p.catch(()=>{});}

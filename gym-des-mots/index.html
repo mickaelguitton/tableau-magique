@@ -217,6 +217,7 @@ h1,h2,p{margin:0}
 
 /* Picto du son (le même dans la gym des mots, la machine à conjuguer et à qui le tour) : barré quand le son est coupé */
 .ico-son{width:1.35em;height:1.35em;display:block}
+.ico-pe{width:1.35em;height:1.35em;display:block}
 </style>
 <!-- Portail « Le tableau magique » : version, bouton Accueil, hors ligne et mise à jour (voir ../portail.js) -->
 <link rel="manifest" href="../manifest.webmanifest">
@@ -333,7 +334,7 @@ h1,h2,p{margin:0}
   <div class="topbar">
     <div class="grp">
       <button class="btn small portail-accueil" type="button" onclick="location.href='../'">Accueil</button>
-      <button class="btn small" id="bFull" type="button">Plein écran</button>
+      <button class="btn small" id="bFull" type="button" aria-label="Plein écran"></button>
       <button class="btn small" id="bMenu" type="button">Menu</button>
     </div>
     <div class="ttl">
@@ -1289,6 +1290,19 @@ document.addEventListener('click', () => setTimeout(updSummary, 0));
 setTimeout(updSummary, 0);
 
 /* Picto du son : haut-parleur, barré quand le son est coupé (même picto dans les trois outils) */
+/* Picto du plein écran (le même dans tous les outils) : coins vers l'extérieur pour entrer, vers l'intérieur pour quitter */
+const ICONE_PE = actif => '<svg class="ico-pe" viewBox="0 0 24 24" aria-hidden="true"><path d="'
+  + (actif ? 'M3.5 8.5h5v-5M20.5 8.5h-5v-5M3.5 15.5h5v5M20.5 15.5h-5v5' : 'M8.5 3.5h-5v5M15.5 3.5h5v5M8.5 20.5h-5v-5M15.5 20.5h5v-5')
+  + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function majBoutonPE(btn){
+  const actif = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  btn.innerHTML = ICONE_PE(actif);
+  btn.title = actif ? 'Quitter le plein écran' : 'Plein écran';
+  btn.setAttribute('aria-label', btn.title);
+}
+majBoutonPE($('#bFull'));
+document.addEventListener('fullscreenchange', () => majBoutonPE($('#bFull')));
+
 const ICONE_SON = on => on ? '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
                           : '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".45"/><path d="M3 3.5l18 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
 
