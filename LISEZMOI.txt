@@ -25,11 +25,20 @@ PUBLIER UNE NOUVELLE VERSION D'UN OUTIL
   Au prochain lancement avec internet, l'application se met à jour toute seule.
 
 AJOUTER UN OUTIL
-  1. Créer son dossier avec son index.html (copier les lignes « Portail » du <head> d'un autre outil).
+  1. Créer son dossier avec son index.html (copier les lignes « Portail » et « Référencement » du <head>
+     d'un autre outil, puis adapter le titre, data-court = nom court, la description et les adresses).
   2. Mettre sa capture d'écran dans images/ (même nom que le dossier, format 16/9, ex. 800 × 450, en .jpg).
   3. Ajouter son bloc dans outils.js (nom, niveau, texte de la bulle, couleurs) : tuile, aperçu, bulle
      et fonctionnement hors ligne sont fabriqués automatiquement à partir de cette liste.
-  4. Changer le numéro dans version.js.
+  4. Ajouter son adresse dans sitemap.xml (plan du site pour les moteurs de recherche).
+  5. Changer le numéro dans version.js.
+
+RÉFÉRENCEMENT (moteurs de recherche)
+  Chaque page a un titre long (lu par Google) et un nom court (data-court, affiché dans l'appli et les
+  statistiques), une description et une image d'aperçu pour le partage du lien (images/partage.jpg).
+  Un outil ouvert directement (lien partagé, résultat de recherche) s'utilise tout de suite ;
+  son bouton « Accueil » mène aux tuiles et au bouton « Installer l'application ».
+  Plan du site à déclarer dans Google Search Console : https://mickaelguitton.github.io/tableau-magique/sitemap.xml
 
 STATISTIQUES ANONYMES
   L'appli envoie des statistiques anonymes (sans cookie ni donnée personnelle) à GoatCounter :

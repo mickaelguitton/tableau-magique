@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Plan du site pour les moteurs de recherche (à déclarer dans Google Search Console). Ajouter une ligne par nouvel outil. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/</loc></url>
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/calcul-mental/</loc></url>
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/gym-des-mots/</loc></url>
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/machine-conjugaison/</loc></url>
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/a-qui-le-tour/</loc></url>
+  <url><loc>https://mickaelguitton.github.io/tableau-magique/cartes-a-la-carte/</loc></url>
+</urlset>

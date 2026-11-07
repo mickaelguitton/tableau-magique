@@ -18,19 +18,26 @@
      - sur le SITE, dans un onglet : la page d'accueil (titre, « Installer l'application », « Découvrir en ligne »,
        aperçus des outils) s'affiche à chaque nouvelle visite (classe « bienvenue », voir index.html) ;
      - après « Découvrir en ligne » : les tuiles et les outils s'utilisent dans l'onglet, jusqu'à sa fermeture
-       (marque gardée en mémoire de session ; classe « en-ligne »). Un outil ouvert directement sans ce choix
-       renvoie à la page d'accueil.
+       (marque gardée en mémoire de session ; classe « en-ligne »).
+     Un outil ouvert directement (lien partagé, moteur de recherche) s'utilise tout de suite, comme après
+     « Découvrir en ligne » : son bouton « Accueil » mène aux tuiles et au bouton « Installer l'application ».
      Le fichier ouvert depuis le disque (file://) n'est pas concerné. */
   const dansAppli = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
     .some(m => matchMedia('(display-mode: ' + m + ')').matches) || navigator.standalone === true;
   const surAccueil = new URL('./', location.href).href === racine.href;
+  // Titre de la page : long pour les moteurs de recherche, court (data-court) dans l'appli et les statistiques
+  const titreCourt = (document.querySelector('title') || {}).dataset?.court || document.title;
+  if (dansAppli) document.title = titreCourt;
   let modeEnLigne = false;
   try { modeEnLigne = sessionStorage.getItem('tableau-en-ligne') === '1'; } catch (e) {}
   // L'appli installée laisse une marque (même site = même mémoire) : l'onglet du navigateur
   // saura ainsi qu'elle est déjà installée sur cet ordinateur.
   if (enLigne && dansAppli) { try { localStorage.setItem('tableau-installe', '1'); } catch (e) {} }
   if (enLigne && !dansAppli) {
-    if (!surAccueil && !modeEnLigne) { location.replace(racine.href); return; }
+    if (!surAccueil && !modeEnLigne) {
+      try { sessionStorage.setItem('tableau-en-ligne', '1'); } catch (e) {}
+      modeEnLigne = true;
+    }
     document.documentElement.classList.add(modeEnLigne ? 'en-ligne' : 'bienvenue');
     // Chrome / Edge / Brave proposent l'installation par cet événement, parfois très tôt :
     // on le garde de côté pour le bouton « Installer l'application ».
@@ -120,8 +127,8 @@
   function compterPage() {
     if (!enLigne) return;
     const page = surAccueil ? 'accueil' : location.pathname.replace(racine.pathname, '').replace(/\/(index\.html)?$/, '');
-    if (dansAppli) compter('/' + page, document.title || page, false);
-    else if (modeEnLigne) compter('/en-ligne/' + page, 'En ligne : ' + (document.title || page), false);
+    if (dansAppli) compter('/' + page, titreCourt || page, false);
+    else if (modeEnLigne) compter('/en-ligne/' + page, 'En ligne : ' + (titreCourt || page), false);
     else compter('/bienvenue', 'Page d’accueil (avant installation)', false);
   }
   compterPage();
