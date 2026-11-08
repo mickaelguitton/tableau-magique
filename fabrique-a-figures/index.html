@@ -251,6 +251,7 @@
 
   <div id="zone">
     <header id="barre">
+      <button id="btnAccueil" class="portail-accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
       <button id="btnPleinEcran" title="Plein écran" aria-label="Plein écran"></button>
       <div id="consigne"></div>
       <button id="btnToutSym" hidden>Toute la figure</button>
@@ -258,7 +259,6 @@
         <button data-gomme="frotter">Frotter</button>
         <button data-gomme="rectangle">Zone</button>
       </div>
-      <button id="btnAccueil" class="portail-accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
       <button id="btnReglages" aria-expanded="false">Réglages</button>
       <div id="reglages">
       <div class="groupe" id="choixQuadrillage">
@@ -2383,6 +2383,20 @@ function choisirOutil(nom) {
   majConsigne(); dessiner();
 }
 
+/* Message d'aide : s'il ne tient pas en entier dans la hauteur de la barre, les caractères rapetissent
+   (jusqu'à 11 px) pour qu'on puisse tout lire, sur autant de lignes que la barre le permet. */
+function ajusterConsigne() {
+  const c = document.getElementById('consigne');
+  c.style.display = 'block'; c.style.webkitLineClamp = 'none';   // plus de coupure « … » : on adapte la taille
+  c.style.fontSize = '';                                          // taille normale de l'écran (voir CSS)
+  // hauteur disponible : celle des boutons de la barre, et au moins 64 px sauf sur téléphone en largeur (barre basse)
+  const telephone = matchMedia('(max-height: 520px)').matches;
+  const place = Math.max(document.getElementById('btnPleinEcran').offsetHeight + 12, telephone ? 0 : 64);
+  let taille = parseFloat(getComputedStyle(c).fontSize);
+  while (c.scrollHeight > place && taille > 11) c.style.fontSize = (--taille) + 'px';
+}
+window.addEventListener('resize', ajusterConsigne);
+
 function majConsigne() {
   const textes = CONSIGNES[outil];
   document.getElementById('consigne').textContent = textes[Math.min(etape.length, textes.length - 1)];
@@ -2391,6 +2405,7 @@ function majConsigne() {
   // choix de la gomme : seulement avec l'outil Gomme
   document.getElementById('modesGomme').hidden = outil !== 'gomme';
   document.querySelectorAll('[data-gomme]').forEach(b => b.classList.toggle('actif', b.dataset.gomme === modeGomme));
+  ajusterConsigne();                                  // une fois les boutons de la barre affichés ou cachés
 }
 
 document.getElementById('btnToutSym').addEventListener('click', () => {
