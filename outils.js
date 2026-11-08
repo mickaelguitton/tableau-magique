@@ -82,5 +82,17 @@ self.OUTILS = [
          + 'Polices Arial, Belle Allure ou OpenDyslexic.',
     donnees: ['copieGuidee.'],
     couleur: '#2F9E44', ombre: '#B9E8C3'
+  },
+  {
+    dossier: 'fabrique-a-figures',
+    version: '1.0',
+    nom: 'La fabrique à figures',
+    niveau: 'cycle 3',
+    texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
+         + 'Points, segments, droites, cercles et arcs de cercle, perpendiculaires, parallèles, milieu et symétrique. '
+         + 'Les instruments s’animent : l’équerre, la règle et le compas tracent sous les yeux des élèves. '
+         + 'Longueurs, codages, noms des points, sur quadrillage ou feuille blanche.',
+    donnees: ['fabrique-a-figures'],
+    couleur: '#D6336C', ombre: '#F8C3D5'
   }
 ];

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-court="Le tableau magique">Le tableau magique : outils gratuits à projeter au TBI, du CP au CM2</title>
-<meta name="description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, conjugaison, natures des mots, cartes de géographie, tirage au sort des élèves. Fonctionnent sans internet une fois installés.">
+<meta name="description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, tirage au sort des élèves. Fonctionnent sans internet une fois installés.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/">
 <meta name="google-site-verification" content="M0ho2rjFlrCD5UeTchszL2o4FO9_UYwn1Wu52MNHViI">   <!-- Google Search Console -->
@@ -12,7 +12,7 @@
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Le tableau magique : outils gratuits à projeter au TBI, du CP au CM2">
-<meta property="og:description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, conjugaison, natures des mots, cartes de géographie, tirage au sort des élèves. Fonctionnent sans internet une fois installés.">
+<meta property="og:description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, tirage au sort des élèves. Fonctionnent sans internet une fois installés.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -177,6 +177,8 @@
     display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:var(--ecart,24px);
     padding:0 var(--bord,0px);
   }
+  /* passage à la ligne forcé : rangées équilibrées, la plus courte en haut (7 outils = 3 + 4) */
+  .saut-rangee{flex-basis:100%;height:0;margin-top:calc(-1 * var(--ecart,24px))}
   .apercu{
     width:var(--largeur,300px);position:relative;cursor:pointer;
     background:#fff;border:3px solid transparent;border-radius:calc(var(--largeur,300px) * .06);
@@ -423,6 +425,20 @@
     zone.style.setProperty('--largeur', l + 'px');
     zone.style.setProperty('--ecart', ecart + 'px');
     zone.style.setProperty('--police', Math.max(12, Math.min(34, l * 0.065)) + 'px');   // police plus petite sur téléphone : le nom reste entier
+
+    // Rangées équilibrées, les plus courtes en haut : 7 outils = 3 + 4 sur deux rangées, 2 + 2 + 3 sur trois
+    zone.querySelectorAll('.saut-rangee').forEach(s => s.remove());
+    const lignes = Math.ceil(n / meilleur.colonnes);
+    if(lignes > 1 && n % lignes){
+      const base = Math.floor(n / lignes), courtes = lignes - n % lignes;   // rangées de « base », puis de « base + 1 »
+      let fin = 0;
+      for(let r = 0; r < lignes - 1; r++){
+        fin += r < courtes ? base : base + 1;
+        const saut = document.createElement('span');
+        saut.className = 'saut-rangee';
+        cartes[fin - 1].after(saut);
+      }
+    }
   }
   function disposerTout(){
     disposer(document.getElementById('tuiles'), '.tuile', 32, 0.12);
