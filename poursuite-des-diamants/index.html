@@ -256,9 +256,9 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 
         <h3>Prendre les diamants des rivaux</h3>
         <ul>
-          <li>Quand un bateau doit dépasser un bateau adverse, il doit d'abord répondre correctement à la question de sa case.</li>
-          <li>S'il réussit, il passe devant et <b>s'empare de tous les diamants</b> de l'équipe dépassée.</li>
-          <li>S'il échoue, il recule et reste derrière son adversaire, qui ne perd rien.</li>
+          <li>Quand un bateau rejoint la case d'un bateau adverse, l'équipe doit, pour le dépasser, répondre correctement à la question de cette case.</li>
+          <li>Si elle réussit, son bateau passe devant (case suivante) et <b>s'empare de tous les diamants</b> de l'équipe dépassée.</li>
+          <li>Si elle échoue, son bateau recule d'une case et l'adversaire ne perd rien.</li>
           <li>Une équipe sans diamant continue de jouer : elle peut très bien en reprendre.</li>
         </ul>
         <p>La partie s'arrête dès qu'une équipe détient les <b>quatre diamants</b>.</p>
@@ -268,7 +268,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
           <li><b>Préparer la partie.</b> Le menu permet de choisir 16, 20, 24 ou 28 cases (changer ce nombre relance la partie). Le bouton « ↺ Rejouer » remet chaque bateau sur sa case de départ, avec un diamant par équipe.</li>
           <li><b>Repérer l'équipe qui joue.</b> Elle est entourée d'un halo doré dans la colonne de droite, où figure aussi le numéro de la case de chaque bateau. C'est l'équipe bleue qui commence.</li>
           <li><b>Déplacer un bateau.</b> Faites-le glisser le long de la piste, à la souris ou au doigt. Un glissement dans le sens des aiguilles d'une montre le fait avancer d'une case (bonne réponse : l'équipe garde la main). Un glissement dans l'autre sens le fait reculer d'une case (mauvaise réponse) et donne la main à l'équipe suivante, dans l'ordre bleu, jaune, vert, rouge. Quelle que soit la longueur du glissement, le bateau ne bouge que d'une case, et un simple clic ne fait rien.</li>
-          <li><b>Gérer les diamants.</b> Quand un bateau arrive sur la case d'un bateau adverse qui a des diamants, l'application propose : « Prendre les diamants » les transfère en un clic, « Non » ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l'allumer ou l'éteindre. Quand une équipe en a quatre, la bannière de victoire s'affiche, avec des confettis et un son de victoire.</li>
+          <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d'un bateau adverse avance d'une case (bonne réponse), il le dépasse : l'application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l'allumer ou l'éteindre. Quand une équipe en a quatre, la bannière de victoire s'affiche, avec des confettis et un son de victoire.</li>
           <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d'un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre de cases.</li>
           <li><b>Reprendre une partie.</b> La partie est gardée au fur et à mesure : si la page se ferme ou se recharge, on la retrouve telle quelle.</li>
           <li><b>Confort de projection.</b> Le haut-parleur coupe ou rétablit les sons, et le bouton à quatre coins passe en plein écran (touche Échap pour en sortir).</li>
@@ -909,7 +909,7 @@ function doMove(delta) {
   });
   drawBoats();
   sauverPartie();
-  if (delta === 1) proposerAbordage(ti);
+  if (delta === 1) proposerAbordage(ti, moveHistory[moveHistory.length - 1].pos[ti]);   // case qu'il vient de quitter
 }
 
 function undoMove(){
@@ -919,17 +919,18 @@ function undoMove(){
   sauverPartie();
 }
 
-// --- Abordage : le bateau arrive sur la case d'un ou plusieurs rivaux qui ont des diamants ---
+// --- Abordage : le bateau était sur la même case qu'un ou plusieurs rivaux qui ont des diamants ;
+//     sur une bonne réponse il avance, passe devant eux et peut prendre leurs diamants ---
 var abordage = null;   // { ti: équipe qui aborde, rivaux: [équipes abordées] }
-function proposerAbordage(ti){
+function proposerAbordage(ti, caseQuittee){
   var rivaux = [];
-  for (var j = 0; j < 4; j++) if (j !== ti && pos[j] === pos[ti] && nbDiamants(j) > 0) rivaux.push(j);
+  for (var j = 0; j < 4; j++) if (j !== ti && pos[j] === caseQuittee && nbDiamants(j) > 0) rivaux.push(j);
   if (!rivaux.length || nbDiamants(ti) >= 4) return;
   abordage = { ti: ti, rivaux: rivaux };
   var n = rivaux.reduce(function(s, j){ return s + nbDiamants(j); }, 0);
   var noms = rivaux.map(function(j){ return 'l\'' + TEAMS[j].name.toLowerCase(); }).join(' et ');
   var leur = rivaux.length > 1 ? 'leurs' : 'ses';
-  document.getElementById('abordagetxt').textContent = 'L\'' + TEAMS[ti].name.toLowerCase() + ' rejoint ' + noms + '. '
+  document.getElementById('abordagetxt').textContent = 'L\'' + TEAMS[ti].name.toLowerCase() + ' dépasse ' + noms + '. '
     + (n > 1 ? 'Prendre ' + leur + ' ' + n + ' diamants ?' : 'Prendre son diamant ?');
   document.getElementById('abordageoui').textContent = n > 1 ? '💎 Prendre les ' + n + ' diamants' : '💎 Prendre le diamant';
   document.getElementById('abordage').classList.add('show');
