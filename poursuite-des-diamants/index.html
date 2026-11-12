@@ -240,42 +240,40 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
         <button id="rulesx" onclick="closeRules()" aria-label="Fermer la fenêtre">✕</button>
       </div>
       <div id="rulesbody">
-
         <h3>Le principe</h3>
-        <p>Quatre équipages de pirates (bleu, jaune, vert et rouge) tournent autour d'une île, case après case, dans le sens des aiguilles d'une montre. Chaque équipage possède un diamant au départ. Pour gagner, il faut en réunir quatre, en les prenant à ses rivaux.</p>
-        <p>Les questions ne sont pas affichées par l'application : l'animateur (l'enseignant) les prépare à l'avance, sur le thème à réviser. Il en faut autant que de cases (16, 20, 24 ou 28), numérotées dans l'ordre. Mieux vaut choisir des notions déjà vues en classe, mais pas trop faciles.</p>
+        <p>Quatre équipages de pirates (bleu, jaune, vert et rouge) tournent autour d’une île, case après case, dans le sens des aiguilles d’une montre. Chaque équipage possède un diamant au départ. Pour gagner, il faut en réunir quatre, en les prenant à ses rivaux.</p>
+        <p>Les questions ne sont pas affichées par l’application : l’enseignant les prépare à l’avance, sur le thème à réviser. Il en faut autant que de cases (16, 20, 24 ou 28), numérotées dans l’ordre.</p>
 
-        <h3>Déroulement d'un tour</h3>
+        <h3>Déroulement d’un tour</h3>
         <ul>
-          <li>La question posée porte le numéro de la <b>case sur laquelle se trouve le bateau</b> de l'équipe qui joue.</li>
-          <li>Un seul joueur répond à la fois. Ses équipiers le laissent chercher sans lui souffler la réponse, et se relaient d'une question à l'autre.</li>
-          <li><b>Bonne réponse :</b> le bateau gagne une case, et l'équipe continue avec la question suivante, posée à un autre équipier.</li>
-          <li><b>Mauvaise réponse :</b> le bateau recule d'une case, l'animateur donne la solution à voix haute pour toute la classe, et c'est à l'équipe suivante de jouer.</li>
+          <li>La question posée porte le numéro de la <b>case sur laquelle se trouve le bateau</b> de l’équipe qui joue.</li>
+          <li>Un seul joueur répond à la fois. Ses équipiers le laissent chercher sans lui souffler la réponse, et se relaient d’une question à l’autre.</li>
+          <li><b>Bonne réponse :</b> le bateau avance d’une case et l’équipe continue avec la question suivante posée à un autre équipier.</li>
+          <li><b>Mauvaise réponse :</b> le bateau recule d’une case, l’enseignant (ou un autre élève) donne la solution à voix haute pour toute la classe, et c’est à l’équipe suivante de jouer.</li>
         </ul>
         <p class="note">Comme les bateaux finissent tous par repasser sur les mêmes cases, les mêmes questions reviennent. Écouter les réponses données aux autres équipes est donc le meilleur moyen de progresser.</p>
 
         <h3>Prendre les diamants des rivaux</h3>
         <ul>
-          <li>Quand un bateau rejoint la case d'un bateau adverse, l'équipe doit, pour le dépasser, répondre correctement à la question de cette case.</li>
-          <li>Si elle réussit, son bateau passe devant (case suivante) et <b>s'empare de tous les diamants</b> de l'équipe dépassée.</li>
-          <li>Si elle échoue, son bateau recule d'une case et l'adversaire ne perd rien.</li>
-          <li>Une équipe sans diamant continue de jouer : elle peut très bien en reprendre.</li>
+          <li>Quand un bateau rejoint la case d’un bateau adverse, l’équipe doit, pour le dépasser, répondre correctement à la question de cette case.</li>
+          <li>Si elle réussit, son bateau passe devant (case suivante) et <b>s’empare de tous les diamants</b> de l’équipe dépassée.</li>
+          <li>Si elle échoue, son bateau recule d’une case et l’adversaire ne perd rien.</li>
+          <li>Une équipe sans diamant continue de jouer : elle peut très bien en reprendre aux autres plus tard.</li>
         </ul>
-        <p>La partie s'arrête dès qu'une équipe détient les <b>quatre diamants</b>.</p>
+        <p>La partie s’arrête dès qu’une équipe détient les <b>quatre diamants</b>.</p>
 
-        <h3>Utiliser l'application</h3>
+        <h3>Utiliser l’application</h3>
         <ol>
           <li><b>Préparer la partie.</b> Le menu permet de choisir 16, 20, 24 ou 28 cases (changer ce nombre relance la partie). Le bouton « ↺ Rejouer » remet chaque bateau sur sa case de départ, avec un diamant par équipe.</li>
-          <li><b>Repérer l'équipe qui joue.</b> Elle est entourée d'un halo doré dans la colonne de droite, où figure aussi le numéro de la case de chaque bateau. C'est l'équipe bleue qui commence.</li>
-          <li><b>Déplacer un bateau.</b> Faites-le glisser le long de la piste, à la souris ou au doigt. Un glissement dans le sens des aiguilles d'une montre le fait avancer d'une case (bonne réponse : l'équipe garde la main). Un glissement dans l'autre sens le fait reculer d'une case (mauvaise réponse) et donne la main à l'équipe suivante, dans l'ordre bleu, jaune, vert, rouge. Quelle que soit la longueur du glissement, le bateau ne bouge que d'une case, et un simple clic ne fait rien.</li>
-          <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d'un bateau adverse avance d'une case (bonne réponse), il le dépasse : l'application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l'allumer ou l'éteindre. Quand une équipe en a quatre, la bannière de victoire s'affiche, avec des confettis et un son de victoire.</li>
-          <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d'un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre de cases.</li>
+          <li><b>Repérer l’équipe qui joue.</b> Elle est entourée d’un halo doré dans la colonne de droite, où figure aussi le numéro de la case de chaque bateau. C’est l’équipe bleue qui commence.</li>
+          <li><b>Déplacer un bateau.</b> Faites-le glisser le long de la piste, à la souris ou au doigt. Un glissement dans le sens des aiguilles d’une montre le fait avancer d’une case (bonne réponse : l’équipe garde la main). Un glissement dans l’autre sens le fait reculer d’une case (mauvaise réponse) et donne la main à l’équipe suivante, dans l’ordre bleu, jaune, vert, rouge. Quelle que soit la longueur du glissement, le bateau ne bouge que d’une case, et un simple clic ne fait rien.</li>
+          <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d’un bateau adverse avance d’une case (bonne réponse), il le dépasse : l’application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l’allumer ou l’éteindre. Quand une équipe en a quatre, la bannière de victoire s’affiche, avec des confettis et un son de victoire.</li>
+          <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d’un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre de cases.</li>
           <li><b>Reprendre une partie.</b> La partie est gardée au fur et à mesure : si la page se ferme ou se recharge, on la retrouve telle quelle.</li>
           <li><b>Confort de projection.</b> Le haut-parleur coupe ou rétablit les sons, et le bouton à quatre coins passe en plein écran (touche Échap pour en sortir).</li>
         </ol>
-        <p class="note">L'application laisse l'animateur arbitrer : elle n'empêche pas deux bateaux de se retrouver sur la même case (ils s'affichent alors côte à côte) et ne transfère les diamants qu'après confirmation.</p>
 
-      </div>
+</div>
       <div id="rulesfoot"><button id="rulesclose" onclick="closeRules()">Fermer</button></div>
     </div>
   </div>
