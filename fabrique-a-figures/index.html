@@ -24,7 +24,7 @@
 <script src="../portail.js"></script>
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
-  La fabrique à figures – M. Guitton – licence CC BY-NC 4.0 – v1.41
+  La fabrique à figures – M. Guitton – licence CC BY-NC 4.0 – v1.52
   Outil de tracés géométriques à projeter au tableau (CM2).
   Mis au point avec l'aide de Claude AI.
 -->
@@ -41,7 +41,7 @@
 
   /* ----- Colonne des outils ----- */
   #outils {
-    width: 200px;
+    width: 232px;
     flex-shrink: 0;
     background: #ffffff;
     border-right: 2px solid #d9e1ee;
@@ -203,7 +203,7 @@
 
   /* ----- Téléphone tenu en largeur : colonne d'outils étroite ----- */
   @media (max-height: 520px) and (min-width: 701px) {
-    #outils { width: 140px; gap: 4px; padding: 6px; }
+    #outils { width: 164px; gap: 4px; padding: 6px; }
     #outils button { font-size: 14px; padding: 6px 8px; }
     #titre { display: none; }
     #barre { height: 50px; gap: 8px; padding: 0 8px; }
@@ -225,6 +225,42 @@
     position: absolute; right: 10px; bottom: 6px;
     font-size: 12px; color: #9aa6b8; pointer-events: none;
   }
+  /* ----- Fenêtre pour nommer un point ----- */
+  #nommage, #dialogueCode {
+    position: absolute; z-index: 35; background: #fff; border: 2px solid #2f6fde; border-radius: 16px;
+    padding: 12px; box-shadow: 0 8px 22px rgba(29,36,51,0.22);
+  }
+  #nommage { width: min(312px, calc(100% - 16px)); }
+  #nommage[hidden], #dialogueCode[hidden], #info[hidden] { display: none; }
+  #nommageTitre, #dialogueCode .titre { font-size: 18px; font-weight: 800; color: #2f6fde; margin-bottom: 8px; }
+  #nommageChamp {
+    width: 100%; font: inherit; font-size: 28px; font-weight: 800; text-align: center; padding: 4px 8px;
+    border: 2px solid #d9e1ee; border-radius: 10px; user-select: text; -webkit-user-select: text;
+  }
+  #nommageChamp:focus { outline: none; border-color: #2f6fde; }
+  #nommageLettres { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; }
+  #nommageSuffixes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 4px; }
+  #nommage button, #dialogueCode button {
+    font: inherit; font-weight: 700; border: none; border-radius: 10px; cursor: pointer;
+    background: #eef2f8; color: #1d2433; padding: 8px 0; font-size: 18px;
+  }
+  #nommage button:hover, #dialogueCode button:hover { background: #dde6f5; }
+  #nommageLettres button.pris { opacity: 0.35; }
+  #nommageLettres button.actif { background: #2f6fde; color: #fff; opacity: 1; }
+  #nommageErreur, #codeMessage { min-height: 1.2em; margin: 6px 0 0; font-size: 15px; font-weight: 600; color: #c0392b; }
+  #codeMessage.ok { color: #1e9150; }
+  #nommage .actions, #dialogueCode .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  #nommage .actions button, #dialogueCode .actions button { flex: 1; padding: 9px 10px; font-size: 16px; }
+  #nommageOk, #fichierEnregistrer { background: #2f6fde !important; color: #fff !important; }
+  #dialogueCode { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; }
+  #dialogueCode .gros { display: block; width: 100%; text-align: left; padding: 10px 12px; font-size: 17px; margin-top: 8px; }
+  #dialogueCode .aide { margin: 3px 2px 0; font-size: 14px; color: #5a6679; }
+  #dialogueCode p { margin: 0 0 8px; font-size: 15px; }
+  #dialogueCode p#codeMessage { margin-top: 6px; }
+  #info {
+    position: absolute; left: 10px; bottom: 10px; z-index: 36; max-width: min(420px, 80%);
+    background: #fff4e5; border: 2px solid #ef7d00; border-radius: 12px; padding: 8px 12px; font-size: 14px; font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -232,21 +268,27 @@
 
   <aside id="outils">
     <h1 id="titre">La fabrique<br>à figures</h1>
-    <button data-outil="deplacer">Déplacer</button>
     <button data-outil="point">Point</button>
     <button data-outil="segment">Segment</button>
     <button data-outil="droite">Droite</button>
     <button data-outil="cercle">Cercle</button>
     <button data-outil="arc">Arc de cercle</button>
+    <button data-outil="report" title="Reporter une longueur au compas">Reporter longueur</button>
+    <div class="sep"></div>
     <button data-outil="perp">Perpendiculaire</button>
     <button data-outil="para">Parallèle</button>
     <button data-outil="milieu">Milieu</button>
     <button data-outil="sym">Symétrique</button>
+    <div class="sep"></div>
+    <button data-outil="nommer">Nommer</button>
+    <button data-outil="deplacer">Déplacer/prolonger</button>
     <button data-outil="gomme">Gomme</button>
     <div class="sep"></div>
     <button id="btnAnnuler">Annuler</button>
     <button id="btnRetablir">Rétablir</button>
     <button id="btnEffacer">Tout effacer</button>
+    <div class="sep"></div>
+    <button id="btnFichier" title="Enregistrer la figure en image, la copier, ou charger une image enregistrée">Enregistrer / Charger</button>
   </aside>
 
   <div id="zone">
@@ -285,7 +327,33 @@
         <button id="btnCopierBogue">Copier les détails (pour signaler le problème)</button>
         <button id="btnFermerAlerte">Continuer</button>
       </div>
-      <div id="signature">La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></div>
+      <div id="nommage" hidden role="dialog" aria-label="Nom du point">
+        <div id="nommageTitre">Nom du point</div>
+        <input id="nommageChamp" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nom du point">
+        <div id="nommageLettres"></div>
+        <div id="nommageSuffixes"></div>
+        <p id="nommageErreur"></p>
+        <div class="actions">
+          <button id="nommageOk">Valider</button>
+          <button id="nommageAnnuler">Annuler</button>
+        </div>
+      </div>
+      <div id="dialogueCode" hidden role="dialog" aria-label="Enregistrer ou charger la figure">
+        <div class="titre">Enregistrer / charger la figure</div>
+        <button id="fichierEnregistrer" class="gros">Enregistrer l’image</button>
+        <p class="aide">Crée le fichier figure.png. Garde-le : tu pourras le charger ici plus tard pour continuer la figure.</p>
+        <button id="fichierCopier" class="gros">Copier l’image</button>
+        <p class="aide">Pour la coller dans Word ou un diaporama (l’image collée ne permettra pas de reprendre la figure ici).</p>
+        <button id="fichierCharger" class="gros">Charger une image…</button>
+        <p class="aide">Choisis une image enregistrée avec cette fabrique : la figure revient et tu peux la modifier.</p>
+        <input type="file" id="fichierImage" accept="image/png,.png" hidden>
+        <p id="codeMessage"></p>
+        <div class="actions">
+          <button id="codeFermer">Fermer</button>
+        </div>
+      </div>
+      <div id="info" hidden></div>
+      <div id="signature">La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.52</span></div>
     </div>
   </div>
 
@@ -318,11 +386,16 @@ const CONSIGNES = {
   deplacer: ['Fais glisser un point pour déformer la figure, ou le bout d\u2019une droite pour la prolonger.'],
   point:    ['Touche la feuille pour placer un point, ou touche un point existant pour mesurer à partir de lui.',
              'Place le nouveau point : la distance se cale sur le demi-centimètre.'],
+  nommer:   ['Touche un point, ou le croisement de deux lignes, pour choisir son nom.'],
   segment:  ['Place la première extrémité du segment.', 'Place la deuxième extrémité.'],
   droite:   ['Place un premier point de la droite.', 'Place un deuxième point de la droite.'],
   arc:      ['Pique la pointe du compas sur le centre.',
              'Écarte le compas jusqu\u2019à la bonne longueur, là où passe l\u2019arc (ou touche un point pour prendre son écartement).',
              'Touche l\u2019endroit où tracer l\u2019arc.'],
+  report:   ['Touche le segment dont tu veux reporter la longueur (ou touche deux points).',
+             'Touche l’autre extrémité de la longueur à reporter.',
+             'Pique la pointe du compas là où la longueur doit commencer.',
+             'Touche la ligne sur laquelle reporter la longueur (ou l’endroit où tracer l’arc).'],
   cercle:   ['Place le centre du cercle.', 'Place un point du cercle (écartement du compas).'],
   perp:     ['Choisis la droite ou le segment de départ.', 'Place le point par où passe la perpendiculaire.'],
   para:     ['Choisis la droite ou le segment de départ.', 'Place le point par où passe la parallèle.'],
@@ -396,37 +469,49 @@ function posInfini(id) {
   finally { modeInfini = avant; cache = cacheNormal; }
 }
 
+// Un nombre fini : garde-fou contre les NaN et les infinis venus d'un calcul flottant instable.
+const fini = q => !!q && Number.isFinite(q.x) && Number.isFinite(q.y);
+// Profondeur maximale des calculs imbriqués (sécurité : une chaîne de dépendances démesurée
+// ou circulaire ne doit jamais saturer la pile d'appels du navigateur).
+const PROFONDEUR_MAX = 200;
+let profondeurPos = 0;
+
 function pos(id) {
   if (cache.has(id)) {
     const v = cache.get(id);
     if (v === EN_COURS) { incomplet = true; return null; }
     return v;
   }
-  cache.set(id, EN_COURS);                   // protège contre une boucle
-  const avant = incomplet;
-  incomplet = false;
-  const o = objet(id);
-  let r = null;
-  if (o) {
-    if (o.genre === 'libre') r = { x: o.x, y: o.y };
-    else if (o.genre === 'sur') {
-      const support = objet(o.obj), d = droiteDe(support), c = cercleDe(support);
-      if (d) r = { x: d.x + o.t * d.dx, y: d.y + o.t * d.dy };
-      else if (c) r = { x: c.x + c.r * Math.cos(o.angle), y: c.y + c.r * Math.sin(o.angle) };
+  if (profondeurPos >= PROFONDEUR_MAX) { incomplet = true; return null; }
+  profondeurPos++;
+  try {
+    cache.set(id, EN_COURS);                   // protège contre une boucle
+    const avant = incomplet;
+    incomplet = false;
+    const o = objet(id);
+    let r = null;
+    if (o) {
+      if (o.genre === 'libre') r = { x: o.x, y: o.y };
+      else if (o.genre === 'sur') {
+        const support = objet(o.obj), d = droiteDe(support), c = cercleDe(support);
+        if (d) r = { x: d.x + o.t * d.dx, y: d.y + o.t * d.dy };
+        else if (c) r = { x: c.x + c.r * Math.cos(o.angle), y: c.y + c.r * Math.sin(o.angle) };
+      }
+      else if (o.genre === 'milieu') {
+        const a = pos(o.a), b = pos(o.b);
+        if (a && b) r = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      }
+      else if (o.genre === 'inter') r = intersections(objet(o.a), objet(o.b))[o.idx] || null;
+      else if (o.genre === 'sym') {
+        const d = droiteDe(objet(o.axe)), p = pos(o.p);
+        if (d && p) r = reflet(p, d);
+      }
     }
-    else if (o.genre === 'milieu') {
-      const a = pos(o.a), b = pos(o.b);
-      if (a && b) r = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    }
-    else if (o.genre === 'inter') r = intersections(objet(o.a), objet(o.b))[o.idx] || null;
-    else if (o.genre === 'sym') {
-      const d = droiteDe(objet(o.axe)), p = pos(o.p);
-      if (d && p) r = reflet(p, d);
-    }
-  }
-  if (incomplet) cache.delete(id); else cache.set(id, r);
-  incomplet = avant || incomplet;
-  return r;
+    if (r && !fini(r)) r = null;               // jamais de coordonnée NaN ou infinie dans la figure
+    if (incomplet) cache.delete(id); else cache.set(id, r);
+    incomplet = avant || incomplet;
+    return r;
+  } finally { profondeurPos--; }
 }
 
 // ---------- Lignes droites ----------
@@ -590,15 +675,21 @@ function morceaux(d) {
 // Cercle complet, ou cercle qui porte un arc de compas (centre c, écartement donné par le point e).
 function cercleDe(o) {
   if (!o || (o.type !== 'cercle' && o.type !== 'arcCompas')) return null;
-  const c = pos(o.c), p = pos(o.type === 'cercle' ? o.p : o.e);
-  if (!c || !p) return null;
+  const c = pos(o.c);
+  if (!c) return null;
+  if (o.type === 'arcCompas' && o.l1 !== undefined) {         // longueur reportée : écartement de deux points
+    const a = pos(o.l1), b = pos(o.l2);
+    return a && b ? { x: c.x, y: c.y, r: dist(a, b) } : null;
+  }
+  const p = pos(o.type === 'cercle' ? o.p : o.e);
+  if (!p) return null;
   return { x: c.x, y: c.y, r: dist(c, p) };
 }
 
-// Arc de compas : environ 45° autour de l'angle choisi. Il s'allonge tout seul jusqu'aux croisements
-// tout proches avec une autre ligne ou un autre arc, pour que les arcs se coupent vraiment.
+// Arc de compas : environ 2 cm autour de l'angle choisi (quel que soit le rayon). Il s'allonge tout seul jusqu'aux
+// croisements tout proches (à moins de 1,75 cm sur l'arc) avec une autre ligne ou un autre arc.
 // debut et fin sont mesurés à partir de l'angle choisi.
-const PORTEE_ARC = 1.0;            // croisements pris en compte jusqu'à environ 57° de l'arc
+const PORTEE_ARC = 70;             // croisements pris en compte jusqu'à 70 px (1,75 cm) de l'endroit choisi, mesurés sur l'arc
 function arcCompasDe(o) {
   if (cacheArcs.has(o.id)) {
     const v = cacheArcs.get(o.id);
@@ -607,7 +698,7 @@ function arcCompasDe(o) {
   }
   const c = cercleDe(o);
   if (!c || c.r < 1) return null;
-  const demi = Math.max(0.4, 50 / c.r);
+  const demi = Math.min(1, 38 / c.r);
   const arc = { ...c, angle: o.angle, debut: -demi, fin: demi };
   cacheArcs.set(o.id, { ...arc, provisoire: true });  // valeur provisoire pendant le calcul
   const avant = incomplet;
@@ -621,9 +712,9 @@ function arcCompasDe(o) {
       if (autre === o || !estCourbe(autre)) continue;
       for (const q of croisementsCercle(c, autre)) {
         const ecart = normAngle(Math.atan2(q.y - c.y, q.x - c.x) - o.angle);
-        if (Math.abs(ecart) > PORTEE_ARC) continue;
-        arc.debut = Math.min(arc.debut, ecart - 0.15);
-        arc.fin = Math.max(arc.fin, ecart + 0.15);
+        if (Math.abs(ecart) * c.r > PORTEE_ARC) continue;
+        arc.debut = Math.min(arc.debut, ecart - 0.12);
+        arc.fin = Math.max(arc.fin, ecart + 0.12);
       }
     }
   } finally { modeInfini = avantMode; cache = cacheNormal; }
@@ -641,21 +732,87 @@ function croisementsCercle(c, autre) {
   if (!c2) return [];
   const res = interCercles(c, c2).filter(Boolean);
   if (autre.type !== 'arcCompas') return res;
-  return res.filter(q => Math.abs(normAngle(Math.atan2(q.y - c2.y, q.x - c2.x) - autre.angle)) <= PORTEE_ARC);
+  return res.filter(q => Math.abs(normAngle(Math.atan2(q.y - c2.y, q.x - c2.x) - autre.angle)) * c2.r <= PORTEE_ARC);
 }
 
 // Le point q est-il sur la partie tracée de l'arc ? (toujours vrai pour les autres lignes)
 function dansArc(o, q) {
-  if (o.type !== 'arcCompas' || modeInfini) return true;
-  const a = arcCompasDe(o);
-  if (!a) return false;
-  const e = normAngle(Math.atan2(q.y - a.y, q.x - a.x) - a.angle);
-  return e >= a.debut - 0.02 && e <= a.fin + 0.02;
+  const gomme = o.type === 'cercle' && o.gommes && o.gommes.length;
+  if ((o.type !== 'arcCompas' && !gomme) || modeInfini) return true;
+  const p = partiesAngle(o);
+  if (!p) return false;
+  const e = normAngle(Math.atan2(q.y - p.g.c.y, q.x - p.g.c.x) - p.g.ref);
+  return angleDansParties(p.parties, e, 0.02);
+}
+
+// ---------- Parties tracées d'un cercle ou d'un arc ----------
+// Un cercle, un arc de compas ou un arc de construction (milieu) peut perdre des morceaux à la gomme.
+// Les angles sont mesurés à partir d'un angle de référence « ref » (celui de l'arc ; 0 pour un cercle).
+// o.gommes = [[début, fin], …] : morceaux gommés, dans ces mêmes angles relatifs (fin > début).
+function geometrieArc(o) {
+  if (o.type === 'cercle') {
+    const c = cercleDe(o);
+    return c && { c, ref: 0, base: [-Math.PI, Math.PI], complet: true };
+  }
+  if (o.type === 'arcCompas') {
+    const a = arcCompasDe(o);
+    return a && { c: a, ref: a.angle, base: [a.debut, a.fin], complet: false };
+  }
+  if (o.type === 'arc') {
+    const a = arcDe(o);
+    return a && { c: a, ref: a.angle, base: [-DEMI_ARC, DEMI_ARC], complet: false };
+  }
+  return null;
+}
+
+// Retire l'intervalle [s, e] (et ses copies décalées d'un tour) d'une liste d'intervalles.
+function soustraireAngles(parties, s, e, rayon) {
+  const TOUR = 2 * Math.PI;
+  let res = parties;
+  for (let k = -2; k <= 2; k++) {
+    const a = s + k * TOUR, c = e + k * TOUR;
+    res = res.flatMap(([u, v]) => c <= u || a >= v ? [[u, v]]
+      : [[u, Math.min(a, v)], [Math.max(c, u), v]].filter(([x, y]) => y - x > 1e-6));
+  }
+  return res.filter(([x, y]) => (y - x) * rayon > 2);
+}
+
+// Parties encore tracées : { g (géométrie), parties [[début, fin], …], entier (cercle intact) }.
+function partiesAngle(o) {
+  const g = geometrieArc(o);
+  if (!g) return null;
+  let parties = [g.base];
+  for (const [s, e] of o.gommes || []) parties = soustraireAngles(parties, s, e, g.c.r);
+  const entier = g.complet && !(o.gommes && o.gommes.length);
+  if (g.complet && !entier && parties.length > 1) {      // le cercle se referme en ±π : on recolle les morceaux
+    parties.sort((a, b) => a[0] - b[0]);
+    const premiere = parties[0], derniere = parties[parties.length - 1];
+    if (premiere[0] <= -Math.PI + 1e-9 && derniere[1] >= Math.PI - 1e-9)
+      parties = [...parties.slice(1, -1), [derniere[0], premiere[1] + 2 * Math.PI]];
+  }
+  return { g, parties, entier };
+}
+
+function angleDansParties(parties, e, tol = 0) {
+  const TOUR = 2 * Math.PI;
+  return parties.some(([u, v]) => [-1, 0, 1].some(k => e + k * TOUR >= u - tol && e + k * TOUR <= v + tol));
+}
+
+// Angle tracé le plus proche de l'angle e (relatif), ou null s'il ne reste rien.
+function angleVisibleProche(parties, e) {
+  const TOUR = 2 * Math.PI;
+  let meilleur = null, dmin = Infinity;
+  for (const [u, v] of parties)
+    for (const k of [-1, 0, 1]) {
+      const x = Math.max(u + k * TOUR, Math.min(v + k * TOUR, e));
+      if (Math.abs(x - e) < dmin) { dmin = Math.abs(x - e); meilleur = x; }
+    }
+  return meilleur;
 }
 
 // Au moment de tracer un arc : s'il passe tout près d'un croisement, on le centre dessus.
 function angleAimante(centre, r, angleDoigt) {
-  let meilleur = angleDoigt, ecartMin = 0.7;
+  let meilleur = angleDoigt, ecartMin = Math.min(0.7, 90 / r);      // un croisement à moins de 90 px du doigt
   const c = { x: centre.x, y: centre.y, r };
   for (const autre of figure.objets) {
     if (!estCourbe(autre)) continue;
@@ -676,10 +833,12 @@ function reflet(p, d) {
 // ---------- Intersections (toujours dans le même ordre pour rester stables) ----------
 function interDroites(a, b) {
   const det = a.dx * b.dy - a.dy * b.dx;
-  if (Math.abs(det) < 1e-9) return null;
+  // parallélisme : seuil relatif aux longueurs des directions (et non une valeur absolue)
+  if (!(Math.abs(det) > 1e-9 * Math.hypot(a.dx, a.dy) * Math.hypot(b.dx, b.dy))) return null;
   const wx = b.x - a.x, wy = b.y - a.y;
   const t = (wx * b.dy - wy * b.dx) / det;
   const u = (wx * a.dy - wy * a.dx) / det;
+  if (!Number.isFinite(t) || !Number.isFinite(u)) return null;
   if (!dansSegment(a, t) || !dansSegment(b, u)) return null;
   return { x: a.x + t * a.dx, y: a.y + t * a.dy };
 }
@@ -687,16 +846,19 @@ function interDroites(a, b) {
 function interDroiteCercle(d, c) {
   const fx = d.x - c.x, fy = d.y - c.y;
   const A = d.dx * d.dx + d.dy * d.dy, B = 2 * (fx * d.dx + fy * d.dy), C = fx * fx + fy * fy - c.r * c.r;
+  if (!(A > 1e-12)) return [null, null];
   const disc = B * B - 4 * A * C;
-  if (disc < 0) return [null, null];
-  const s = Math.sqrt(disc);
+  // tangence : un discriminant très légèrement négatif (arrondis) compte comme nul
+  if (disc < -1e-9 * (B * B + Math.abs(4 * A * C))) return [null, null];
+  const s = Math.sqrt(Math.max(0, disc));
   return [(-B - s) / (2 * A), (-B + s) / (2 * A)]
-    .map(t => dansSegment(d, t) ? { x: d.x + t * d.dx, y: d.y + t * d.dy } : null);
+    .map(t => Number.isFinite(t) && dansSegment(d, t) ? { x: d.x + t * d.dx, y: d.y + t * d.dy } : null);
 }
 
 function interCercles(a, b) {
   const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
-  if (d < 1e-9 || d > a.r + b.r || d < Math.abs(a.r - b.r)) return [null, null];
+  const eps = 1e-9 * Math.max(1, a.r + b.r);      // tolérance pour les cercles tangents
+  if (d < 1e-9 || d > a.r + b.r + eps || d < Math.abs(a.r - b.r) - eps) return [null, null];
   const l = (a.r * a.r - b.r * b.r + d * d) / (2 * d);
   const h = Math.sqrt(Math.max(0, a.r * a.r - l * l));
   const mx = a.x + l * dx / d, my = a.y + l * dy / d;
@@ -710,8 +872,8 @@ function intersections(o1, o2) {
   else if (d1 && c2) res = interDroiteCercle(d1, c2);
   else if (c1 && d2) res = interDroiteCercle(d2, c1);
   else if (c1 && c2) res = interCercles(c1, c2);
-  // pour un arc, seuls comptent les croisements sur la partie tracée
-  return res.map(q => q && dansArc(o1, q) && dansArc(o2, q) ? q : null);
+  // pour un arc, seuls comptent les croisements sur la partie tracée ; jamais de coordonnée non finie
+  return res.map(q => fini(q) && dansArc(o1, q) && dansArc(o2, q) ? q : null);
 }
 
 // Point le plus proche sur la partie tracée d'une ligne, d'un cercle ou d'un arc.
@@ -727,13 +889,16 @@ function projection(o, m) {
     }
     return meilleur;
   }
-  const c = cercleDe(o);
+  const c = o.type === 'arc' ? arcDe(o) : cercleDe(o);
   if (c) {
     const l = Math.hypot(m.x - c.x, m.y - c.y);
     let angle = l < 1e-9 ? 0 : Math.atan2(m.y - c.y, m.x - c.x);   // le centre n'est pas sur le cercle
-    if (o.type === 'arcCompas') {                    // on reste sur la partie tracée de l'arc
-      const a = arcCompasDe(o);
-      if (a) angle = a.angle + Math.max(a.debut, Math.min(a.fin, normAngle(angle - a.angle)));
+    if (o.type === 'arcCompas' || o.type === 'arc' || (o.gommes && o.gommes.length)) {
+      const p = partiesAngle(o);                     // on reste sur la partie tracée
+      if (p) {
+        const e = angleVisibleProche(p.parties, normAngle(angle - p.g.ref));
+        if (e !== null) angle = p.g.ref + e;
+      }
     }
     return { x: c.x + c.r * Math.cos(angle), y: c.y + c.r * Math.sin(angle) };
   }
@@ -925,7 +1090,7 @@ function symetriqueDe(axe, pid) {
 
 // Efface un objet et tout ce qui a été construit à partir de lui.
 function supprimer(id) {
-  const liens = ['p1', 'p2', 'c', 'p', 'a', 'b', 'ref', 'axe', 'obj', 'e'];
+  const liens = ['p1', 'p2', 'c', 'p', 'a', 'b', 'ref', 'axe', 'obj', 'e', 'l1', 'l2'];
   const aEffacer = new Set([id]);
   let encore = true;
   while (encore) {
@@ -936,6 +1101,7 @@ function supprimer(id) {
       }
   }
   figure.objets = figure.objets.filter(o => !aEffacer.has(o.id));
+  oublierCalculs();                                  // aucun calcul gardé en mémoire ne doit viser un objet effacé
 }
 
 /* =========================================================
@@ -992,6 +1158,26 @@ function clic(m) {
       break;
     }
 
+    // Reporter une longueur : le compas prend l'écartement d'un segment (ou de deux points),
+    // se pique sur le centre, puis trace l'arc là où il coupe la ligne touchée.
+    case 'report': {
+      if (etape.length < 2) {                      // 1. la longueur à reporter
+        const p = pointSous(m);
+        if (p) {
+          if (etape.length === 1 && etape[0].id === p.id) break;
+          const q = pos(p.id);
+          etape.push({ genre: 'existant', id: p.id, x: q.x, y: q.y });
+        } else if (etape.length === 0) {
+          const s = courbeSous(m, o => o.type === 'segment');
+          if (s) etape = [s.p1, s.p2].map(id => { const q = pos(id); return { genre: 'existant', id, x: q.x, y: q.y }; });
+        }
+        break;
+      }
+      if (etape.length === 2) { etape.push(viser(m)); break; }      // 2. le centre
+      creerArcReport(m);                                            // 3. où tracer l'arc
+      break;
+    }
+
     case 'perp': case 'para': {
       if (etape.length === 0) {
         const d = courbeSous(m, estDroite);
@@ -1038,9 +1224,25 @@ function clic(m) {
       // L'axe reste choisi : on peut reporter plusieurs éléments à la suite.
       const axe = etape[0].id;
       const p = pointOuCroisement(m);
-      if (p) { sauver(); symetriqueDe(axe, concretiser(p)); break; }
+      if (p) {
+        sauver();
+        const pid = concretiser(p), avant = figure.prochainId, sid = symetriqueDe(axe, pid);
+        if (options.instruments && sid >= avant && animationSymPossible(sid)) lancerAnimation('sym', sid);   // l'équerre puis le compas
+        break;
+      }
       const s = courbeSous(m, o => (o.type === 'segment' || o.type === 'cercle') && o.id !== axe);
-      if (!s) break;
+      if (!s) {
+        // Un segment BC dont les extrémités sont deux points posés sur une droite (sans segment tracé) :
+        // on reporte alors le segment entre les deux symétriques.
+        const l = courbeSous(m, o => ['droite', 'perp', 'para'].includes(o.type) && o.id !== axe);
+        const morceau = l && morceauEntrePoints(l, m);
+        if (!morceau) break;
+        sauver();
+        const a = symetriqueDe(axe, morceau.a), b = symetriqueDe(axe, morceau.b);
+        const existe = figure.objets.some(o => o.type === 'segment' && ((o.p1 === a && o.p2 === b) || (o.p1 === b && o.p2 === a)));
+        if (!existe) ajouter({ type: 'segment', p1: a, p2: b, couleur: l.couleur });   // pas de doublon si on touche deux fois
+        break;
+      }
       sauver();
       if (s.type === 'segment')
         ajouter({ type: 'segment', p1: symetriqueDe(axe, s.p1), p2: symetriqueDe(axe, s.p2), couleur: s.couleur });
@@ -1050,15 +1252,35 @@ function clic(m) {
     }
 
     case 'gomme': {
-      const o = pointSous(m) || courbeSous(m);
+      const o = pointSous(m) || courbeSous(m) || arcConstructionSous(m);
       if (!o) break;
       sauver();
       if (['droite', 'perp', 'para'].includes(o.type)) gommerMorceau(o, m);   // une droite : un morceau
+      else if (o.type === 'cercle' || o.type === 'arcCompas') gommerArc(o, m); // un cercle ou un arc : un morceau
+      else if (o.type === 'segment') gommerSegment(o, m);                      // un segment : un morceau entre deux points
+      else if (o.type === 'point') supprimerPoint(o.id);
       else supprimer(o.id);
       break;
     }
   }
   majConsigne();
+}
+
+// Segment compris, sur une droite, entre les deux points visibles qui entourent l'endroit touché.
+function morceauEntrePoints(o, m) {
+  const d = droiteDe(o), q0 = projection(o, m);
+  if (!d || !q0) return null;
+  const L2 = d.dx * d.dx + d.dy * d.dy, tDe = q => ((q.x - d.x) * d.dx + (q.y - d.y) * d.dy) / L2;
+  const t = tDe(q0);
+  let avant = null, apres = null;
+  for (const p of figure.objets) {
+    const q = p.type === 'point' && !p.cache && pos(p.id);
+    if (!q || dist(projection(o, q), q) >= 0.75) continue;
+    const tp = tDe(q);
+    if (tp <= t && (!avant || tp > avant.t)) avant = { id: p.id, t: tp };
+    if (tp >= t && (!apres || tp < apres.t)) apres = { id: p.id, t: tp };
+  }
+  return avant && apres && avant.id !== apres.id ? { a: avant.id, b: apres.id } : null;
 }
 
 // Une droite déjà dans une famille de parallèles garde la couleur de sa famille ;
@@ -1096,6 +1318,207 @@ function gommerMorceau(o, m) {
   if (!droiteDe(o).parties.length) supprimer(o.id);   // plus rien de visible : on efface tout
 }
 
+// ---------- Gomme sur un segment qui porte d'autres points ----------
+// Les points d'un segment, de p1 à p2 : ses extrémités et les points visibles posés dessus.
+function pointsDuSegment(o) {
+  const a = pos(o.p1), b = pos(o.p2);
+  if (!a || !b) return null;
+  const e = { x: b.x - a.x, y: b.y - a.y }, L2 = e.x * e.x + e.y * e.y;
+  if (L2 < 1e-9) return null;
+  const tDe = q => ((q.x - a.x) * e.x + (q.y - a.y) * e.y) / L2;
+  const pts = [{ id: o.p1, t: 0 }, { id: o.p2, t: 1 }];
+  for (const p of figure.objets) {
+    if (p.type !== 'point' || p.cache || p.id === o.p1 || p.id === o.p2) continue;
+    const q = pos(p.id);
+    if (!q || dist(projection(o, q), q) >= 0.75) continue;
+    const t = tDe(q);
+    if (t > 1e-6 && t < 1 - 1e-6) pts.push({ id: p.id, t });
+  }
+  return { pts: pts.sort((u, v) => u.t - v.t), tDe };
+}
+
+// Morceau du segment (entre deux points consécutifs) situé sous le doigt : { s, i } ou null s'il n'y a
+// aucun point intermédiaire (le segment est alors un seul morceau).
+function morceauDeSegment(o, m) {
+  const s = pointsDuSegment(o), q = s && projection(o, m);
+  if (!s || !q || s.pts.length < 3) return null;
+  const t = s.tDe(q);
+  let i = 0;
+  while (i + 2 < s.pts.length && s.pts[i + 1].t <= t) i++;
+  return { s, i };
+}
+
+// Remplace le segment o par un ou deux segments plus courts (liste de [point, point] à garder).
+// Les points posés sur o suivent le segment qui les porte désormais ; un point qui devient l'extrémité
+// d'un segment gardé reste là où il est, mais ne dépend plus de ce segment (sinon il dépendrait de lui-même).
+function redecouperSegment(o, gardes) {
+  oublierCalculs();
+  const lies = figure.objets.filter(p => p.type === 'point' &&
+    ((p.genre === 'sur' && p.obj === o.id) || (p.genre === 'inter' && (p.a === o.id || p.b === o.id))));
+  const places = new Map(lies.map(p => [p.id, pos(p.id)]));
+  const ids = [o.id];
+  gardes.forEach(([a, b], i) => {
+    if (i === 0) { o.p1 = a; o.p2 = b; }
+    else { const copie = { ...o, p1: a, p2: b }; delete copie.id; ids.push(ajouter(copie)); }
+  });
+  oublierCalculs();
+  const extremites = new Set(gardes.flat());
+  for (const p of lies) {
+    const q = places.get(p.id);
+    if (!q) continue;
+    if (extremites.has(p.id)) {
+      p.genre = 'libre'; p.x = q.x; p.y = q.y;
+      for (const k of ['obj', 't', 'a', 'b', 'idx']) delete p[k];
+      continue;
+    }
+    let meilleur = null, dmin = Infinity;
+    for (const sid of ids) {                         // le segment gardé le plus proche du point
+      const sg = objet(sid), A = pos(sg.p1), B = pos(sg.p2);
+      if (!A || !B) continue;
+      const e = { x: B.x - A.x, y: B.y - A.y }, L2 = e.x * e.x + e.y * e.y;
+      const t = Math.max(0, Math.min(1, ((q.x - A.x) * e.x + (q.y - A.y) * e.y) / L2));
+      const d = dist(q, { x: A.x + t * e.x, y: A.y + t * e.y });
+      if (d < dmin) { dmin = d; meilleur = { sg, A, e, L2 }; }
+    }
+    if (!meilleur) continue;
+    if (p.genre === 'sur') {
+      p.obj = meilleur.sg.id;
+      p.t = ((q.x - meilleur.A.x) * meilleur.e.x + (q.y - meilleur.A.y) * meilleur.e.y) / meilleur.L2;
+    } else {
+      if (p.a === o.id) p.a = meilleur.sg.id;
+      if (p.b === o.id) p.b = meilleur.sg.id;
+    }
+  }
+  oublierCalculs();
+}
+
+// Gomme sur un segment : s'il porte d'autres points, seul le morceau touché disparaît (AC dans ABC) ;
+// sinon tout le segment disparaît.
+function gommerSegment(o, m) {
+  const r = morceauDeSegment(o, m);
+  if (!r) { supprimer(o.id); return; }
+  const { s, i } = r, n = s.pts.length, gardes = [];
+  if (i >= 1) gardes.push([s.pts[0].id, s.pts[i].id]);
+  if (i + 1 <= n - 2) gardes.push([s.pts[i + 1].id, s.pts[n - 1].id]);
+  redecouperSegment(o, gardes);
+}
+
+// Gomme sur un point : un segment qui s'arrête en ce point et qui porte d'autres points est raccourci
+// jusqu'au point suivant (effacer A dans [AB] avec C au milieu garde [CB]) au lieu de disparaître.
+function supprimerPoint(id) {
+  for (const o of figure.objets.filter(o => o.type === 'segment' && (o.p1 === id || o.p2 === id))) {
+    if (!objet(o.id)) continue;
+    const s = pointsDuSegment(o);
+    if (!s || s.pts.length < 3) continue;
+    const n = s.pts.length;
+    redecouperSegment(o, [o.p1 === id ? [s.pts[1].id, s.pts[n - 1].id] : [s.pts[0].id, s.pts[n - 2].id]]);
+  }
+  supprimer(id);
+}
+
+// Gomme sur un cercle ou un arc de compas : efface seulement le morceau touché, entre les deux repères
+// les plus proches (points posés sur la ligne, croisements avec d'autres lignes, ou bout de l'arc).
+// S'il n'y a aucun repère (cercle entier, arc sans point), tout le tracé disparaît.
+function gommerArc(o, m) {
+  const p = partiesAngle(o);
+  const q = p && projection(o, m);
+  if (!q) return;
+  const { g, parties } = p, c = g.c, TOUR = 2 * Math.PI;
+  const e = normAngle(Math.atan2(q.y - c.y, q.x - c.x) - g.ref);          // angle touché
+  const reperes = [];
+  const noter = pt => reperes.push(Math.atan2(pt.y - c.y, pt.x - c.x) - g.ref);
+  for (const pt of figure.objets) {
+    const r = pt.type === 'point' && !pt.cache && pos(pt.id);
+    if (r && dist(projection(o, r), r) < 0.75) noter(r);
+  }
+  for (const autre of figure.objets)
+    if (autre !== o && estCourbe(autre)) for (const r of intersections(o, autre)) if (r) noter(r);
+  let avant, apres;
+  if (p.entier) {                                    // cercle intact : les repères se suivent en rond
+    const dec = reperes.map(th => ((th - e) % TOUR + TOUR) % TOUR).filter(x => x > 1e-6);
+    if (!dec.length) { supprimer(o.id); return; }
+    avant = e + Math.max(...dec) - TOUR; apres = e + Math.min(...dec);
+  } else {
+    let partie = null;
+    for (const [u, v] of parties)
+      for (const k of [-1, 0, 1])
+        if (!partie && e >= u + k * TOUR - 1e-4 && e <= v + k * TOUR + 1e-4) partie = [u + k * TOUR, v + k * TOUR];
+    if (!partie) return;
+    [avant, apres] = partie;
+    for (const th of reperes)
+      for (const k of [-1, 0, 1]) {
+        const x = th + k * TOUR;
+        if (x > avant + 1e-6 && x < e - 1e-6) avant = x;
+        if (x < apres - 1e-6 && x > e + 1e-6) apres = x;
+      }
+  }
+  retirerAngles(o, avant, apres);
+}
+
+// Ajoute un morceau gommé (angles relatifs) à un cercle ou un arc ; si plus rien n'est visible, on l'efface.
+function retirerAngles(o, a, b) {
+  if (!(b - a > 1e-6)) return;
+  if (b - a >= 2 * Math.PI - 1e-3) { supprimer(o.id); return; }
+  // les morceaux gommés qui se touchent ou se chevauchent sont réunis (frotter en ajoute beaucoup)
+  const tous = [...(o.gommes || []), [a, b]].sort((x, y) => x[0] - y[0]), fusion = [];
+  for (const g of tous) {
+    const dernier = fusion[fusion.length - 1];
+    if (dernier && g[0] <= dernier[1] + 1e-9) dernier[1] = Math.max(dernier[1], g[1]); else fusion.push([g[0], g[1]]);
+  }
+  o.gommes = fusion;
+  oublierCalculs();
+  const p = partiesAngle(o);
+  if (p && !p.parties.length) supprimer(o.id);
+}
+
+// Arc de construction (milieu) situé sous le doigt, s'il y en a un.
+function arcConstructionSous(m) {
+  return figure.objets.find(o => o.type === 'arc' && !(anim && anim.type === 'milieu' && o.p === anim.id) &&
+    arcMilieuTouche(o, m, RAYON_CLIC * 0.8)) || null;
+}
+
+// Frotter sur un cercle ou un arc : seul le petit morceau sous la gomme disparaît.
+function frotterArc(o, m) {
+  const p = partiesAngle(o);
+  const q = p && projection(o, m);
+  if (!q || dist(q, m) >= RAYON_GOMME) return;
+  const c = p.g.c, ecartRadial = Math.abs(dist(m, c) - c.r);
+  const demi = Math.asin(Math.min(1, Math.sqrt(Math.max(0, RAYON_GOMME ** 2 - ecartRadial ** 2)) / c.r));
+  const e = normAngle(Math.atan2(q.y - c.y, q.x - c.x) - p.g.ref);
+  retirerAngles(o, e - demi, e + demi);
+}
+
+// Parties d'un cercle (centre c, rayon r) qui tombent dans un rectangle : intervalles d'angles absolus.
+function intervallesDansRect(c, rect) {
+  const angles = [-Math.PI, Math.PI], rond = a => Math.atan2(Math.sin(a), Math.cos(a));
+  for (const x of [rect.x1, rect.x2]) { const k = (x - c.x) / c.r; if (Math.abs(k) <= 1) angles.push(Math.acos(k), -Math.acos(k)); }
+  for (const y of [rect.y1, rect.y2]) { const k = (y - c.y) / c.r; if (Math.abs(k) <= 1) angles.push(rond(Math.asin(k)), rond(Math.PI - Math.asin(k))); }
+  angles.sort((a, b) => a - b);
+  const res = [];
+  for (let i = 0; i + 1 < angles.length; i++) {
+    const a = angles[i], b = angles[i + 1];
+    if (b - a < 1e-9) continue;
+    const mid = (a + b) / 2, x = c.x + c.r * Math.cos(mid), y = c.y + c.r * Math.sin(mid);
+    if (x < rect.x1 || x > rect.x2 || y < rect.y1 || y > rect.y2) continue;
+    if (res.length && Math.abs(res[res.length - 1][1] - a) < 1e-9) res[res.length - 1][1] = b; else res.push([a, b]);
+  }
+  return res;
+}
+
+// Rectangle sur un cercle ou un arc : le morceau qui passe dans le rectangle disparaît.
+function gommerArcRectangle(o, rect) {
+  const p0 = partiesAngle(o);
+  if (!p0) return;
+  for (const [a, b] of intervallesDansRect(p0.g.c, rect)) {
+    if (!objet(o.id)) return;
+    const p = partiesAngle(o);
+    if (!p) return;
+    const s = a - p.g.ref, e = b - p.g.ref, TOUR = 2 * Math.PI;
+    const touche = p.parties.some(([u, v]) => [-1, 0, 1].some(k => Math.max(s, u + k * TOUR) < Math.min(e, v + k * TOUR)));
+    if (touche) retirerAngles(o, s, e);
+  }
+}
+
 // Symétrique de toute la figure : points, segments, cercles et arcs de compas.
 // Les droites (dont l'axe lui-même) et les images déjà obtenues avec cet axe ne sont pas reportées.
 function refleterTout(axe) {
@@ -1116,11 +1539,17 @@ function refleterTout(axe) {
       const a = sym(o.p1), b = sym(o.p2);
       if (!existeSegment(a, b)) ajouter({ type: 'segment', p1: a, p2: b, couleur: o.couleur });
     }
-    else if (o.type === 'cercle' && !estImage(o.c))
-      ajouter({ type: 'cercle', c: sym(o.c), p: sym(o.p), couleur: o.couleur });
-    else if (o.type === 'arcCompas' && !estImage(o.c))
-      ajouter({ type: 'arcCompas', c: sym(o.c), e: sym(o.e),
-                angle: 2 * angleAxe - o.angle, couleur: o.couleur });
+    else if (o.type === 'cercle' && !estImage(o.c)) {
+      const image = { type: 'cercle', c: sym(o.c), p: sym(o.p), couleur: o.couleur };
+      if (o.gommes) image.gommes = o.gommes.map(([s, f]) => [2 * angleAxe - f, 2 * angleAxe - s]);
+      ajouter(image);
+    }
+    else if (o.type === 'arcCompas' && !estImage(o.c)) {
+      const image = { type: 'arcCompas', c: sym(o.c), angle: 2 * angleAxe - o.angle, couleur: o.couleur };
+      if (o.l1 !== undefined) { image.l1 = sym(o.l1); image.l2 = sym(o.l2); } else image.e = sym(o.e);
+      if (o.gommes) image.gommes = o.gommes.map(([s, f]) => [-f, -s]);          // les morceaux gommés se reportent aussi
+      ajouter(image);
+    }
   }
 }
 
@@ -1134,6 +1563,38 @@ function creerArc(centre, ecart, doigt) {
   if (options.instruments) lancerAnimation('arc', id);
 }
 
+// Reporter une longueur : angle de l'arc de centre « centre » et de rayon r, tracé vers le croisement
+// avec la ligne touchée (le plus proche du doigt), sinon dans la direction du doigt.
+// angle = null : la ligne touchée n'est pas coupée par le cercle (longueur trop courte ou trop longue).
+function angleReport(centre, r, doigt) {
+  const c = { x: centre.x, y: centre.y, r };
+  const ligne = courbeSous(doigt);
+  if (ligne) {
+    const croisements = croisementsCercle(c, ligne);
+    if (!croisements.length) return { angle: null, ligne };
+    const q = croisements.reduce((m, x) => (dist(x, doigt) < dist(m, doigt) ? x : m));
+    return { angle: Math.atan2(q.y - c.y, q.x - c.x), ligne };
+  }
+  if (dist(centre, doigt) < 3) return { angle: -Math.PI / 4, ligne: null };
+  return { angle: angleAimante(c, r, Math.atan2(doigt.y - c.y, doigt.x - c.x)), ligne: null };
+}
+
+function creerArcReport(m) {
+  const [ea, eb, centre] = etape;
+  const A = pos(ea.id), B = pos(eb.id);
+  if (!A || !B) { etape = []; return; }
+  const r = dist(A, B);
+  if (r < 8) { afficherInfo('Cette longueur est trop petite pour être reportée.'); return; }
+  const { angle } = angleReport(centre, r, m);
+  if (angle === null) { afficherInfo('L’arc ne coupe pas cette ligne : la longueur est trop courte ou trop longue.'); return; }
+  sauver();
+  const c = concretiser(centre);
+  const id = ajouter({ type: 'arcCompas', c, l1: ea.id, l2: eb.id, angle, couleur: 'gris' });
+  etape = etape.slice(0, 2);                       // l'écartement reste pris : on peut le reporter ailleurs
+  placerPointsSurArc(id);
+  if (options.instruments) lancerAnimation('report', id);
+}
+
 // Là où l'arc vient couper une ligne, un cercle ou un autre arc, on place et on nomme le point,
 // comme on le fait au compas pour reporter une longueur. Seuls comptent les croisements situés
 // là où l'on a tracé l'arc (pas ceux de son allongement automatique), et sans doublon.
@@ -1141,7 +1602,7 @@ function placerPointsSurArc(id) {
   oublierCalculs();
   const arc = objet(id), a = arcCompasDe(arc);
   if (!a) return;
-  const demi = Math.max(0.4, 50 / a.r) + 0.05;
+  const demi = Math.min(1, 38 / a.r) + 0.05;
   for (const autre of [...figure.objets]) {
     if (autre.id === id || !estCourbe(autre)) continue;
     intersections(arc, autre).forEach((q, idx) => {
@@ -1151,6 +1612,98 @@ function placerPointsSurArc(id) {
       oublierCalculs();
     });
   }
+}
+
+// ---------- Nommer un point existant ----------
+// On peut donner (ou changer) le nom d'un point déjà tracé, ou nommer un croisement de deux lignes
+// qui n'est pas encore un point. Un point invisible posé sur une ligne (bout d'une droite…) devient visible.
+let nommage = null;                                  // { id } ou { visee }, et { x, y } : élément en cours de nom
+
+function cibleNommer(m) {
+  const vis = pointSous(m);
+  if (vis) { const q = pos(vis.id); return { id: vis.id, x: q.x, y: q.y }; }
+  const cache = pointSous(m, true);
+  if (cache && cache.cache) {
+    const q = pos(cache.id);
+    if (q && courbesPassantPar(q).length) return { id: cache.id, x: q.x, y: q.y };
+  }
+  const v = viser(m);
+  return v.genre === 'inter' ? { visee: v, x: v.x, y: v.y } : null;
+}
+
+const champNom = document.getElementById('nommageChamp'), boiteNommage = document.getElementById('nommage');
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const nomsPris = () => new Set(figure.objets.filter(o => o.type === 'point' && o.nom && !(nommage && o.id === nommage.id)).map(o => o.nom));
+
+(function preparerNommage() {
+  const lettres = document.getElementById('nommageLettres'), suffixes = document.getElementById('nommageSuffixes');
+  for (const l of ALPHABET) {
+    const b = document.createElement('button'); b.textContent = l; b.dataset.l = l;
+    b.addEventListener('click', () => { champNom.value = l; majNommage(); });
+    lettres.appendChild(b);
+  }
+  for (const s of ['′', '1', '2', '3']) {          // ′ (prime), puis indices
+    const b = document.createElement('button'); b.textContent = s;
+    b.addEventListener('click', () => { if (champNom.value.length < 4) champNom.value += s; majNommage(); });
+    suffixes.appendChild(b);
+  }
+  champNom.addEventListener('input', () => {
+    champNom.value = champNom.value.replace(/^[a-z]/, c => c.toUpperCase());     // première lettre en majuscule
+    majNommage();
+  });
+  champNom.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); validerNom(); }
+    if (e.key === 'Escape') { e.preventDefault(); fermerNommage(); }
+  });
+  document.getElementById('nommageOk').addEventListener('click', validerNom);
+  document.getElementById('nommageAnnuler').addEventListener('click', () => { fermerNommage(); dessiner(); });
+})();
+
+// Met en évidence la lettre choisie, grise celles déjà prises, efface l'erreur.
+function majNommage() {
+  const pris = nomsPris(), nom = champNom.value.trim();
+  document.querySelectorAll('#nommageLettres button').forEach(b => {
+    b.classList.toggle('pris', pris.has(b.dataset.l));
+    b.classList.toggle('actif', b.dataset.l === nom);
+  });
+  document.getElementById('nommageErreur').textContent = nom && pris.has(nom) ? '« ' + nom + ' » est déjà pris.' : '';
+}
+
+function ouvrirNommage(cible) {
+  nommage = cible;
+  const actuel = cible.id ? objet(cible.id).nom : '';
+  champNom.value = actuel || nomSuivant();
+  majNommage();
+  boiteNommage.hidden = false;
+  const cadre = document.getElementById('cadre');
+  const w = boiteNommage.offsetWidth, h = boiteNommage.offsetHeight;
+  boiteNommage.style.left = Math.max(8, Math.min(cadre.clientWidth - w - 8, cible.x + 24)) + 'px';
+  boiteNommage.style.top = Math.max(8, Math.min(cadre.clientHeight - h - 8, cible.y - h / 2)) + 'px';
+  if (typePointeur !== 'touch') { champNom.focus(); champNom.select(); }
+}
+
+function fermerNommage() {
+  nommage = null;
+  boiteNommage.hidden = true;
+  champNom.blur();
+}
+
+function validerNom() {
+  if (!nommage) return;
+  const nom = champNom.value.trim();
+  if (!nom) { document.getElementById('nommageErreur').textContent = 'Choisis un nom.'; return; }
+  if (nomsPris().has(nom)) { majNommage(); return; }
+  sauver();
+  oublierCalculs();
+  if (nommage.id) {
+    const p = objet(nommage.id);
+    if (p) { p.nom = nom; p.cache = false; }
+  } else {
+    const id = concretiser(nommage.visee);           // le croisement devient un vrai point…
+    objet(id).nom = nom;                             // … avec le nom choisi
+  }
+  fermerNommage();
+  memoriser(); dessiner();
 }
 
 // Point existant sous le doigt, ou croisement de deux lignes (pas encore nommé) : renvoie une « visée ».
@@ -1222,9 +1775,9 @@ function frotter(m) {
     if (!objet(o.id)) continue;                      // déjà effacé avec un autre élément
     if (o.type === 'point') {
       const q = !o.cache && pos(o.id);
-      if (q && dist(q, m) < RAYON_GOMME) supprimer(o.id);
-    } else if (o.type === 'arc') {
-      if (arcMilieuTouche(o, m, RAYON_GOMME)) supprimer(o.id);
+      if (q && dist(q, m) < RAYON_GOMME) supprimerPoint(o.id);
+    } else if (o.type === 'arc' || o.type === 'cercle' || o.type === 'arcCompas') {
+      frotterArc(o, m);                              // seul le morceau frotté disparaît
     } else if (estCourbe(o)) {
       const q = projection(o, m);
       if (!q || dist(q, m) >= RAYON_GOMME) continue;
@@ -1232,7 +1785,8 @@ function frotter(m) {
         const d = droiteDe(o), L = Math.hypot(d.dx, d.dy);
         const t = ((q.x - d.x) * d.dx + (q.y - d.y) * d.dy) / (L * L), k = RAYON_GOMME / L;
         retirerMorceau(o, t - k, t + k);
-      } else supprimer(o.id);
+      } else if (o.type === 'segment') gommerSegment(o, m);
+      else supprimer(o.id);
     }
     oublierCalculs();
   }
@@ -1263,15 +1817,8 @@ function gommerRectangle(a, b) {
     let effacer = false;
     if (o.type === 'point') effacer = !o.cache && dedans(pos(o.id));
     else if (o.type === 'segment') effacer = dedans(pos(o.p1)) && dedans(pos(o.p2));
-    else if (o.type === 'cercle') {
-      const c = cercleDe(o);
-      effacer = !!c && dedans({ x: c.x - c.r, y: c.y - c.r }) && dedans({ x: c.x + c.r, y: c.y + c.r });
-    } else if (o.type === 'arcCompas' || o.type === 'arc') {
-      const c = o.type === 'arc' ? arcDe(o) : arcCompasDe(o);
-      if (c) {
-        const [d0, d1] = o.type === 'arc' ? [-DEMI_ARC, DEMI_ARC] : [c.debut, c.fin];
-        effacer = [d0, (d0 + d1) / 2, d1].every(e => dedans({ x: c.x + c.r * Math.cos(c.angle + e), y: c.y + c.r * Math.sin(c.angle + e) }));
-      }
+    else if (o.type === 'cercle' || o.type === 'arcCompas' || o.type === 'arc') {
+      gommerArcRectangle(o, r);                      // le morceau qui passe dans le rectangle disparaît
     } else if (['droite', 'perp', 'para'].includes(o.type)) {
       const d = droiteDe(o);
       if (d) {
@@ -1287,7 +1834,7 @@ function gommerRectangle(a, b) {
         if (traverse && t1 > t0) retirerMorceau(o, t0, t1);
       }
     }
-    if (effacer) supprimer(o.id);
+    if (effacer) { if (o.type === 'point') supprimerPoint(o.id); else supprimer(o.id); }
     oublierCalculs();
   }
 }
@@ -1378,6 +1925,7 @@ function dessinerBrut() {
 
 
 function ajouterApercuArc() {
+  if (outil === 'report') return ajouterApercuReport();
   if (outil !== 'arc' || !souris || etape.length === 0) return [];
   const centre = etape[0];
   let ecart = etape[1];
@@ -1398,6 +1946,24 @@ function ajouterApercuArc() {
   return temp;
 }
 
+// Aperçu de l'arc reporté : il suit le doigt (ou s'arrête sur la ligne touchée).
+function ajouterApercuReport() {
+  if (!souris || etape.length !== 3) return [];
+  const [ea, eb, centre] = etape, A = pos(ea.id), B = pos(eb.id);
+  if (!A || !B || dist(A, B) < 8) return [];
+  const { angle } = angleReport(centre, dist(A, B), souris);
+  if (angle === null) return [];
+  const temp = [];
+  let idc = centre.id;
+  if (centre.genre !== 'existant') {
+    idc = -2;
+    temp.push({ id: -2, type: 'point', genre: 'libre', x: centre.x, y: centre.y, cache: true, nom: '' });
+  }
+  temp.push({ id: -1, type: 'arcCompas', c: idc, l1: ea.id, l2: eb.id, angle, couleur: 'gris' });
+  figure.objets.push(...temp);
+  return temp;
+}
+
 function dessinerTout() {
   oublierCalculs();
   const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -1411,12 +1977,41 @@ function dessinerTout() {
   const choisis = new Set(etape.filter(e => e.genre === 'objet' || e.genre === 'existant').map(e => e.id));
   const survole = objetSurvole();
 
+  // Symétrique : un segment BC dont les extrémités sont posées sur une droite (sans segment tracé)
+  // est surligné lui aussi, sur toute sa longueur, comme un segment tracé.
+  if (outil === 'sym' && etape.length && souris && typePointeur !== 'touch' && !survole) {
+    const l = courbeSous(souris, o => ['droite', 'perp', 'para'].includes(o.type) && o.id !== etape[0].id);
+    const bc = l && morceauEntrePoints(l, souris), a = bc && pos(bc.a), b = bc && pos(bc.b);
+    if (a && b) {
+      ctx.strokeStyle = 'rgba(245,179,0,0.45)'; ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+  }
+
+  // Gomme sur un segment qui porte des points : seul le morceau qui va disparaître est surligné
+  let morceauGomme = null;
+  if (outil === 'gomme' && survole && survole.type === 'segment' && souris) {
+    const r = morceauDeSegment(survole, souris);
+    if (r) {
+      const a = pos(r.s.pts[r.i].id), b = pos(r.s.pts[r.i + 1].id);
+      if (a && b) {
+        morceauGomme = survole;
+        ctx.strokeStyle = 'rgba(245,179,0,0.45)'; ctx.lineWidth = 12;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+  }
+
   // Lignes et cercles
   for (const o of figure.objets) {
     if (!estCourbe(o) || enCoursDeTrace(o)) continue;
-    if (choisis.has(o.id) || o === survole) tracerCourbe(o, 'rgba(245,179,0,0.45)', 12);
+    if (choisis.has(o.id) || (o === survole && o !== morceauGomme)) tracerCourbe(o, 'rgba(245,179,0,0.45)', 12);
     tracerCourbe(o, couleurTrait(o), epaisseurDe(o));
   }
+
+  // Pointillés entre chaque point et son symétrique
+  const liensSym = liensSymetriques();
+  dessinerLiensSymetriques(liensSym);
 
   // Codage de l'angle droit des perpendiculaires
   if (options.codages) dessinerAnglesDroits();
@@ -1424,17 +2019,18 @@ function dessinerTout() {
   // Arcs de compas laissés par la construction des milieux
   for (const o of figure.objets) {
     if (o.type !== 'arc' || (anim && anim.type === 'milieu' && o.p === anim.id)) continue;
-    const a = arcDe(o);
-    if (!a) continue;
+    const p = partiesAngle(o);
+    if (!p) continue;
     ctx.strokeStyle = COULEURS.gris;
     ctx.lineWidth = EPAISSEUR_CONSTRUCTION;
-    ctx.beginPath(); ctx.arc(a.x, a.y, a.r, a.angle - DEMI_ARC, a.angle + DEMI_ARC); ctx.stroke();
+    ctx.beginPath(); ajouterParties(p); ctx.stroke();
   }
 
   // Zones déjà prises (les points eux-mêmes) : codages, longueurs et noms se placent
   // là où aucune ligne ne les coupe et sans se chevaucher
   const courbesVisibles = figure.objets.filter(o =>
     (estCourbe(o) && !enCoursDeTrace(o)) || (o.type === 'arc' && !(anim && anim.type === 'milieu' && o.p === anim.id)));
+  const courbesNoms = courbesVisibles.concat(liensSym.map(l => ({ lien: true, a: l.a, b: l.b })));
   const occupees = [];
   for (const o of figure.objets) {
     const p = o.type === 'point' && !o.cache && pos(o.id);
@@ -1458,12 +2054,23 @@ function dessinerTout() {
   // Outil Déplacer : poignées (ronds gris) au bout des droites pour les prolonger
   if (outil === 'deplacer') dessinerBouts();
 
+  // Premier essai (rien n'est dessiné) : côté des noms sur les lignes presque horizontales (voir placerNom)
+  cotesLignes = [];
+  if (options.noms) {
+    const avant = occupees.length;
+    for (const o of figure.objets) {
+      if (o.type !== 'point' || o.cache || pointPasEncorePlace(o)) continue;
+      const p = pos(o.id);
+      if (p) placerNom(p, o.nom, occupees, courbesNoms, true);
+    }
+    occupees.length = avant;
+  }
   // Points, marqués comme sur le cahier :
   //  - point seul : une croix
   //  - point sur une ligne : un petit trait qui la coupe (le trait de la ligne complète la croix)
   //  - point à l'intersection de deux lignes : rien de plus, les lignes forment déjà la croix
   for (const o of figure.objets) {
-    if (o.type !== 'point' || milieuPasEncorePlace(o)) continue;
+    if (o.type !== 'point' || pointPasEncorePlace(o)) continue;
     const p = pos(o.id);
     if (!p) continue;
     if (choisis.has(o.id) || o === survole) {
@@ -1481,7 +2088,7 @@ function dessinerTout() {
     if (supports.length === 0) dessinerCroix(p, COULEURS[o.couleur]);
     else if (supports.length === 1) dessinerTrait(p, supports[0], COULEURS[o.couleur]);
     if (options.noms) {
-      const place = placerNom(p, o.nom, occupees, courbesVisibles);
+      const place = placerNom(p, o.nom, occupees, courbesNoms);
       ctx.fillStyle = COULEURS[o.couleur];
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(o.nom, place.x, place.y);
@@ -1517,11 +2124,20 @@ function tracerCourbe(o, couleur, epaisseur) {
   if (d) {
     for (const [a, b] of morceaux(d)) { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); }
   } else {
-    const a = o.type === 'arcCompas' ? arcCompasDe(o) : null, c = cercleDe(o);
-    if (a) ctx.arc(a.x, a.y, a.r, a.angle + a.debut, a.angle + a.fin);
+    const p = o.type === 'arcCompas' || o.type === 'cercle' ? partiesAngle(o) : null, c = cercleDe(o);
+    if (p && !p.entier) ajouterParties(p);
     else if (c) ctx.arc(c.x, c.y, c.r, 0, 2 * Math.PI);
   }
   ctx.stroke();
+}
+
+// Ajoute au tracé en cours les parties restantes d'un cercle ou d'un arc.
+function ajouterParties(p) {
+  const { c, ref } = p.g;
+  for (const [u, v] of p.parties) {
+    ctx.moveTo(c.x + c.r * Math.cos(ref + u), c.y + c.r * Math.sin(ref + u));
+    ctx.arc(c.x, c.y, c.r, ref + u, ref + v);
+  }
 }
 
 function dessinerCroix(p, couleur, taille = 7) {
@@ -1549,49 +2165,141 @@ function figuresDistinctes() {
     const q = p.type === 'point' && pos(p.id);
     if (q) for (const c of courbesPassantPar(q)) unir('p' + p.id, 'o' + c.id);
   }
-  for (const o of figure.objets)
+  for (const o of figure.objets) {
     if (o.type === 'segment') { unir('p' + o.p1, 'o' + o.id); unir('p' + o.p2, 'o' + o.id); }
+    // une perpendiculaire ou une parallèle fait partie de la figure de sa droite de départ
+    if (o.type === 'perp' || o.type === 'para') unir('o' + o.id, 'o' + o.ref);
+    // un symétrique fait partie de la figure de son modèle (et de l'axe) : il lui est égal
+    if (o.genre === 'sym') { unir('p' + o.id, 'p' + o.p); unir('p' + o.id, 'o' + o.axe); }
+  }
   for (let i = 0; i < courbes.length; i++)
     for (let j = i + 1; j < courbes.length; j++)
       if (intersections(courbes[i], courbes[j]).some(Boolean)) unir('o' + courbes[i].id, 'o' + courbes[j].id);
   return idPoint => chef('p' + idPoint);
 }
 
+// Pour chaque point et son symétrique : le trait qui les relie, et son milieu (le pied sur l'axe).
+function liensSymetriques() {
+  const liens = [];
+  for (const o of figure.objets) {
+    if (o.type !== 'point' || o.genre !== 'sym' || o.cache || pointPasEncorePlace(o)) continue;
+    const source = objet(o.p), axe = objet(o.axe);
+    if (!source || source.cache || !axe) continue;
+    const a = pos(o.p), b = pos(o.id);
+    if (!a || !b || dist(a, b) < 12) continue;         // un point posé sur l'axe est son propre symétrique
+    liens.push({ id: o.id, a, b, f: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, axe });
+  }
+  return liens;
+}
+
+// Traits en pointillés gris clair entre chaque point et son symétrique, avec le codage de l'angle droit.
+function dessinerLiensSymetriques(liens) {
+  if (!liens.length) return;
+  ctx.save();
+  ctx.setLineDash([7, 6]);
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = COULEURS.gris;
+  ctx.lineWidth = EPAISSEUR_CONSTRUCTION;
+  ctx.beginPath();
+  for (const l of liens) { ctx.moveTo(l.a.x, l.a.y); ctx.lineTo(l.b.x, l.b.y); }
+  ctx.stroke();
+  ctx.restore();
+  if (!options.codages) return;
+  for (const l of liens) {
+    const axe = droiteDe(l.axe);
+    if (!axe) continue;
+    // déjà codé si une vraie ligne tracée passe par les deux points
+    const vraie = figure.objets.some(o => o !== l.axe && estDroite(o) && (d => d && [l.a, l.b].every(q =>
+      Math.abs((q.x - d.x) * d.dy - (q.y - d.y) * d.dx) / Math.hypot(d.dx, d.dy) < 0.75))(droiteDe(o)));
+    if (vraie) continue;
+    dessinerCarreAngle(l.f, axe, { x: l.a.x, y: l.a.y, dx: l.b.x - l.a.x, dy: l.b.y - l.a.y, parties: [[0, 1]] }, COULEUR_CODAGE);
+  }
+}
+
 function dessinerCodages(occupees, courbes) {
   const figureDe = figuresDistinctes();
-  const pieces = [], vus = new Set();
+  // Morceaux à comparer, repérés par la paire de points qui les bornent :
+  //  - chaque segment tracé ;
+  //  - sur chaque ligne (segment, droite, perpendiculaire, parallèle), les morceaux qui séparent
+  //    deux points consécutifs : deux segments d'une même droite, ou de deux droites différentes,
+  //    de même mesure sont ainsi codés comme égaux, même sans segment tracé ;
+  //  - les deux moitiés d'un segment coupé par son milieu.
+  const pieces = new Map();
   const ajouterPiece = (id1, id2, couleur, segment) => {
     const cle = [id1, id2].sort((x, y) => x - y).join('-');
+    const deja = pieces.get(cle);
+    if (deja) { if (segment !== undefined && deja.segment === undefined) deja.segment = segment; return cle; }
     const a = pos(id1), b = pos(id2);
-    if (vus.has(cle) || !a || !b || dist(a, b) < 20) return;
-    vus.add(cle);
-    pieces.push({ a, b, l: dist(a, b), couleur, segment, fig: figureDe(id1) });
+    if (!a || !b || dist(a, b) < 20) return null;
+    pieces.set(cle, { cle, a, b, l: dist(a, b), couleur, segment, fig: figureDe(id1), sous: null });
+    return cle;
   };
   for (const o of figure.objets) {
-    // un segment coupé par son milieu n'est codé que par ses deux moitiés (sinon les marques
-    // du segment entier et celles des moitiés se mélangent et deviennent illisibles)
-    const aUnMilieu = o.type === 'segment' && figure.objets.some(m => m.genre === 'milieu' &&
-      ((m.a === o.p1 && m.b === o.p2) || (m.a === o.p2 && m.b === o.p1)));
-    if (o.type === 'segment' && !enCoursDeTrace(o) && !aUnMilieu) ajouterPiece(o.p1, o.p2, o.couleur, o.id);
-    if (o.genre === 'milieu' && !milieuPasEncorePlace(o)) {
+    if (!estDroite(o) || enCoursDeTrace(o)) continue;
+    const d = droiteDe(o);
+    if (!d) continue;
+    const L = Math.hypot(d.dx, d.dy);
+    const sur = [];                                  // points de la ligne, avec leur position t
+    for (const p of figure.objets) {
+      if (p.type !== 'point' || pointPasEncorePlace(p)) continue;
+      if (p.cache && !(o.type === 'segment' && (p.id === o.p1 || p.id === o.p2))) continue;   // points visibles (et bouts du segment)
+      const q = pos(p.id);
+      if (!q || Math.abs((q.x - d.x) * d.dy - (q.y - d.y) * d.dx) / L > 0.75) continue;
+      const t = ((q.x - d.x) * d.dx + (q.y - d.y) * d.dy) / (L * L);
+      if (o.type === 'segment' ? (t < -0.75 / L || t > 1 + 0.75 / L) : !dansSegment(d, t)) continue;
+      sur.push({ id: p.id, t });
+    }
+    sur.sort((u, v) => u.t - v.t);
+    const pts = [];
+    for (const s of sur) if (!pts.length || (s.t - pts[pts.length - 1].t) * L > 3) pts.push(s);   // deux points confondus : un seul
+    const cles = [];
+    for (let i = 0; i + 1 < pts.length; i++) {
+      if (o.type !== 'segment' && !dansSegment(d, (pts[i].t + pts[i + 1].t) / 2)) continue;     // morceau gommé : pas de codage
+      const cle = ajouterPiece(pts[i].id, pts[i + 1].id, o.couleur);
+      if (cle) cles.push(cle);
+    }
+    if (o.type === 'segment') {
+      const cle = ajouterPiece(o.p1, o.p2, o.couleur, o.id);
+      if (cle && pts.length > 2) pieces.get(cle).sous = cles;       // segment coupé par d'autres points
+    }
+  }
+  for (const o of figure.objets)
+    if (o.genre === 'milieu' && !pointPasEncorePlace(o)) {
       ajouterPiece(o.a, o.id, o.couleur);
       ajouterPiece(o.id, o.b, o.couleur);
     }
+  // Un point et son symétrique : les deux moitiés du trait pointillé qui les relie sont égales.
+  for (const l of liensSymetriques()) {
+    const fig = figureDe(l.id);
+    for (const [cle, a, b] of [['s' + l.id + 'a', l.a, l.f], ['s' + l.id + 'b', l.f, l.b]])
+      if (dist(a, b) >= 20) pieces.set(cle, { cle, a, b, l: dist(a, b), couleur: 'gris', segment: undefined, fig, sous: null });
   }
   // Regroupe les longueurs égales : même longueur affichée au millimètre près (ce que les élèves
   // lisent), dans la même figure. Deux côtés notés « 5 cm » reçoivent donc toujours le même codage.
+  // Un segment coupé en morceaux égaux à d'autres n'est codé que par ses morceaux (sinon les marques
+  // du segment entier et celles des morceaux se mélangent et deviennent illisibles).
   const mm = l => Math.round(l / CARREAU * 10);
-  const groupes = [];
-  for (const m of pieces) {
-    const g = groupes.find(g => mm(g[0].l) === mm(m.l) && g[0].fig === m.fig);
-    if (g) g.push(m); else groupes.push([m]);
+  let actifs = [...pieces.values()], groupes;
+  for (;;) {
+    groupes = [];
+    for (const m of actifs) {
+      const g = groupes.find(g => mm(g[0].l) === mm(m.l) && g[0].fig === m.fig);
+      if (g) g.push(m); else groupes.push([m]);
+    }
+    const codes = new Set(groupes.filter(g => g.length >= 2).flat().map(m => m.cle));
+    const retirer = actifs.filter(m => m.sous && m.sous.some(c => codes.has(c)));
+    if (!retirer.length) break;
+    actifs = actifs.filter(m => !retirer.includes(m));
   }
-  groupes.filter(g => g.length >= 2).forEach((g, rang) => g.forEach(m => dessinerMarque(m, rang % 5, occupees, courbes)));
-  // Segments de même longueur (y compris ceux coupés par leur milieu, que le codage de leurs
-  // moitiés montre égaux) : la longueur n'est écrite que sur le premier.
+  const codes = new Set(groupes.filter(g => g.length >= 2).flat().map(m => m.cle));
+  groupes.filter(g => g.length >= 2).forEach((g, rang) => g.forEach(m => dessinerMarque(m, rang % 8, occupees, courbes)));
+  // Segments codés (eux-mêmes ou par leurs morceaux) de même longueur : la longueur n'est écrite que sur le premier.
+  const codesSeg = new Set();
+  for (const m of pieces.values())
+    if (m.segment !== undefined && (codes.has(m.cle) || (m.sous && m.sous.some(c => codes.has(c))))) codesSeg.add(m.segment);
   const sansLongueur = new Set(), longueurs = [];
   for (const o of figure.objets) {
-    if (o.type !== 'segment' || enCoursDeTrace(o)) continue;
+    if (o.type !== 'segment' || enCoursDeTrace(o) || !codesSeg.has(o.id)) continue;
     const a = pos(o.p1), b = pos(o.p2);
     if (!a || !b) continue;
     const l = dist(a, b), fig = figureDe(o.p1);
@@ -1640,6 +2348,30 @@ function calculerZonesInterieures() {
     } else zones.push(enveloppeConvexe(points));
   }
   zonesInterieures = zones;
+  // Figures formées de droites (parallélogramme tracé avec des parallèles…) : pas de polygone de segments,
+  // on repère donc les cellules fermées par les parties tracées de toutes les lignes (voir dansCellule).
+  segmentsTraces = [];
+  if (figure.objets.some(o => ['droite', 'perp', 'para'].includes(o.type) && !enCoursDeTrace(o)))
+    for (const o of figure.objets) {
+      const d = estDroite(o) && !enCoursDeTrace(o) && droiteDe(o);
+      if (d) segmentsTraces.push(...morceaux(d));
+    }
+}
+
+// Un point est « dans une cellule » si, dans les 8 directions, il rencontre une ligne tracée :
+// il est alors entouré (intérieur d'un parallélogramme, d'un quadrilatère…). Un point à l'extérieur
+// d'une figure a toujours une direction libre. Les directions sont un peu décalées des axes.
+let segmentsTraces = [];
+const DIRECTIONS_CELLULE = Array.from({ length: 8 }, (_, i) => [Math.cos(i * Math.PI / 4 + 0.1), Math.sin(i * Math.PI / 4 + 0.1)]);
+function dansCellule(q) {
+  if (segmentsTraces.length < 4) return false;
+  return DIRECTIONS_CELLULE.every(([dx, dy]) => segmentsTraces.some(([a, b]) => {
+    const ex = b.x - a.x, ey = b.y - a.y, det = dx * ey - dy * ex;
+    if (Math.abs(det) < 1e-9) return false;
+    const wx = a.x - q.x, wy = a.y - q.y;
+    const s = (wx * ey - wy * ex) / det, u = (wx * dy - wy * dx) / det;
+    return s > 0.5 && u >= 0 && u <= 1;
+  }));
 }
 
 function enveloppeConvexe(points) {
@@ -1673,6 +2405,10 @@ function penaliteInterieur(boite) {
   for (const poly of zonesInterieures) {
     if (dansPolygone(c, poly)) p += 1000;
     for (const q of coinsDe(boite)) if (dansPolygone(q, poly)) p += 200;
+  }
+  if (segmentsTraces.length) {                       // figure faite de droites : cellules fermées
+    if (dansCellule(c)) p += 1000;
+    for (const q of coinsDe(boite)) if (dansCellule(q)) p += 200;
   }
   return p;
 }
@@ -1728,6 +2464,12 @@ function dessinerMarque(m, sorte, occupees, courbes) {
   ctx.beginPath();
   if (sorte === 3) {                                 // rond
     ctx.moveTo(c.x + 6, c.y); ctx.arc(c.x, c.y, 6, 0, 2 * Math.PI);
+  } else if (sorte === 5) {                          // croix
+    ctx.moveTo(c.x - 6, c.y - 6); ctx.lineTo(c.x + 6, c.y + 6); ctx.moveTo(c.x + 6, c.y - 6); ctx.lineTo(c.x - 6, c.y + 6);
+  } else if (sorte === 6) {                          // carré
+    ctx.rect(c.x - 6, c.y - 6, 12, 12);
+  } else if (sorte === 7) {                          // triangle
+    ctx.moveTo(c.x, c.y - 7); ctx.lineTo(c.x + 7, c.y + 6); ctx.lineTo(c.x - 7, c.y + 6); ctx.closePath();
   } else {                                           // traits penchés
     const nb = sorte === 4 ? 4 : sorte + 1;
     for (let j = 0; j < nb; j++) {
@@ -1746,10 +2488,46 @@ const POSITIONS_NOM = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8]
   .map(k => (-45 + k * 22.5) * Math.PI / 180)
   .map(a => [Math.cos(a), Math.sin(a)]);
 
+// Sur une ligne presque horizontale, les noms de tous ses points se placent du même côté (tous au-dessus,
+// ou tous en dessous). Le côté retenu est celui du point qui a le moins le choix : un premier essai de
+// placement (sans cette règle) relève, pour chaque point, son côté et ce que coûterait un changement de côté.
+let cotesLignes = [];                                  // { p, u (direction de la ligne), cote, regret }
+// Côté d'un nom par rapport à une ligne de direction u : -1 au-dessus, +1 en dessous, 0 au niveau de la ligne.
+const coteDe = (u, q, c) => { const v = u.x * (c.y - q.y) - u.y * (c.x - q.x); return Math.abs(v) < 6 ? 0 : Math.sign(v); };
+const surLaLigne = (u, p, q) => Math.abs(u.x * (q.y - p.y) - u.y * (q.x - p.x)) < 0.75;
+
+function lignesPresqueHorizontales(p) {
+  const lignes = [];
+  for (const o of courbesPassantPar(p)) {
+    const d = droiteDe(o);
+    if (!d) continue;
+    const l = Math.hypot(d.dx, d.dy);
+    if (Math.abs(d.dy) / l > 0.4) continue;            // ligne penchée : pas de règle
+    lignes.push(d.dx < 0 ? { x: -d.dx / l, y: -d.dy / l } : { x: d.dx / l, y: d.dy / l });
+  }
+  return lignes;
+}
+
+// Pour chaque ligne du point : le côté choisi par le point de cette ligne qui a le moins le choix.
+function reglesDeCote(p, lignes) {
+  const regles = [];
+  for (const u of lignes) {
+    const membres = cotesLignes.filter(e => surLaLigne(u, p, e.p) && Math.abs(u.x * e.u.y - u.y * e.u.x) < 0.05);
+    if (new Set(membres.map(e => e.p)).size < 2) continue;
+    const e = membres.reduce((m, x) => (x.regret > m.regret ? x : m));
+    regles.push({ u, cote: e.cote });
+  }
+  return regles;
+}
+
 // Choisit l'endroit où le nom n'est coupé par aucune ligne et ne chevauche rien.
-function placerNom(p, nom, occupees, courbes) {
+// essai = true : premier essai, sans la règle des côtés, qui relève seulement les côtés choisis.
+function placerNom(p, nom, occupees, courbes, essai = false) {
   ctx.font = POLICE_NOM;
   const w = ctx.measureText(nom).width, h = 20;
+  const lignes = lignesPresqueHorizontales(p);
+  const regles = essai ? [] : reglesDeCote(p, lignes);
+  const parCote = lignes.map(() => ({ [-1]: Infinity, [1]: Infinity }));   // meilleur score de chaque côté (essai)
   let meilleur = null, scoreMin = Infinity;
   for (const loin of [1, 1.9])
     POSITIONS_NOM.forEach(([dx, dy], rang) => {
@@ -1758,9 +2536,15 @@ function placerNom(p, nom, occupees, courbes) {
       let score = rang + (loin > 1 ? 16 : 0) + penaliteInterieur(boite) + horsFeuille(boite);   // ni dans une figure, ni hors de la feuille
       for (const o of courbes) if (coupeBoite(o, boite)) score += 100;
       for (const b of occupees) if (chevauche(b, boite)) score += 100;
+      for (const r of regles) { const c = coteDe(r.u, p, { x, y }); if (c !== 0 && c !== r.cote) score += 30; }   // même côté que les autres noms de la ligne
+      if (essai) lignes.forEach((u, i) => { const c = coteDe(u, p, { x, y }); if (c !== 0 && score < parCote[i][c]) parCote[i][c] = score; });
       if (score < scoreMin) { scoreMin = score; meilleur = { x, y, boite }; }
     });
   occupees.push(meilleur.boite);
+  if (essai) lignes.forEach((u, i) => {
+    const c = coteDe(u, p, meilleur);
+    if (c !== 0) cotesLignes.push({ p, u, cote: c, regret: parCote[i][-c] - scoreMin });
+  });
   return meilleur;
 }
 
@@ -1770,6 +2554,7 @@ const coinsDe = b => [{ x: b.x1, y: b.y1 }, { x: b.x2, y: b.y1 }, { x: b.x2, y: 
 // Une ligne ou un cercle traverse-t-il la boîte ?
 let cacheMorceaux = new Map();
 function coupeBoite(o, b) {
+  if (o.lien) return segmentCoupeBoite(o.a.x, o.a.y, o.b.x, o.b.y, b);     // pointillé de symétrie
   const d = droiteDe(o);
   if (d) {
     let m = cacheMorceaux.get(d);                    // morceaux calculés une fois par dessin
@@ -1940,9 +2725,34 @@ function dessinerApercu() {
     ctx.restore();
     dessinerBulleLongueur(c, e);
   }
+  // Reporter une longueur : cercle-guide léger autour du centre choisi
+  if (outil === 'report' && etape.length === 3) {
+    const A = pos(etape[0].id), B = pos(etape[1].id), c = etape[2];
+    if (A && B) {
+      ctx.save();
+      ctx.setLineDash([6, 8]);
+      ctx.strokeStyle = 'rgba(167,178,194,0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(c.x, c.y, dist(A, B), 0, 2 * Math.PI); ctx.stroke();
+      ctx.restore();
+      if (c.genre !== 'existant') dessinerCroix(c, COULEURS[options.couleur]);
+    }
+  }
+  // Nommer : le point choisi est entouré ; un croisement sans nom est repéré par un rond jaune
+  if (nommage) {
+    const q = nommage.id ? pos(nommage.id) : nommage;
+    if (q) { ctx.fillStyle = 'rgba(245,179,0,0.45)'; ctx.beginPath(); ctx.arc(q.x, q.y, 15, 0, 2 * Math.PI); ctx.fill(); }
+  }
+  if (outil === 'nommer' && souris && typePointeur !== 'touch') {
+    const c = cibleNommer(souris);
+    if (c && !c.id) {
+      ctx.strokeStyle = '#f5b300'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(c.x, c.y, 9, 0, 2 * Math.PI); ctx.stroke();
+    }
+  }
   if (!souris) return;
   const placeDesPoints = ['point', 'segment', 'droite', 'cercle'].includes(outil) ||
-    (outil === 'arc' && etape.length < 2) ||
+    (outil === 'arc' && etape.length < 2) || (outil === 'report' && etape.length === 2) ||
     (['perp', 'para'].includes(outil) && etape.length === 1);
   const second = etape.length === 1 && ['segment', 'cercle', 'point', 'arc'].includes(outil);
   const v = !placeDesPoints ? null : second ? viserSecond(souris) : viser(souris);
@@ -1990,9 +2800,11 @@ function dessinerApercu() {
 // Élément mis en évidence au survol, quand l'outil attend qu'on choisisse quelque chose.
 function objetSurvole() {
   if (!souris || typePointeur === 'touch') return null;
+  if (outil === 'nommer') { const c = cibleNommer(souris); return c && c.id ? objet(c.id) : null; }
   if (outil === 'gomme') return pointSous(souris) || courbeSous(souris);
   if (outil === 'deplacer') { const p = pointSous(souris, true); return p && deplacable(p) ? p : null; }
   if ((outil === 'perp' || outil === 'para' || outil === 'sym') && etape.length === 0) return courbeSous(souris, estDroite);
+  if (outil === 'report' && etape.length < 2) return pointSous(souris) || (etape.length === 0 ? courbeSous(souris, o => o.type === 'segment') : null);
   if (outil === 'milieu') return pointSous(souris) || (etape.length === 0 ? courbeSous(souris, o => o.type === 'segment') : null);
   if (outil === 'sym') return pointSous(souris) || courbeSous(souris, o => o.type === 'segment' || o.type === 'cercle');
   return null;
@@ -2008,10 +2820,18 @@ const ANIM = {
   para:   { duree: 4600,  finTrace: 3500, lenteur: 1.9 },
   milieu:  { duree: 11400, finTrace: 9800, lenteur: 1.2 },
   cercle:  { duree: 4300,  finTrace: 3700, lenteur: 1.2 },
-  arc:     { duree: 2700,  finTrace: 2100, lenteur: 1.2 }
+  arc:     { duree: 2700,  finTrace: 2100, lenteur: 1.2 },
+  report:  { duree: 3500,  finTrace: 3000, lenteur: 1.2 },
+  sym:     { duree: 4000,  finTrace: 4000, lenteur: 1.1 }
 };
 const tempsAnim = () => (performance.now() - anim.debut) / ANIM[anim.type].lenteur;
 const milieuPasEncorePlace = o => anim && anim.type === 'milieu' && o.id === anim.id && tempsAnim() < ANIM.milieu.finTrace;
+// Le point (et sa lettre) où un arc tracé au compas en coupe un autre n'apparaît qu'à la fin de l'animation du compas.
+const croisementAttendLeCompas = o => anim && ['arc', 'report', 'cercle'].includes(anim.type) && o.genre === 'inter' &&
+  (o.a === anim.id || o.b === anim.id) && tempsAnim() < ANIM[anim.type].duree;
+// Le symétrique d'un point (et son pointillé) n'apparaît qu'à la fin de l'animation de l'équerre et du compas.
+const symetriqueAttendLeCompas = o => anim && anim.type === 'sym' && o.id === anim.id && tempsAnim() < ANIM.sym.duree;
+const pointPasEncorePlace = o => milieuPasEncorePlace(o) || croisementAttendLeCompas(o) || symetriqueAttendLeCompas(o);
 // Filet de sécurité : si l'animation n'a pas pu se terminer normalement, on la termine au bout de son temps.
 setInterval(() => { if (anim && tempsAnim() > ANIM[anim.type].duree + 500) { anim = null; dessiner(); } }, 1000);
 const phase = (t, debut, fin) => Math.min(1, Math.max(0, (t - debut) / (fin - debut)));
@@ -2037,6 +2857,8 @@ function dessinerAnimation() {
   if (anim.type === 'milieu') return dessinerAnimationMilieu(tempsAnim());
   if (anim.type === 'cercle') return dessinerAnimationCercle(tempsAnim());
   if (anim.type === 'arc') return dessinerAnimationArc(tempsAnim());
+  if (anim.type === 'report') return dessinerAnimationArc(tempsAnim(), true);
+  if (anim.type === 'sym') return dessinerAnimationSym(tempsAnim());
   const o = objet(anim.id);
   const ref = o && droiteDe(objet(o.ref)), P = o && pos(o.p);
   if (!ref || !P) { anim = null; return; }
@@ -2169,18 +2991,75 @@ function dessinerAnimationCercle(t) {
   dessinerCompas(c, plus(c, { x: Math.cos(angle), y: Math.sin(angle) }, c.r * ouverture), opacite, true);
 }
 
+// Symétrique d'un point : l'équerre glisse sur l'axe jusqu'au pied F de la perpendiculaire et on trace
+// de F vers le point P ; puis le compas, piqué en F, s'ouvre sur FP, passe de l'autre côté de l'axe
+// et trace un petit arc : le symétrique est là où l'arc coupe la perpendiculaire.
+function animationSymPossible(sid) {
+  const o = objet(sid), P = o && pos(o.p), Q = o && pos(sid), d = o && droiteDe(objet(o.axe));
+  return !!(P && Q && d && dist(P, Q) >= 12);
+}
+
+function dessinerAnimationSym(t) {
+  const o = objet(anim.id), axe = o && droiteDe(objet(o.axe)), P = o && pos(o.p), Q = o && pos(o.id);
+  if (!axe || !P || !Q) { anim = null; return; }
+  const lu = Math.hypot(axe.dx, axe.dy), u = { x: axe.dx / lu, y: axe.dy / lu };
+  const F = { x: (P.x + Q.x) / 2, y: (P.y + Q.y) / 2 }, d = dist(F, P);        // F : pied de la perpendiculaire sur l'axe
+  if (d < 6) { anim = null; return; }
+  const v = { x: (P.x - F.x) / d, y: (P.y - F.y) / d };
+  // l'équerre est posée sur l'axe, du côté où il est tracé sur la plus grande longueur
+  const tF = ((F.x - axe.x) * axe.dx + (F.y - axe.y) * axe.dy) / (lu * lu);
+  const parties = axe.parties || [[tF - 1, tF + 1]];
+  const devant = (Math.max(...parties.map(p => p[1])) - tF) * lu, derriere = (tF - Math.min(...parties.map(p => p[0]))) * lu;
+  const w = devant >= derriere ? u : { x: -u.x, y: -u.y };
+
+  // 1. l'équerre glisse jusqu'au pied F, puis le crayon trace le long de son bord, de F vers P
+  const L2 = Math.max(180, Math.min(340, d + 80)), L1 = Math.round(L2 * 0.62);
+  const coin = plus(F, w, Math.min(140, Math.max(devant, derriere) * 0.5) * (1 - adoucir(phase(t, 400, 1000))));
+  dessinerEquerre(coin, w, v, L1, L2, phase(t, 0, 400) * (1 - phase(t, 1700, 2100)));
+  const k = adoucir(phase(t, 1100, 1700));
+  if (k > 0) {
+    ctx.save();
+    ctx.setLineDash([7, 6]); ctx.lineCap = 'butt';
+    ctx.strokeStyle = COULEURS.gris; ctx.lineWidth = EPAISSEUR_CONSTRUCTION;
+    ctx.beginPath(); ctx.moveTo(F.x, F.y); ctx.lineTo(F.x + (P.x - F.x) * k, F.y + (P.y - F.y) * k); ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2. le compas : pointe en F, mine sur P ; il passe de l'autre côté puis trace un petit arc autour du symétrique
+  const a0 = Math.atan2(P.y - F.y, P.x - F.x), demi = Math.min(0.9, 34 / d);
+  const passage = adoucir(phase(t, 2500, 3100)), trace = phase(t, 3100, 3600);
+  const angle = a0 + (Math.PI - demi) * passage + 2 * demi * trace;
+  if (trace > 0) {
+    ctx.strokeStyle = COULEURS.gris; ctx.lineWidth = EPAISSEUR_CONSTRUCTION;
+    ctx.beginPath(); ctx.arc(F.x, F.y, d, a0 + Math.PI - demi, angle); ctx.stroke();
+  }
+  const opacite = phase(t, 2000, 2300) * (1 - phase(t, 3600, 4000));
+  if (opacite > 0) dessinerCompas(F, plus(F, { x: Math.cos(angle), y: Math.sin(angle) }, d * adoucir(phase(t, 2100, 2500))), opacite);
+}
+
 // Arc : le compas pique au centre, s'ouvre, puis trace l'arc.
-function dessinerAnimationArc(t) {
+// report = true (longueur reportée) : le compas s'ouvre d'abord sur la longueur à prendre,
+// se déplace jusqu'au centre, puis trace l'arc.
+function dessinerAnimationArc(t, report = false) {
   const o = objet(anim.id), a = o && arcCompasDe(o);
   if (!a) { anim = null; return; }
-  const k = phase(t, 700, 2100), angle = a.angle + a.debut + (a.fin - a.debut) * k;
+  const A = report ? pos(o.l1) : null, B = report ? pos(o.l2) : null;
+  if (report && !(A && B)) report = false;
+  const [t0, t1, fin] = report ? [1500, 3000, 3500] : [700, 2100, 2700];
+  const k = phase(t, t0, t1), angle = a.angle + a.debut + (a.fin - a.debut) * k;
   if (k > 0) {
     ctx.strokeStyle = COULEURS[o.couleur];
     ctx.lineWidth = epaisseurDe(o);
     ctx.beginPath(); ctx.arc(a.x, a.y, a.r, a.angle + a.debut, angle); ctx.stroke();
   }
-  const opacite = phase(t, 0, 300) * (1 - phase(t, 2100, 2700));
-  dessinerCompas(a, plus(a, { x: Math.cos(angle), y: Math.sin(angle) }, a.r * adoucir(phase(t, 0, 700))), opacite);
+  const opacite = phase(t, 0, 300) * (1 - phase(t, t1, fin));
+  const bout = plus(a, { x: Math.cos(angle), y: Math.sin(angle) }, a.r);
+  if (!report) return dessinerCompas(a, plus(a, { x: Math.cos(angle), y: Math.sin(angle) }, a.r * adoucir(phase(t, 0, 700))), opacite);
+  const ouverture = adoucir(phase(t, 0, 600)), trajet = adoucir(phase(t, 600, 1500));
+  const vers = (p, q, k) => ({ x: p.x + (q.x - p.x) * k, y: p.y + (q.y - p.y) * k });
+  const depart = plus(A, { x: B.x - A.x, y: B.y - A.y }, ouverture);                       // la mine s'ouvre sur la longueur
+  const arrivee = plus(a, { x: Math.cos(a.angle + a.debut), y: Math.sin(a.angle + a.debut) }, a.r);
+  dessinerCompas(vers(A, a, trajet), t < t0 ? vers(depart, arrivee, trajet) : bout, opacite);
 }
 
 // tourne = true : le compas tourne avec la main (pour un tour complet) ;
@@ -2295,27 +3174,222 @@ function annuler() {
   if (!historique.length) return;
   futur.push(JSON.stringify(figure));
   figure = JSON.parse(historique.pop());
-  etape = []; majConsigne(); memoriser(); dessiner();
+  etape = []; fermerNommage(); majConsigne(); memoriser(); dessiner();
 }
 function retablir() {
   if (!futur.length) return;
   historique.push(JSON.stringify(figure));
   figure = JSON.parse(futur.pop());
-  etape = []; majConsigne(); memoriser(); dessiner();
+  etape = []; fermerNommage(); majConsigne(); memoriser(); dessiner();
 }
 // La figure et les réglages sont gardés dans le navigateur d'une séance à l'autre.
+// Si le navigateur refuse de garder quoi que ce soit (mode privé strict, stockage plein ou bloqué),
+// la dernière sauvegarde reste en mémoire le temps de la séance, et l'on prévient une fois l'enseignant.
+let sauvegardeMemoire = null, stockagePrevenu = false;
 function memoriser() {
-  try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify({ figure, options })); } catch (e) {}
+  const texte = JSON.stringify({ figure, options });
+  sauvegardeMemoire = texte;
+  try { localStorage.setItem(CLE_SAUVEGARDE, texte); }
+  catch (e) {
+    if (stockagePrevenu) return;
+    stockagePrevenu = true;
+    afficherInfo('Ce navigateur ne peut pas garder la figure : elle sera perdue à la fermeture. Le bouton « Enregistrer / Charger » permet de la conserver.');
+  }
+}
+function lireSauvegarde() {
+  try { const brut = localStorage.getItem(CLE_SAUVEGARDE); if (brut) return brut; } catch (e) {}
+  return sauvegardeMemoire;
 }
 function restaurer() {
   try {
-    const s = JSON.parse(localStorage.getItem(CLE_SAUVEGARDE));
-    if (s && s.figure) { figure = s.figure; Object.assign(options, s.options); }
-    if (!COULEURS_MENU[options.couleur]) options.couleur = 'bleu';
-    options.quadrillage = 'aucun';                   // à l'ouverture, toujours le fond blanc
-  } catch (e) {}
+    const s = JSON.parse(lireSauvegarde());
+    // on ne reprend une figure que si elle a la bonne forme (stockage corrompu ou ancien : on ignore)
+    if (s && s.figure && Array.isArray(s.figure.objets) && Number.isFinite(s.figure.prochainId)) {
+      figure = s.figure; Object.assign(options, s.options);
+    }
+  } catch (e) { console.warn('Sauvegarde illisible, ignorée.', e); }
+  if (!COULEURS_MENU[options.couleur]) options.couleur = 'bleu';
+  options.quadrillage = 'aucun';                     // à l'ouverture, toujours le fond blanc
 }
 
+let minuteurInfo = null;
+function afficherInfo(texte) {
+  const info = document.getElementById('info');
+  info.textContent = texte; info.hidden = false;
+  clearTimeout(minuteurInfo);
+  minuteurInfo = setTimeout(() => { info.hidden = true; }, 9000);
+}
+
+// ---------- Exporter la figure : image PNG, ou code texte (à garder, à partager) ----------
+const dialogueCode = document.getElementById('dialogueCode');
+const codeMessage = document.getElementById('codeMessage');
+const dire = (texte, ok = false) => { codeMessage.textContent = texte; codeMessage.classList.toggle('ok', ok); };
+
+// Image « au propre » (sans repère de souris ni geste en cours) ; renvoie une promesse de Blob PNG.
+function blobFigure() {
+  const sauveEtape = etape, sauveSouris = souris, sauveAnim = anim;
+  fermerNommage(); etape = []; souris = null; anim = null;
+  dessiner();
+  return new Promise((ok, ko) => {
+    try { canvas.toBlob(blob => (blob ? ok(blob) : ko(new Error('image'))), 'image/png'); }
+    catch (e) { ko(e); }
+    finally { etape = sauveEtape; souris = sauveSouris; anim = sauveAnim; dessiner(); }
+  });
+}
+
+// ---------- PNG : le code de la figure est caché dans l'image (bloc « tEXt »), pour pouvoir la recharger ----------
+const MOT_CLE_PNG = 'FabriqueFigures';
+const SIGNATURE_PNG = [137, 80, 78, 71, 13, 10, 26, 10];
+const TABLE_CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+  return t;
+})();
+const crc32 = octets => { let c = 0xFFFFFFFF; for (let i = 0; i < octets.length; i++) c = TABLE_CRC[(c ^ octets[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+const estPng = o => o.length > 20 && SIGNATURE_PNG.every((v, i) => o[i] === v);
+const typeBloc = (o, p) => String.fromCharCode(o[p], o[p + 1], o[p + 2], o[p + 3]);
+
+function pngAjouterTexte(png, mot, texte) {
+  if (!estPng(png)) throw new Error('png');
+  const fin = png.length - 12;                                   // le bloc IEND occupe les 12 derniers octets
+  if (typeBloc(png, fin + 4) !== 'IEND') throw new Error('iend');
+  const n = mot.length + 1 + texte.length;
+  const bloc = new Uint8Array(12 + n), dv = new DataView(bloc.buffer);
+  dv.setUint32(0, n);
+  bloc.set([116, 69, 88, 116], 4);                               // « tEXt »
+  for (let i = 0; i < mot.length; i++) bloc[8 + i] = mot.charCodeAt(i);
+  for (let i = 0; i < texte.length; i++) bloc[9 + mot.length + i] = texte.charCodeAt(i);
+  dv.setUint32(8 + n, crc32(bloc.subarray(4, 8 + n)));
+  const sortie = new Uint8Array(png.length + bloc.length);
+  sortie.set(png.subarray(0, fin), 0); sortie.set(bloc, fin); sortie.set(png.subarray(fin), fin + bloc.length);
+  return sortie;
+}
+
+function pngLireTexte(png, mot) {
+  if (!estPng(png)) return null;
+  const dv = new DataView(png.buffer, png.byteOffset, png.byteLength);
+  let p = 8;
+  while (p + 12 <= png.length) {
+    const n = dv.getUint32(p), type = typeBloc(png, p + 4);
+    if (p + 12 + n > png.length) return null;
+    if (type === 'tEXt') {
+      const d = png.subarray(p + 8, p + 8 + n), z = d.indexOf(0);
+      if (z > 0 && String.fromCharCode(...d.subarray(0, z)) === mot) {
+        let s = ''; for (let i = z + 1; i < d.length; i++) s += String.fromCharCode(d[i]);
+        return s;
+      }
+    }
+    if (type === 'IEND') return null;
+    p += 12 + n;
+  }
+  return null;
+}
+
+const versBase64Url = octets => {
+  let s = '';
+  for (let i = 0; i < octets.length; i += 0x8000) s += String.fromCharCode(...octets.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+const depuisBase64Url = t => {
+  const s = atob(t.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((t.length + 3) % 4));
+  return Uint8Array.from(s, c => c.charCodeAt(0));
+};
+const fluxVers = async (octets, flux) => new Uint8Array(await new Response(new Blob([octets]).stream().pipeThrough(flux)).arrayBuffer());
+
+// Code : « FAF2. » (compressé) ou « FAF1. » (non compressé, si le navigateur ne sait pas compresser).
+async function encoderFigure() {
+  const octets = new TextEncoder().encode(JSON.stringify({ v: 1, figure }));
+  if (typeof CompressionStream === 'function') {
+    try { return 'FAF2.' + versBase64Url(await fluxVers(octets, new CompressionStream('deflate-raw'))); } catch (e) {}
+  }
+  return 'FAF1.' + versBase64Url(octets);
+}
+
+const TYPES_VALIDES = ['point', 'segment', 'droite', 'cercle', 'arcCompas', 'arc', 'perp', 'para'];
+// Vérifie qu'une figure reçue est bien formée (le code vient de l'extérieur) ; renvoie la figure nettoyée.
+function figureValide(f) {
+  if (!f || !Array.isArray(f.objets) || f.objets.length > 3000) throw new Error('forme');
+  const ids = new Set();
+  for (const o of f.objets) {
+    if (!o || !Number.isInteger(o.id) || !TYPES_VALIDES.includes(o.type) || ids.has(o.id)) throw new Error('objet');
+    ids.add(o.id);
+    if (o.type === 'point') {
+      if (!['libre', 'sur', 'inter', 'milieu', 'sym'].includes(o.genre)) throw new Error('point');
+      if (o.genre === 'libre' && !(Number.isFinite(o.x) && Number.isFinite(o.y))) throw new Error('position');
+      o.nom = String(o.nom || '').slice(0, 4);
+    }
+    if (!COULEURS[o.couleur]) o.couleur = 'bleu';
+    if (o.famille && !COULEURS[o.famille]) delete o.famille;
+    if (o.gommes && !(Array.isArray(o.gommes) && o.gommes.every(g => Array.isArray(g) && g.length === 2 && g.every(Number.isFinite)))) delete o.gommes;
+    for (const k of ['t', 'angle', 'cote']) if (o[k] !== undefined && !Number.isFinite(o[k])) throw new Error('nombre');
+  }
+  return { objets: f.objets, prochainId: Math.max(Number(f.prochainId) || 1, Math.max(0, ...ids) + 1) };
+}
+
+async function decoderFigure(texte) {
+  const m = /FAF([12])\.([A-Za-z0-9_-]+)/.exec(String(texte).replace(/\s+/g, ''));
+  if (!m) throw new Error('code');
+  let octets = depuisBase64Url(m[2]);
+  if (m[1] === '2') octets = await fluxVers(octets, new DecompressionStream('deflate-raw'));
+  const donnees = JSON.parse(new TextDecoder().decode(octets));
+  return figureValide(donnees && donnees.figure);
+}
+
+async function chargerCode(texte) {
+  const f = await decoderFigure(texte);
+  sauver();
+  figure = f; etape = []; anim = null; fermerNommage();
+  nettoyerFigure(); oublierCalculs();
+  majConsigne(); memoriser(); dessiner();
+}
+
+// Image PNG contenant, cachée, la figure elle-même.
+async function imageAvecFigure() {
+  const blob = await blobFigure();
+  try {
+    const octets = pngAjouterTexte(new Uint8Array(await blob.arrayBuffer()), MOT_CLE_PNG, await encoderFigure());
+    return new Blob([octets], { type: 'image/png' });
+  } catch (e) { return blob; }                                    // au pire : image simple, sans figure cachée
+}
+
+document.getElementById('btnFichier').addEventListener('click', async () => {
+  fermerNommage();
+  dialogueCode.hidden = false;
+  dire('');
+});
+document.getElementById('fichierEnregistrer').addEventListener('click', async () => {
+  try {
+    const blob = await imageAvecFigure();
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(blob);
+    lien.download = 'figure.png';
+    document.body.appendChild(lien); lien.click(); lien.remove();
+    setTimeout(() => URL.revokeObjectURL(lien.href), 4000);
+    dire('Image enregistrée (figure.png).', true);
+  } catch (e) { dire('L’image n’a pas pu être créée.'); }
+});
+document.getElementById('fichierCopier').addEventListener('click', async () => {
+  try {
+    if (!navigator.clipboard || typeof ClipboardItem === 'undefined') throw new Error('presse-papiers');
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobFigure() })]);
+    dire('Image copiée : colle-la dans Word avec Ctrl+V.', true);
+  } catch (e) { dire('Copie impossible ici : utilise « Enregistrer l’image », puis insère le fichier dans ton document.'); }
+});
+const fichierImage = document.getElementById('fichierImage');
+document.getElementById('fichierCharger').addEventListener('click', () => fichierImage.click());
+fichierImage.addEventListener('change', async () => {
+  const fichier = fichierImage.files && fichierImage.files[0];
+  if (!fichier) return;
+  try {
+    const code = pngLireTexte(new Uint8Array(await fichier.arrayBuffer()), MOT_CLE_PNG);
+    fichierImage.value = '';
+    if (!code) { dire('Cette image ne contient pas de figure : il faut une image enregistrée avec « Enregistrer l’image ».'); return; }
+    await chargerCode(code);
+    dialogueCode.hidden = true;
+    afficherInfo('Figure chargée. Le bouton « Annuler » permet de revenir à la figure précédente.');
+  } catch (e) { fichierImage.value = ''; dire('Cette image n’a pas pu être lue.'); }
+});
+document.getElementById('codeFermer').addEventListener('click', () => { dialogueCode.hidden = true; });
 // ---------- Filet de sécurité ----------
 // Si un élément de la figure empêche le dessin (bogue), l'appli ne doit jamais rester bloquée :
 // on revient en arrière (ou on retire les derniers éléments) jusqu'à ce que tout se dessine,
@@ -2354,7 +3428,7 @@ function reparer(erreur) {
 
 // Retire les éléments qui dépendent d'un élément disparu.
 function nettoyerFigure() {
-  const liens = ['p1', 'p2', 'c', 'p', 'a', 'b', 'ref', 'axe', 'obj', 'e'];
+  const liens = ['p1', 'p2', 'c', 'p', 'a', 'b', 'ref', 'axe', 'obj', 'e', 'l1', 'l2'];
   let encore = true;
   while (encore) {
     const ids = new Set(figure.objets.map(o => o.id));
@@ -2379,6 +3453,7 @@ function afficherAlerte(figureAvant) {
    ========================================================= */
 function choisirOutil(nom) {
   outil = nom; etape = [];
+  fermerNommage();
   document.querySelectorAll('[data-outil]').forEach(b => b.classList.toggle('actif', b.dataset.outil === nom));
   majConsigne(); dessiner();
 }
@@ -2449,7 +3524,10 @@ function coords(e) {
 }
 
 // --- Pointeur (souris, doigt ou stylet) ---
+// Seul le premier doigt (ou la souris, ou le stylet) dessine : un 2e doigt ou une paume posée sont ignorés.
 canvas.addEventListener('pointerdown', e => {
+  if (!e.isPrimary) return;
+  e.preventDefault();
   const n = historique.length;
   try { gerer_pointerdown(e); }
   catch (err) {                                     // une action a échoué : on l'annule et on répare
@@ -2475,12 +3553,20 @@ function gerer_pointerdown(e) {
   // on recommence le geste depuis ce point au lieu de tracer un tout petit cercle.
   if (['cercle', 'arc', 'segment'].includes(outil) && etape.length === 1 && dist(etape[0], m) < RAYON_CLIC) etape = [];
   if (outil === 'gomme') { debutGomme(m); dessiner(); return; }
+  if (outil === 'nommer') {                          // choisir le point (ou le croisement) à nommer
+    oublierCalculs();
+    const cible = cibleNommer(m);
+    if (cible) ouvrirNommage(cible); else fermerNommage();
+    dessiner();
+    return;
+  }
   appui = { m, etapeAvant: etape.length };
   clic(m);
   dessiner();
 }
 
 canvas.addEventListener('pointermove', e => {
+  if (!e.isPrimary) return;
   const n = historique.length;
   try { gerer_pointermove(e); }
   catch (err) {                                     // une action a échoué : on l'annule et on répare
@@ -2507,6 +3593,7 @@ function demanderDessin() {
 }
 
 canvas.addEventListener('pointerup', e => {
+  if (!e.isPrimary) return;
   const n = historique.length;
   try { gerer_pointerup(e); }
   catch (err) {                                     // une action a échoué : on l'annule et on répare
@@ -2531,6 +3618,14 @@ function gerer_pointerup(e) {
 }
 
 canvas.addEventListener('pointerleave', () => { if (!glisse) { souris = null; dessiner(); } });
+// Geste interrompu par le système (zoom à deux doigts, alerte…) : on abandonne proprement le geste en cours.
+canvas.addEventListener('pointercancel', () => {
+  if (glisse && JSON.stringify(objet(glisse.id)) === glisse.avant) historique.pop();
+  glisse = null; gommage = null; appui = null; souris = null;
+  memoriser(); dessiner();
+});
+// Safari (iPad) : pas de zoom par pincement sur la feuille.
+document.addEventListener('gesturestart', e => e.preventDefault());
 
 // --- Boutons ---
 document.querySelectorAll('[data-outil]').forEach(b => b.addEventListener('click', () => choisirOutil(b.dataset.outil)));
@@ -2608,7 +3703,8 @@ majPleinEcran();
 
 // --- Clavier ---
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { etape = []; majConsigne(); dessiner(); }
+  if (e.key === 'Escape') { etape = []; fermerNommage(); dialogueCode.hidden = true; majConsigne(); dessiner(); }
+  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;   // en train d'écrire : pas de raccourcis
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); annuler(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); retablir(); }
 });
