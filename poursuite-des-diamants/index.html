@@ -18,14 +18,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-court="À la poursuite des diamants">À la poursuite des diamants : jeu de révision en équipes à projeter – Le tableau magique</title>
-<meta name="description" content="Jeu de révision gratuit à projeter au TBI, du CP au CM2 : quatre équipages de pirates répondent aux questions de l’enseignant pour avancer autour de l’île et s’emparer des diamants de leurs rivaux.">
+<meta name="description" content="Jeu de révision gratuit à projeter au TBI, du CP au CM2 : deux à quatre équipages de pirates répondent aux questions de l’enseignant pour avancer autour de l’île et s’emparer des diamants de leurs rivaux.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/poursuite-des-diamants/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="À la poursuite des diamants : jeu de révision en équipes à projeter – Le tableau magique">
-<meta property="og:description" content="Jeu de révision gratuit à projeter au TBI, du CP au CM2 : quatre équipages de pirates répondent aux questions de l’enseignant pour avancer autour de l’île et s’emparer des diamants de leurs rivaux.">
+<meta property="og:description" content="Jeu de révision gratuit à projeter au TBI, du CP au CM2 : deux à quatre équipages de pirates répondent aux questions de l’enseignant pour avancer autour de l’île et s’emparer des diamants de leurs rivaux.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/poursuite-des-diamants/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -46,8 +46,8 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #app.app-fakefullscreen{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;max-width:none;border-radius:0;overflow:hidden;display:flex;flex-direction:column}
 #app.app-fakefullscreen #topbar{flex:0 0 auto;justify-content:flex-start;position:relative;min-height:clamp(46px,7vh,62px)}
 #app.app-fakefullscreen #titlebanner{flex:0 0 auto;text-align:center;box-sizing:border-box}
-#app.app-fakefullscreen #controls{position:absolute;top:0;right:0;margin-left:0;width:clamp(190px,15vw,250px);display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:4px 6px;box-sizing:border-box}
-#app.app-fakefullscreen #szsel,#app.app-fakefullscreen #rbtn,#app.app-fakefullscreen #undobtn,#app.app-fakefullscreen #mutebtn,#app.app-fakefullscreen #fsbtn,#app.app-fakefullscreen #rulesbtn{font-size:clamp(11px,1.6vh,13px);padding:4px 8px}
+#app.app-fakefullscreen #controls{position:absolute;top:0;right:0;margin-left:0;width:clamp(230px,18vw,300px);display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:4px 6px;box-sizing:border-box}
+#app.app-fakefullscreen #eqsel,#app.app-fakefullscreen #szsel,#app.app-fakefullscreen #rbtn,#app.app-fakefullscreen #undobtn,#app.app-fakefullscreen #mutebtn,#app.app-fakefullscreen #fsbtn,#app.app-fakefullscreen #rulesbtn{font-size:clamp(11px,1.6vh,13px);padding:4px 8px}
 #app.app-fakefullscreen #mutebtn,#app.app-fakefullscreen #fsbtn{padding:4px 7px}
 #app.app-fakefullscreen #hint{flex:0 0 auto}
 #app.app-fakefullscreen #game{flex:1 1 auto;min-height:0;align-items:stretch;justify-content:center}
@@ -71,7 +71,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #titlebanner span{font-family:'Pirata One',Georgia,serif;font-size:36px;font-weight:700;color:#3d1a00;letter-spacing:1.5px}
 #controls{display:flex;align-items:center;gap:8px}
 #controls label{font-size:14px;color:#e8d090}
-#szsel,#rbtn,#undobtn,#mutebtn,#fsbtn,#rulesbtn{padding:6px 12px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:14px;cursor:pointer}
+#eqsel,#szsel,#rbtn,#undobtn,#mutebtn,#fsbtn,#rulesbtn{padding:6px 12px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:14px;cursor:pointer}
 #rbtn:hover,#undobtn:hover:not(:disabled),#mutebtn:hover,#fsbtn:hover,#rulesbtn:hover{background:#3a2200}
 #mutebtn,#fsbtn{font-size:16px;padding:6px 10px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 /* pictos son et plein écran : les mêmes que dans les autres outils du portail */
@@ -170,7 +170,10 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #qbtn:hover{background:#3a2200}
 #qbtn.actif{background:#c8a030;color:#2a1500}
 #app.app-fakefullscreen #qbtn{font-size:clamp(11px,1.6vh,13px);padding:4px 7px}
-#app.app-fakefullscreen #qbtn .lbl,#app.app-fakefullscreen #undobtn .lbl{display:none}
+#app.app-fakefullscreen #qbtn .lbl,#app.app-fakefullscreen #undobtn .lbl,#app.app-fakefullscreen #rbtn .lbl{display:none}
+/* plein écran : barre compacte sur deux lignes (menus, puis pictos) */
+#app.app-fakefullscreen #controls{gap:4px}
+#app.app-fakefullscreen #rbtn,#app.app-fakefullscreen #undobtn,#app.app-fakefullscreen #qbtn,#app.app-fakefullscreen #rulesbtn,#app.app-fakefullscreen #mutebtn,#app.app-fakefullscreen #fsbtn{padding:4px 6px}
 /* carte de la question, au centre de l'île */
 #qcarte{display:none;position:absolute;left:49.6%;top:49.5%;transform:translate(-50%,-50%);z-index:4;width:52%;max-height:56%;overflow:auto;
   background:rgba(250,240,210,.96);color:#3d1a00;border:3px solid #7a5000;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.45);
@@ -223,13 +226,18 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
     <div id="titlebanner"><span>⚓ À la poursuite des diamants ⚓</span></div>
     <div id="controls">
       <button id="accueilbtn" class="portail-accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
+      <select id="eqsel" onchange="majMenuCases(); nouvellePartie()" title="Nombre d'équipes">
+        <option value="2">2 équipes</option>
+        <option value="3">3 équipes</option>
+        <option value="4" selected>4 équipes</option>
+      </select>
       <select id="szsel" onchange="nouvellePartie()">
         <option value="16">16 cases</option>
         <option value="20" selected>20 cases</option>
         <option value="24">24 cases</option>
         <option value="28">28 cases</option>
       </select>
-      <button id="rbtn" onclick="nouvellePartie()" title="Nouvelle partie (« Annuler » permet de revenir à la partie précédente)">↺ Rejouer</button>
+      <button id="rbtn" onclick="nouvellePartie()" title="Nouvelle partie (« Annuler » permet de revenir à la partie précédente)">↺<span class="lbl"> Rejouer</span></button>
       <button id="undobtn" onclick="undoMove()" title="Annuler la dernière action (bateau, diamant, nouvelle partie)" disabled>↶<span class="lbl"> Annuler</span></button>
       <button id="qbtn" onclick="ouvrirQuestions()" title="Questions affichées au tableau (facultatif)" aria-haspopup="dialog">❓<span class="lbl"> Questions</span></button>
       <button id="rulesbtn" onclick="openRules()" title="Règles du jeu et mode d'emploi" aria-haspopup="dialog">📜<span class="lbl"> Règles</span></button>
@@ -292,8 +300,8 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
       </div>
       <div id="rulesbody">
         <h3>Le principe</h3>
-        <p>Quatre équipages de pirates (bleu, jaune, vert et rouge) tournent autour d’une île, case après case, dans le sens des aiguilles d’une montre. Chaque équipage possède un diamant au départ. Pour gagner, il faut en réunir quatre, en les prenant à ses rivaux.</p>
-        <p>L’enseignant prépare les questions à l’avance, sur le thème à réviser. Il en faut autant que de cases (16, 20, 24 ou 28), numérotées dans l’ordre. Il peut les lire lui-même ou les faire afficher au tableau par l’application, avec leur réponse (voir « Afficher les questions »).</p>
+        <p>Deux, trois ou quatre équipages de pirates (bleu, jaune, vert et rouge) tournent autour d’une île, case après case, dans le sens des aiguilles d’une montre. Chaque équipage possède un diamant au départ. Pour gagner, il faut réunir tous les diamants (autant que d’équipages), en les prenant à ses rivaux.</p>
+        <p>L’enseignant prépare les questions à l’avance, sur le thème à réviser. Il en faut autant que de cases, numérotées dans l’ordre : 16, 20, 24 ou 28 (15, 18, 21, 24 ou 27 avec trois équipages). Il peut les lire lui-même ou les faire afficher au tableau par l’application, avec leur réponse (voir « Afficher les questions »).</p>
 
         <h3>Déroulement d’un tour</h3>
         <ul>
@@ -311,15 +319,15 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
           <li>Si elle échoue, son bateau recule d’une case et l’adversaire ne perd rien.</li>
           <li>Une équipe sans diamant continue de jouer : elle peut très bien en reprendre aux autres plus tard.</li>
         </ul>
-        <p>La partie s’arrête dès qu’une équipe détient les <b>quatre diamants</b>.</p>
+        <p>La partie s’arrête dès qu’une équipe détient <b>tous les diamants</b> : deux, trois ou quatre selon le nombre d’équipes.</p>
 
         <h3>Utiliser l’application</h3>
         <ol>
-          <li><b>Préparer la partie.</b> Le menu permet de choisir 16, 20, 24 ou 28 cases (changer ce nombre relance la partie). Le bouton « ↺ Rejouer » remet chaque bateau sur sa case de départ, avec un diamant par équipe.</li>
+          <li><b>Préparer la partie.</b> Les menus permettent de choisir le nombre d’équipes (2, 3 ou 4) et le nombre de cases : 16, 20, 24 ou 28, ou 15, 18, 21, 24 ou 27 avec trois équipes, pour que les bateaux partent à égale distance. Changer l’un de ces réglages relance la partie. Le bouton « ↺ Rejouer » remet chaque bateau sur sa case de départ, avec un diamant par équipe.</li>
           <li><b>Repérer l’équipe qui joue.</b> Elle est entourée d’un halo doré dans la colonne de droite, où figure aussi le numéro de la case de chaque bateau. C’est l’équipe bleue qui commence.</li>
-          <li><b>Déplacer un bateau.</b> Faites-le glisser le long de la piste, à la souris ou au doigt. Un glissement dans le sens des aiguilles d’une montre le fait avancer d’une case (bonne réponse : l’équipe garde la main). Un glissement dans l’autre sens le fait reculer d’une case (mauvaise réponse) et donne la main à l’équipe suivante, dans l’ordre bleu, jaune, vert, rouge. Quelle que soit la longueur du glissement, le bateau ne bouge que d’une case, et un simple clic ne fait rien.</li>
-          <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d’un bateau adverse avance d’une case (bonne réponse), il le dépasse : l’application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l’allumer ou l’éteindre. Quand une équipe en a quatre, la bannière de victoire s’affiche, avec des confettis et un son de victoire.</li>
-          <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d’un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre de cases.</li>
+          <li><b>Déplacer un bateau.</b> Faites-le glisser le long de la piste, à la souris ou au doigt. Un glissement dans le sens des aiguilles d’une montre le fait avancer d’une case (bonne réponse : l’équipe garde la main). Un glissement dans l’autre sens le fait reculer d’une case (mauvaise réponse) et donne la main à l’équipe suivante, dans l’ordre bleu, jaune, vert, rouge (selon les équipes en jeu). Quelle que soit la longueur du glissement, le bateau ne bouge que d’une case, et un simple clic ne fait rien.</li>
+          <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d’un bateau adverse avance d’une case (bonne réponse), il le dépasse : l’application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l’allumer ou l’éteindre. Quand une équipe les a tous, la bannière de victoire s’affiche, avec des confettis et un son de victoire.</li>
+          <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d’un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre d’équipes ou de cases.</li>
           <li><b>Reprendre une partie.</b> La partie est gardée au fur et à mesure : si la page se ferme ou se recharge, on la retrouve telle quelle.</li>
           <li><b>Afficher les questions (facultatif).</b> Le bouton « ❓ Questions » ouvre une fenêtre où l’on colle la liste des questions, une par ligne, dans l’ordre des cases ; on peut ajouter la réponse en fin de ligne après « R : ». En cochant « Afficher les questions au tableau », la question de la case du bateau qui a la main apparaît au centre de l’île. Le bouton « Réponse » montre la solution : on clique dessus avant de déplacer le bateau, car la question change dès qu’il bouge. La liste est gardée pour les parties suivantes.</li>
           <li><b>Confort de projection.</b> Le haut-parleur coupe ou rétablit les sons, et le bouton à quatre coins passe en plein écran (touche Échap pour en sortir).</li>
@@ -376,9 +384,21 @@ function T(x,y,s,a){
 }
 function P(d,a){ return E('path',Object.assign({d:d},a)); }
 
+// Nombre d'équipes en jeu (2, 3 ou 4) : les premières de la liste, dans l'ordre bleu, jaune, vert, rouge.
+// Chaque équipe part avec un diamant ; il faut tous les réunir (autant que d'équipes) pour gagner.
+var nbEquipes = 4;
+// Nombres de cases proposés : multiples du nombre d'équipes, pour que les bateaux partent à égale distance.
+var CASES = { 2: [16, 20, 24, 28], 3: [15, 18, 21, 24, 27], 4: [16, 20, 24, 28] };
+function majMenuCases(garder){
+  var nb = parseInt(document.getElementById('eqsel').value), sel = document.getElementById('szsel');
+  var voulu = garder || parseInt(sel.value) || 20;
+  var liste = CASES[nb], choix = liste.reduce(function(m, v){ return Math.abs(v - voulu) < Math.abs(m - voulu) ? v : m; }, liste[0]);
+  sel.innerHTML = liste.map(function(v){ return '<option value="' + v + '"' + (v === choix ? ' selected' : '') + '>' + v + ' cases</option>'; }).join('');
+}
 function startPos(){
-  var step=total/4;
-  return [1, 1+Math.round(step), 1+Math.round(step*2), 1+Math.round(step*3)];
+  var step = total / nbEquipes, s = [];
+  for (var i = 0; i < nbEquipes; i++) s.push(1 + Math.round(step * i));
+  return s;
 }
 function caseXY(n){
   var a=-Math.PI/2+(2*Math.PI/total)*(n-1);
@@ -954,7 +974,7 @@ var CLE_PARTIE = 'poursuite-des-diamants';
 var moveHistory = [];
 
 function photo(){
-  return { total: total, pos: pos.slice(), gems: gems.map(function(g){ return g.slice(); }), activeTeam: activeTeam };
+  return { nb: nbEquipes, total: total, pos: pos.slice(), gems: gems.map(function(g){ return g.slice(); }), activeTeam: activeTeam };
 }
 function memoriser(){
   moveHistory.push(photo());
@@ -968,9 +988,11 @@ function nbDiamants(ti){ return gems[ti].filter(Boolean).length; }
 
 // Remet la partie dans l'état « e » (photo) et redessine tout ce qui en dépend.
 function appliquerEtat(e){
-  if (e.total !== total){
-    total = e.total;
-    document.getElementById('szsel').value = String(total);
+  var nb = e.nb || e.pos.length;
+  if (e.total !== total || nb !== nbEquipes){
+    nbEquipes = nb; total = e.total;
+    document.getElementById('eqsel').value = String(nb);
+    majMenuCases(total);
     genCaseTypes();
     drawMap();
   }
@@ -982,7 +1004,7 @@ function appliquerEtat(e){
   document.querySelectorAll('.tcard').forEach(function(c,i){ c.classList.toggle('highlight', i===activeTeam); });
   drawBoats();
   var gagnant = -1;
-  for (var i = 0; i < 4; i++) if (nbDiamants(i) >= 4) gagnant = i;
+  for (var i = 0; i < nbEquipes; i++) if (nbDiamants(i) >= nbEquipes) gagnant = i;
   var banner = document.getElementById('winbanner');
   if (gagnant >= 0){
     document.getElementById('wintxt').textContent = '🏴‍☠️ L\'' + TEAMS[gagnant].name + ' a gagné !';
@@ -1009,7 +1031,7 @@ function doMove(delta) {
   else soundReculer();
   // On change d'équipe uniquement quand on recule (mauvaise réponse)
   if (delta === -1) {
-    activeTeam = (ti + 1) % 4;
+    activeTeam = (ti + 1) % nbEquipes;
   }
   document.querySelectorAll('.tcard').forEach(function(c,i){
     c.classList.toggle('highlight', i===activeTeam);
@@ -1031,8 +1053,8 @@ function undoMove(){
 var abordage = null;   // { ti: équipe qui aborde, rivaux: [équipes abordées] }
 function proposerAbordage(ti, caseQuittee){
   var rivaux = [];
-  for (var j = 0; j < 4; j++) if (j !== ti && pos[j] === caseQuittee && nbDiamants(j) > 0) rivaux.push(j);
-  if (!rivaux.length || nbDiamants(ti) >= 4) return;
+  for (var j = 0; j < nbEquipes; j++) if (j !== ti && pos[j] === caseQuittee && nbDiamants(j) > 0) rivaux.push(j);
+  if (!rivaux.length || nbDiamants(ti) >= nbEquipes) return;
   abordage = { ti: ti, rivaux: rivaux };
   var n = rivaux.reduce(function(s, j){ return s + nbDiamants(j); }, 0);
   var noms = rivaux.map(function(j){ return 'l\'' + TEAMS[j].name.toLowerCase(); }).join(' et ');
@@ -1053,13 +1075,13 @@ function prendreDiamants(){
   memoriser();
   var pris = 0;
   rivaux.forEach(function(j){ pris += nbDiamants(j); gems[j] = gems[j].map(function(){ return false; }); });
-  var total4 = Math.min(4, nbDiamants(ti) + pris);
+  var total4 = Math.min(nbEquipes, nbDiamants(ti) + pris);           // nombre de diamants de l'équipe après la prise
   gems[ti] = gems[ti].map(function(_, d){ return d < total4; });
   rivaux.forEach(function(j){ renderGems(document.getElementById('gr' + j), j); });
   renderGems(document.getElementById('gr' + ti), ti);
   var rangee = document.getElementById('gr' + ti);
   if (rangee && rangee.children[total4 - 1]) spawnGemParticles(rangee.children[total4 - 1]);
-  if (total4 >= 4) annoncerVictoire(ti);
+  if (total4 >= nbEquipes) annoncerVictoire(ti);
   else { soundRetirerDiamant(); setTimeout(soundAjouterDiamant, 250); registerDiamondGain(ti); }
   sauverPartie();
 }
@@ -1121,7 +1143,7 @@ function spawnConfetti(){
 function toggleGem(ti, di, el){
   var onCount = gems[ti].filter(Boolean).length;
   var wasOn = gems[ti][di];
-  if (!wasOn && onCount >= 4) return;
+  if (!wasOn && onCount >= nbEquipes) return;
   fermerAbordage();
   memoriser();
   gems[ti][di] = !wasOn;
@@ -1130,8 +1152,8 @@ function toggleGem(ti, di, el){
     // On vient d'ajouter un diamant
     spawnGemParticles(el);
     var newCount = gems[ti].filter(Boolean).length;
-    if (newCount >= 4) {
-      annoncerVictoire(ti);   // les 4 diamants sont remportés
+    if (newCount >= nbEquipes) {
+      annoncerVictoire(ti);   // tous les diamants sont remportés
     } else {
       soundAjouterDiamant();
       registerDiamondGain(ti);
@@ -1139,12 +1161,12 @@ function toggleGem(ti, di, el){
   } else {
     soundRetirerDiamant();
     registerDiamondLoss(ti);
-    if (![0,1,2,3].some(function(j){ return nbDiamants(j) >= 4; })) document.getElementById('winbanner').classList.remove('show');
+    if (!gems.some(function(g, j){ return nbDiamants(j) >= nbEquipes; })) document.getElementById('winbanner').classList.remove('show');
   }
   sauverPartie();
 }function renderGems(row, ti){
   row.innerHTML = '';
-  for (var d = 0; d < 4; d++){
+  for (var d = 0; d < nbEquipes; d++){
     var g2 = document.createElement('span');
     g2.className = 'gem' + (gems[ti][d] ? ' on' : '');
     g2.textContent = '💎';
@@ -1166,7 +1188,7 @@ function renderSidebar(){
     sb.removeChild(banner);
   }
   sb.innerHTML='';
-  TEAMS.forEach(function(t,i){
+  TEAMS.slice(0, nbEquipes).forEach(function(t,i){
     var card=document.createElement('div');
     card.className='tcard';
     card.style.borderColor=t.border;
@@ -1195,7 +1217,7 @@ function renderSidebar(){
 // « Rejouer » ou changement du nombre de cases : la partie précédente reste dans l'historique (« Annuler »).
 function nouvellePartie(){
   fermerAbordage();
-  var avant = (pos.length === 4) ? photo() : null;
+  var avant = pos.length ? photo() : null;
   if (avant) avant.total = total;
   var historique = moveHistory.slice();
   init();
@@ -1204,11 +1226,10 @@ function nouvellePartie(){
 }
 
 function init(){
+  nbEquipes=parseInt(document.getElementById('eqsel').value);
   total=parseInt(document.getElementById('szsel').value);
-  var starts=startPos();
-  pos=[starts[0],starts[1],starts[2],starts[3]];
-  gems=[[],[],[],[]];
-  TEAMS.forEach(function(_,i){gems[i]=Array(5).fill(false); gems[i][0]=true;});
+  pos=startPos();
+  gems=pos.map(function(){ var g=Array(nbEquipes).fill(false); g[0]=true; return g; });   // un diamant chacun au départ
   lossTimestamps = [[], [], [], []];
   gainTimestamps = [[], [], [], []];
   selectedTeam=-1;
@@ -1254,7 +1275,7 @@ function closeRules(){
   var sauve = null;
   try { sauve = JSON.parse(localStorage.getItem(CLE_PARTIE) || 'null'); } catch(e) {}
   init();
-  if (sauve && sauve.partie && Array.isArray(sauve.partie.pos) && sauve.partie.pos.length === 4){
+  if (sauve && sauve.partie && Array.isArray(sauve.partie.pos) && sauve.partie.pos.length >= 2){
     try {
       muted = !!sauve.muted;
       appliquerEtat(sauve.partie);

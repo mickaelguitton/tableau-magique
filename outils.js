@@ -100,9 +100,9 @@ self.OUTILS = [
     version: '1.0',
     nom: 'À la poursuite des diamants',
     niveau: 'tous niveaux',
-    texte: 'Jeu de révision en équipes. Quatre équipages de pirates tournent autour de l’île : une bonne réponse '
-         + 'fait avancer d’une case, une mauvaise fait reculer. En rejoignant un rival, on s’empare de ses diamants. '
-         + 'Le premier équipage à en réunir quatre gagne. L’enseignant prépare les questions, sur le thème de son choix, '
+    texte: 'Jeu de révision en équipes. Deux à quatre équipages de pirates tournent autour de l’île : une bonne réponse '
+         + 'fait avancer d’une case, une mauvaise fait reculer. En dépassant un rival, on s’empare de ses diamants. '
+         + 'Le premier équipage à tous les réunir gagne. L’enseignant prépare les questions, sur le thème de son choix, '
          + 'et peut les faire afficher au tableau avec leur réponse.',
     donnees: ['poursuite-des-diamants'],
     couleur: '#B8860B', ombre: '#F2D98C'
