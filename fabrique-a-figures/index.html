@@ -24,7 +24,7 @@
 <script src="../portail.js"></script>
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
-  La fabrique à figures – M. Guitton – licence CC BY-NC 4.0 – v2.1
+  La fabrique à figures – M. Guitton – licence CC BY-NC 4.0 – v2.2
   Outil de tracés géométriques à projeter au tableau (CM2).
   Mis au point avec l'aide de Claude AI.
 -->
@@ -353,7 +353,7 @@
         </div>
       </div>
       <div id="info" hidden></div>
-      <div id="signature">La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v2.1</span></div>
+      <div id="signature">La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v2.2</span></div>
     </div>
   </div>
 
@@ -2822,7 +2822,7 @@ const ANIM = {
   cercle:  { duree: 4300,  finTrace: 3700, lenteur: 1.2 },
   arc:     { duree: 2700,  finTrace: 2100, lenteur: 1.2 },
   report:  { duree: 3500,  finTrace: 3000, lenteur: 1.2 },
-  sym:     { duree: 4000,  finTrace: 4000, lenteur: 1.1 }
+  sym:     { duree: 4000,  finTrace: 4000, lenteur: 2.0 }
 };
 const tempsAnim = () => (performance.now() - anim.debut) / ANIM[anim.type].lenteur;
 const milieuPasEncorePlace = o => anim && anim.type === 'milieu' && o.id === anim.id && tempsAnim() < ANIM.milieu.finTrace;
