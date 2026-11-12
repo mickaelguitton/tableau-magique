@@ -20,7 +20,7 @@
 self.OUTILS = [
   {
     dossier: 'calcul-mental',
-    version: '1.0',                             // numéro de CET outil : à changer quand on le modifie
+    version: '1.1',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calcul mental',
     niveau: 'du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
