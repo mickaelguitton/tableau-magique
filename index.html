@@ -124,6 +124,9 @@
     line-height:1.1;overflow-wrap:break-word;   /* sur très petit écran, le nom passe à la ligne plutôt que d'être coupé */
   }
 
+  .tuile .niveau{font-size:max(10px,calc(var(--police,28px) * .6));font-weight:500;color:var(--encre-douce);text-align:center;margin-top:2px;line-height:1.15}
+  @media (max-height:500px){ .tuile .niveau{display:none} }   /* téléphone à l'horizontale : le nom seul, faute de place */
+
   /* (la couleur propre à chaque outil, --couleur et --ombre, vient de outils.js) */
 
   /* Bouton « Installer l'application » discret, en haut à droite, quand on découvre en ligne */
@@ -387,7 +390,8 @@
   document.getElementById('tuiles').innerHTML = OUTILS.map(o =>
     '<a class="tuile" style="' + couleurs(o) + '" href="' + o.dossier + '/">'
     + '<img src="images/' + o.dossier + '.jpg" alt="">'
-    + '<div class="nom">' + echapper(o.nom) + '</div></a>').join('');
+    + '<div class="nom">' + echapper(o.nom) + '</div>'
+    + '<div class="niveau">' + echapper(o.niveau) + '</div></a>').join('');
 
   /* Aperçus de la page d'accueil : un clic ouvre la bulle d'explication, avec un lien « Ouvrir … » vers l'outil */
   document.getElementById('apercus').innerHTML = OUTILS.map((o, i) =>
@@ -446,7 +450,7 @@
     }
   }
   function disposerTout(){
-    disposer(document.getElementById('tuiles'), '.tuile', 32, 0.12);
+    disposer(document.getElementById('tuiles'), '.tuile', 32, innerHeight > 500 ? 0.17 : 0.12);   // 0.17 : nom + niveau
     disposer(document.getElementById('apercus'), '.apercu', 24, 0.19);
     fermerBulle();
   }
