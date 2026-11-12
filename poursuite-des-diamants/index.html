@@ -166,6 +166,35 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 
 #app.app-fakefullscreen #rulesbtn{padding:4px 7px}
 #app.app-fakefullscreen #rulesbtn .lbl{display:none}
+#qbtn{padding:6px 12px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:14px;cursor:pointer}
+#qbtn:hover{background:#3a2200}
+#qbtn.actif{background:#c8a030;color:#2a1500}
+#app.app-fakefullscreen #qbtn{font-size:clamp(11px,1.6vh,13px);padding:4px 7px}
+#app.app-fakefullscreen #qbtn .lbl,#app.app-fakefullscreen #undobtn .lbl{display:none}
+/* carte de la question, au centre de l'île */
+#qcarte{display:none;position:absolute;left:49.6%;top:49.5%;transform:translate(-50%,-50%);z-index:4;width:52%;max-height:56%;overflow:auto;
+  background:rgba(250,240,210,.96);color:#3d1a00;border:3px solid #7a5000;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.45);
+  padding:1.2% 2.4% 1.6%;text-align:center;font-family:Georgia,serif}
+#qcarte.show{display:block}
+#qtete{font-family:'Pirata One',Georgia,serif;font-size:clamp(15px,2.6vh,26px);margin-bottom:2px}
+#qtexte{font-size:clamp(16px,3vh,32px);line-height:1.25;font-weight:700}
+#qrepbtn{margin-top:8px;padding:5px 14px;border-radius:8px;border:2px solid #7a5000;background:#c8a030;color:#2a1500;font:700 clamp(13px,2vh,18px) Georgia,serif;cursor:pointer}
+#qrep{margin-top:6px;font-size:clamp(16px,2.8vh,30px);font-weight:700;color:#0d6b2a}
+/* fenêtre de saisie des questions (même style que celle des règles) */
+#qmodal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,7,2,.72);align-items:center;justify-content:center;padding:14px}
+#qmodal.open{display:flex}
+#qbox{width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:Georgia,serif}
+#qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:2px solid #b8923c;background:#c8a030;border-radius:9px 9px 0 0}
+#qhead h2{font-family:'Pirata One',Georgia,serif;font-size:30px;color:#3d1a00}
+#qcorps{overflow-y:auto;padding:12px 20px 8px;font-size:15px;line-height:1.45}
+#qcorps p{margin:0 0 8px}
+#qcorps label{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px;cursor:pointer}
+#qcorps input[type=checkbox]{width:20px;height:20px}
+#qliste{width:100%;min-height:240px;resize:vertical;font:15px/1.45 Georgia,serif;padding:8px 10px;border:2px solid #b8923c;border-radius:8px;background:#fffaf0;color:#2a1500}
+#qbilan{font-size:14px;color:#7a2a00;min-height:1.4em}
+#qpied{padding:10px 18px 14px;text-align:center}
+#qpied button,#qx{padding:8px 22px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:15px;cursor:pointer}
+#qx{padding:6px 10px;font-size:16px;line-height:1}
 
 /* --- Fenêtre « Règles du jeu » --- */
 #rulesmodal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,7,2,.72);align-items:center;justify-content:center;padding:14px}
@@ -201,7 +230,8 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
         <option value="28">28 cases</option>
       </select>
       <button id="rbtn" onclick="nouvellePartie()" title="Nouvelle partie (« Annuler » permet de revenir à la partie précédente)">↺ Rejouer</button>
-      <button id="undobtn" onclick="undoMove()" title="Annuler la dernière action (bateau, diamant, nouvelle partie)" disabled>↶ Annuler</button>
+      <button id="undobtn" onclick="undoMove()" title="Annuler la dernière action (bateau, diamant, nouvelle partie)" disabled>↶<span class="lbl"> Annuler</span></button>
+      <button id="qbtn" onclick="ouvrirQuestions()" title="Questions affichées au tableau (facultatif)" aria-haspopup="dialog">❓<span class="lbl"> Questions</span></button>
       <button id="rulesbtn" onclick="openRules()" title="Règles du jeu et mode d'emploi" aria-haspopup="dialog">📜<span class="lbl"> Règles</span></button>
       <button id="mutebtn" onclick="toggleMute()" title="Couper le son" aria-label="Couper le son"></button>
       <button id="fsbtn" onclick="toggleFullscreen()" title="Plein écran" aria-label="Plein écran"></button>
@@ -210,6 +240,12 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   <div id="game" style="position:relative">
     <div id="mapwrap" style="position:relative">
       <svg id="mapsvg" viewBox="0 0 460 420" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="qcarte" aria-live="polite">
+        <div id="qtete"></div>
+        <div id="qtexte"></div>
+        <button id="qrepbtn" onclick="montrerReponse()">Réponse</button>
+        <div id="qrep" hidden></div>
+      </div>
       <div id="abordage" role="dialog" aria-live="polite">
         <h3>⚔ À l'abordage !</h3>
         <p id="abordagetxt"></p>
@@ -233,6 +269,21 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
     · Police : Pirata One (licence OFL)
   </div>
 
+  <div id="qmodal" role="dialog" aria-modal="true" aria-labelledby="qtitre" onclick="if(event.target===this)fermerQuestions()">
+    <div id="qbox">
+      <div id="qhead"><h2 id="qtitre">❓ Questions</h2><button id="qx" onclick="fermerQuestions()" aria-label="Fermer">✕</button></div>
+      <div id="qcorps">
+        <label><input type="checkbox" id="qafficher" onchange="majQuestionsSaisie()"> Afficher les questions au tableau</label>
+        <p>Colle ta liste : <b>une question par ligne</b>, dans l'ordre des cases (la 1<sup>re</sup> ligne est la question de la case 1).
+           Les numéros en début de ligne (« 1. », « 2) »…) sont acceptés. Pour pouvoir afficher la réponse,
+           ajoute-la en fin de ligne après <b>« R : »</b>.<br><i>Exemple : 7 × 8 = ? R : 56</i></p>
+        <textarea id="qliste" oninput="majQuestionsSaisie()" placeholder="1. Quelle est la capitale de l'Espagne ? R : Madrid&#10;2. 7 × 8 = ? R : 56&#10;3. …"></textarea>
+        <p id="qbilan"></p>
+      </div>
+      <div id="qpied"><button onclick="fermerQuestions()">Fermer</button></div>
+    </div>
+  </div>
+
   <div id="rulesmodal" role="dialog" aria-modal="true" aria-labelledby="rulestitle" onclick="if(event.target===this)closeRules()">
     <div id="rulesbox">
       <div id="ruleshead">
@@ -242,14 +293,14 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
       <div id="rulesbody">
         <h3>Le principe</h3>
         <p>Quatre équipages de pirates (bleu, jaune, vert et rouge) tournent autour d’une île, case après case, dans le sens des aiguilles d’une montre. Chaque équipage possède un diamant au départ. Pour gagner, il faut en réunir quatre, en les prenant à ses rivaux.</p>
-        <p>Les questions ne sont pas affichées par l’application : l’enseignant les prépare à l’avance, sur le thème à réviser. Il en faut autant que de cases (16, 20, 24 ou 28), numérotées dans l’ordre.</p>
+        <p>L’enseignant prépare les questions à l’avance, sur le thème à réviser. Il en faut autant que de cases (16, 20, 24 ou 28), numérotées dans l’ordre. Il peut les lire lui-même ou les faire afficher au tableau par l’application, avec leur réponse (voir « Afficher les questions »).</p>
 
         <h3>Déroulement d’un tour</h3>
         <ul>
           <li>La question posée porte le numéro de la <b>case sur laquelle se trouve le bateau</b> de l’équipe qui joue.</li>
           <li>Un seul joueur répond à la fois. Ses équipiers le laissent chercher sans lui souffler la réponse, et se relaient d’une question à l’autre.</li>
           <li><b>Bonne réponse :</b> le bateau avance d’une case et l’équipe continue avec la question suivante posée à un autre équipier.</li>
-          <li><b>Mauvaise réponse :</b> le bateau recule d’une case, l’enseignant (ou un autre élève) donne la solution à voix haute pour toute la classe, et c’est à l’équipe suivante de jouer.</li>
+          <li><b>Mauvaise réponse :</b> le bateau recule d’une case, l’enseignant (ou un autre élève) donne la solution à voix haute pour toute la classe, ou l’affiche avec le bouton « Réponse », et c’est à l’équipe suivante de jouer.</li>
         </ul>
         <p class="note">Comme les bateaux finissent tous par repasser sur les mêmes cases, les mêmes questions reviennent. Écouter les réponses données aux autres équipes est donc le meilleur moyen de progresser.</p>
 
@@ -270,6 +321,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
           <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d’un bateau adverse avance d’une case (bonne réponse), il le dépasse : l’application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l’allumer ou l’éteindre. Quand une équipe en a quatre, la bannière de victoire s’affiche, avec des confettis et un son de victoire.</li>
           <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d’un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre de cases.</li>
           <li><b>Reprendre une partie.</b> La partie est gardée au fur et à mesure : si la page se ferme ou se recharge, on la retrouve telle quelle.</li>
+          <li><b>Afficher les questions (facultatif).</b> Le bouton « ❓ Questions » ouvre une fenêtre où l’on colle la liste des questions, une par ligne, dans l’ordre des cases ; on peut ajouter la réponse en fin de ligne après « R : ». En cochant « Afficher les questions au tableau », la question de la case du bateau qui a la main apparaît au centre de l’île. Le bouton « Réponse » montre la solution : on clique dessus avant de déplacer le bateau, car la question change dès qu’il bouge. La liste est gardée pour les parties suivantes.</li>
           <li><b>Confort de projection.</b> Le haut-parleur coupe ou rétablit les sons, et le bouton à quatre coins passe en plein écran (touche Échap pour en sortir).</li>
         </ol>
 
@@ -480,7 +532,64 @@ function drawBoats(){
     });
   }
   drawNumbers();
+  majQuestion();
 }
+
+// ===== QUESTIONS AFFICHÉES AU TABLEAU (option) =====
+// Liste collée par l'enseignant : une question par ligne, dans l'ordre des cases, réponse facultative après « R : ».
+// Quand l'option est cochée, la question de la case du bateau qui a la main s'affiche au centre de l'île,
+// avec un bouton « Réponse ». Liste et option sont gardées dans le navigateur.
+var CLE_QUESTIONS = 'poursuite-des-diamants-questions';
+var questions = { afficher: false, texte: '' };
+try { var qs = JSON.parse(localStorage.getItem(CLE_QUESTIONS) || 'null'); if (qs) questions = { afficher: !!qs.afficher, texte: String(qs.texte || '') }; } catch(e) {}
+
+function listeQuestions(){
+  return questions.texte.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean).map(function(l){
+    l = l.replace(/^\d+\s*[.)\-–:]\s*/, '');                     // numéro en début de ligne
+    var m = l.match(/^(.*?)\s+(?:R|Réponse)\s*:\s*(.+)$/i);           // réponse après « R : »
+    return m ? { q: m[1].trim(), r: m[2].trim() } : { q: l, r: '' };
+  });
+}
+var qCle = '';        // case + équipe affichées : la réponse se cache quand on passe à une autre question
+function majQuestion(){
+  var carte = document.getElementById('qcarte');
+  if (!carte) return;
+  if (!questions.afficher || activeTeam < 0 || !pos.length){ carte.classList.remove('show'); return; }
+  var n = pos[activeTeam], item = listeQuestions()[n - 1], cle = activeTeam + '-' + n;
+  var tete = document.getElementById('qtete');
+  tete.textContent = TEAMS[activeTeam].name + ' · case ' + n;
+  tete.style.color = TEAMS[activeTeam].border;
+  document.getElementById('qtexte').textContent = item ? item.q : 'Pas de question n° ' + n + ' dans la liste.';
+  var rep = document.getElementById('qrep'), btn = document.getElementById('qrepbtn');
+  if (cle !== qCle) { rep.hidden = true; qCle = cle; }
+  rep.textContent = item ? item.r : '';
+  btn.hidden = !item || !item.r || !rep.hidden;
+  carte.classList.add('show');
+}
+function montrerReponse(){
+  document.getElementById('qrep').hidden = false;
+  document.getElementById('qrepbtn').hidden = true;
+}
+function ouvrirQuestions(){
+  document.getElementById('qafficher').checked = questions.afficher;
+  document.getElementById('qliste').value = questions.texte;
+  majQuestionsSaisie();
+  document.getElementById('qmodal').classList.add('open');
+  document.getElementById('qliste').focus();
+}
+function fermerQuestions(){ document.getElementById('qmodal').classList.remove('open'); }
+function majQuestionsSaisie(){
+  questions = { afficher: document.getElementById('qafficher').checked, texte: document.getElementById('qliste').value };
+  try { localStorage.setItem(CLE_QUESTIONS, JSON.stringify(questions)); } catch(e) {}
+  var l = listeQuestions(), avecRep = l.filter(function(x){ return x.r; }).length;
+  document.getElementById('qbilan').textContent = l.length
+    ? l.length + ' question' + (l.length > 1 ? 's' : '') + ' pour ' + total + ' cases' + (avecRep ? ', dont ' + avecRep + ' avec réponse' : ', sans réponse')
+      + (l.length < total ? ' : il manque ' + (total - l.length) + ' question' + (total - l.length > 1 ? 's' : '') + '.' : '.')
+    : 'Aucune question pour l’instant.';
+  document.getElementById('qbtn').classList.toggle('actif', questions.afficher);
+  majQuestion();
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fermerQuestions(); });
 
 // Numéros des cases, discrets comme à l'origine (au centre de la case) ; quand un bateau occupe
 // la case, le numéro passe juste sous le bateau, sur l'eau, pour rester visible.
@@ -1155,6 +1264,8 @@ function closeRules(){
   }
   setMuteButtonState();
   setFsButtonState();
+  document.getElementById('qbtn').classList.toggle('actif', questions.afficher);
+  majQuestion();
 })();
 </script>
 </body>
