@@ -106,5 +106,17 @@ self.OUTILS = [
          + 'et peut les faire afficher au tableau avec leur réponse.',
     donnees: ['poursuite-des-diamants'],
     couleur: '#B8860B', ombre: '#F2D98C'
+  },
+  {
+    dossier: 'syllabes-en-couleur',
+    version: '1.0',
+    nom: 'Syllabes en couleur',
+    niveau: 'adapter un texte · dys',
+    texte: 'Pour préparer des textes adaptés à la lecture des élèves avec des troubles d’apprentissage / dys. '
+         + 'On colle un texte : les syllabes s’alternent en bleu et rouge, les lettres muettes sont grisées, '
+         + 'la mise en page est entièrement conservée. Police Arial ou OpenDyslexic. '
+         + 'Copie dans Word, impression ou affichage en plein écran.',
+    donnees: ['syllabes-en-couleur'],
+    couleur: '#0B7FB8', ombre: '#B5E0F5'
   }
 ];
