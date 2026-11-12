@@ -20,7 +20,7 @@
 self.OUTILS = [
   {
     dossier: 'calcul-mental',
-    version: '1.0',                             // numéro de CET outil : à changer quand on le modifie
+    version: '1.1',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calcul mental',
     niveau: 'du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
@@ -30,7 +30,7 @@ self.OUTILS = [
   },
   {
     dossier: 'gym-des-mots',
-    version: '1.1',
+    version: '1.2',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil du Blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '

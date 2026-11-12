@@ -172,6 +172,9 @@ h1,h2,p{margin:0}
 .pickable .w:not(.cur):not(.shown):hover{transform:translateY(-3px);background:#fff1a0}
 .w.glue{margin-right:-.55em;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0;padding-right:.1em}
 .w.ag{border-left:none;border-top-left-radius:0;border-bottom-left-radius:0;padding-left:.1em}
+/* bloc insécable « mot élidé + mot suivant » (l’arbre, qu’il…) : passe à la ligne d'un seul tenant */
+.paire{display:inline-flex;align-items:stretch}
+.paire .w.glue{margin-right:0}
 .w .wl{font-size:.3em;font-weight:800;min-height:1.3em;color:var(--k,#fff);opacity:0;transition:opacity .2s}
 @keyframes rb{to{background-position:200% 0}}
 .w.cur{background:linear-gradient(100deg,#ffb3b3,#ffd9a0,#fff4a3,#b8f0b8,#a8e6ff,#c4bcff,#f0b8ff,#ffb3b3);background-size:200% 100%;animation:wig .9s ease-in-out infinite,rb 2.2s linear infinite;color:#222;position:relative;z-index:2}
@@ -1019,6 +1022,8 @@ function fireworks(sec){
 /* ---------- affichage ---------- */
 function renderSentence(){
   const box = $('#sentence'); box.innerHTML = ''; box.classList.toggle('pickable', S.mode === 'pick'); box.classList.toggle('words', S.kind === 'words'); box.classList.toggle('many', S.kind === 'words' && S.tokens.length > 12);
+  /* un mot élidé (l’, s’, qu’, j’…) et le mot qui le suit restent ensemble : jamais de « l’ » seul en fin de ligne */
+  let paire = null;
   S.tokens.forEach((t,i) => {
     const m = NAT_BY[eff(t)];
     const d = document.createElement('span');
@@ -1028,7 +1033,12 @@ function renderSentence(){
     d.style.setProperty('--c', m.color); d.style.setProperty('--k', m.ink);
     const a = document.createElement('span'); a.className = 'wt'; a.textContent = t.t;
     const b = document.createElement('span'); b.className = 'wl'; b.textContent = m.short;
-    d.appendChild(a); d.appendChild(b); box.appendChild(d);
+    d.appendChild(a); d.appendChild(b);
+    const elide = /[’']$/.test(t.t);
+    if (prevGlue && paire) paire.appendChild(d);                       // mot qui suit une élision : dans le même bloc
+    else if (elide) { paire = document.createElement('span'); paire.className = 'paire'; paire.appendChild(d); box.appendChild(paire); }
+    else box.appendChild(d);
+    if (!elide) paire = null;                                          // bloc terminé après un mot non élidé
   });
   fitSentence();
 }

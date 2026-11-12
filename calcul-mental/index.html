@@ -385,6 +385,7 @@ G.moities=lv=>{const x=pick(HALF[LK(lv)]),h=x/2;
   const f=[()=>I(`moitié de ${fr(x)} =`,fr(h))];
   if(lv!=='CP')f.push(()=>I('2 ×',fr(h),`= ${fr(x)}`),()=>I(`${fr(x)} = 2 ×`,fr(h)));
   if(lv==='CM1'||lv==='CM2')f.push(()=>I(`${fr(x)} : 2 =`,fr(h)));      /* le signe « : » n'est pas utilisé avant le CM1 */
+  if(lv==='CM2')f.push(()=>T(`${F(1,2)} de ${fr(x)} = {}`,fr(h)));        /* CM2 : écriture fractionnaire « 1/2 de 60 = ? » */
   return pick(f)();};
 
 /* Multiples de 25 : produits, double / triple / quadruple, moitié / quart / tiers, fractions, divisions par 2, 3, 4.
