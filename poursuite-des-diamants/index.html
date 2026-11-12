@@ -83,9 +83,8 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #titlebanner::before,#titlebanner::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0c080,#8b6000 55%,#4a3300 100%);box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(255,255,255,.2)}
 #titlebanner::before{left:14px}
 #titlebanner::after{right:14px}
-#titlebanner span{font-family:'Pirata One',Georgia,serif;font-size:36px;font-weight:700;color:#3d1a00;letter-spacing:1.5px}
-#controls{display:flex;align-items:stretch;gap:6px}   /* boutons et menus de même hauteur */
-#controls label{font-size:14px;color:#e8d090}
+#titlebanner span{font-size:36px;color:#3d1a00;letter-spacing:1.5px}
+#controls{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}   /* boutons et menus de même hauteur ; passent à la ligne sur un écran étroit */
 #eqsel,#szsel,#rbtn,#undobtn,#qbtn,#rulesbtn,#mutebtn,#fsbtn{white-space:nowrap;padding:6px 8px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:13px;font-weight:700;cursor:pointer}   /* gras : rappelle la police du titre */
 #rbtn:hover,#undobtn:hover:not(:disabled),#qbtn:hover,#rulesbtn:hover,#mutebtn:hover,#fsbtn:hover{background:#3a2200}
 #undobtn:disabled{opacity:.35;cursor:not-allowed}
@@ -104,7 +103,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   padding:14px 16px;text-align:center}
 #abordage.show{display:block;animation:abordageArrivee .35s ease-out}
 @keyframes abordageArrivee{from{transform:translate(-50%,-40%);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
-#abordage h3{font-family:'Pirata One',Georgia,serif;font-size:clamp(24px,3.4vh,34px);color:#7a2a00;margin-bottom:4px}
+#abordage h3{font-size:clamp(24px,3.4vh,34px);color:#7a2a00;margin-bottom:4px}
 #abordage p{font-size:clamp(15px,2.2vh,21px);line-height:1.35;margin-bottom:12px}
 #abordage .choix{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 #abordage button{padding:8px 16px;border-radius:8px;border:2px solid #7a5000;font:700 clamp(14px,2vh,18px) Georgia,serif;cursor:pointer}
@@ -129,7 +128,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 .gem:hover{transform:scale(1.25)}
 #winbanner{display:none;box-sizing:border-box;width:100%;min-height:50px;background:#c8a030;border:2px solid #7a5000;border-radius:10px;padding:8px 9px;text-align:center;margin-top:2px;box-shadow:0 0 14px 4px rgba(255,215,0,.55)}
 #winbanner.show{display:flex;flex-direction:column;justify-content:center;animation:winPulse 1.3s ease-in-out infinite}
-#winbanner h3{font-family:'Pirata One',Georgia,serif;font-size:20px;font-weight:700;line-height:1.3;color:#3d1a00}
+#winbanner h3{font-size:20px;line-height:1.3;color:#3d1a00}
 @keyframes winPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .tcard.highlight{box-shadow:0 0 0 3px #fff,0 0 14px 5px gold;background:rgba(255,220,50,0.10);transition:box-shadow 0.3s,background 0.3s;}
 
@@ -175,7 +174,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #qmodal.open{display:flex}
 #qbox{width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:Georgia,serif}
 #qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:2px solid #b8923c;background:#c8a030;border-radius:9px 9px 0 0}
-#qhead h2{font-family:'Pirata One',Georgia,serif;font-size:30px;color:#3d1a00}
+#qhead h2{font-size:30px;color:#3d1a00}
 #qcorps{overflow-y:auto;padding:12px 20px 8px;font-size:15px;line-height:1.45;font-weight:700}
 #qcorps p{margin:0 0 8px}
 #qcorps label{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px;cursor:pointer}
@@ -189,13 +188,13 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #rulesmodal.open{display:flex}
 #rulesbox{position:relative;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:Georgia,serif}
 #ruleshead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:2px solid #b8923c;background:#c8a030;border-radius:9px 9px 0 0}
-#ruleshead h2{font-family:'Pirata One',Georgia,serif;font-size:30px;font-weight:700;letter-spacing:1px;color:#3d1a00}
+#ruleshead h2{font-size:30px;letter-spacing:1px;color:#3d1a00}
 /* boutons de fermeture des deux fenêtres (✕ en haut, « Fermer » en bas) */
 #qx,#rulesx,#qpied button,#rulesclose{padding:8px 22px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:15px;cursor:pointer}
 #qx,#rulesx{padding:6px 10px;font-size:16px;line-height:1}
 #qx:hover,#rulesx:hover,#qpied button:hover,#rulesclose:hover{background:#3a2200}
 #rulesbody{overflow-y:auto;padding:14px 20px 8px;font-size:15px;line-height:1.5;font-weight:700}   /* texte en gras ; titres en Pirata One */
-#rulesbody h3{font-family:'Pirata One',Georgia,serif;font-size:22px;font-weight:700;letter-spacing:.5px;margin:12px 0 4px;color:#7a2a00}
+#rulesbody h3{font-size:22px;letter-spacing:.5px;margin:12px 0 4px;color:#7a2a00}
 #rulesbody h3:first-child{margin-top:0}
 #rulesbody p{margin:0 0 6px}
 #rulesbody ul,#rulesbody ol{margin:0 0 6px 22px}
@@ -823,15 +822,11 @@ function fitFullscreenMap(){
     var gameLeft = game.getBoundingClientRect().left;
     title.style.marginLeft = Math.max(0, Math.round(wrapLeft - gameLeft)) + 'px';
   }
-  // Les contrôles (cases / rejouer / annuler / son / plein écran) sont positionnés
-  // en absolu au-dessus de la sidebar, avec exactement la même largeur et le même
-  // bord droit qu'elle (mesurés directement, comme pour le titre ci-dessus), afin
-  // qu'ils restent alignés à droite, sur 2 lignes, sans jamais déborder ni déplacer
-  // les bannières d'équipes.
+  // La barre de boutons (largeur fixée plus haut) est alignée sur le bord droit de la colonne
+  // des équipes, mesuré directement comme pour le titre ci-dessus.
   if (controls && sb && topbar) {
     var sbRect = sb.getBoundingClientRect();
     var topbarRect = topbar.getBoundingClientRect();
-    controls.style.width = Math.ceil(sbRect.width) + 'px';
     controls.style.right = Math.max(0, Math.round(topbarRect.right - sbRect.right)) + 'px';
   }
 }
