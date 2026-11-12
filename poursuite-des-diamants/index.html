@@ -68,6 +68,14 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #app.app-fakefullscreen #winbanner{flex:1 1 0;display:flex!important;visibility:hidden;padding:clamp(8px,1.3vh,20px) clamp(9px,1.5vh,22px);border-radius:clamp(8px,1.1vh,16px);min-height:0}
 #app.app-fakefullscreen #winbanner.show{visibility:visible}
 #app.app-fakefullscreen #winbanner h3{font-size:clamp(20px,3vh,38px)}
+/* plein écran : la question prend la place réservée à la bannière de victoire, en plus grand */
+#app.app-fakefullscreen #qcarte.show{flex:1.7 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top:0;padding:clamp(6px,1vh,14px) clamp(8px,1.2vh,16px);border-radius:clamp(8px,1vh,16px)}
+#app.app-fakefullscreen #qcarte.show ~ #winbanner:not(.show){display:none!important}
+#app.app-fakefullscreen #qtete{font-size:clamp(15px,2.3vh,28px)}
+#app.app-fakefullscreen #qtexte{font-size:clamp(18px,3.2vh,40px)}
+#app.app-fakefullscreen #qdepart{font-size:clamp(17px,2.8vh,32px)}
+#app.app-fakefullscreen #qrepbtn{font-size:clamp(14px,2.1vh,24px)}
+#app.app-fakefullscreen #qrep{font-size:clamp(19px,3.3vh,40px)}
 #topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
 #titlebanner{position:relative;background:#c8a030;border:3px solid #7a5000;border-radius:6px;padding:7px 22px;clip-path:polygon(3% 0%,97% 0%,100% 35%,97% 100%,3% 100%,0% 35%)}
 #titlebanner::before,#titlebanner::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0c080,#8b6000 55%,#4a3300 100%);box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(255,255,255,.2)}
@@ -148,15 +156,17 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #credits a{color:inherit;text-decoration:underline}
 #app.app-fakefullscreen #credits{flex:0 0 auto;margin-top:3px;font-size:clamp(8px,1.2vh,10px)}
 
-/* carte de la question, au centre de l'île */
-#qcarte{display:none;position:absolute;left:49.6%;top:49.5%;transform:translate(-50%,-50%);z-index:4;width:52%;max-height:56%;overflow:auto;
-  background:rgba(250,240,210,.96);color:#3d1a00;border:3px solid #7a5000;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.45);
-  padding:1.2% 2.4% 1.6%;text-align:center;font-family:'Pirata One',Georgia,serif}
+/* carte de la question, sous les équipes (l'île reste entièrement visible) */
+#qcarte{display:none;box-sizing:border-box;width:100%;overflow:auto;margin-top:2px;
+  background:#f5ead0;color:#3d1a00;border:2px solid #7a5000;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.4);
+  padding:8px 9px 10px;text-align:center}
 #qcarte.show{display:block}
-#qtete{font-family:'Pirata One',Georgia,serif;font-size:clamp(15px,2.6vh,26px);margin-bottom:2px}
-#qtexte{font-size:clamp(16px,3vh,32px);line-height:1.25;font-weight:700}
-#qrepbtn{margin-top:8px;padding:5px 14px;border-radius:8px;border:2px solid #7a5000;background:#c8a030;color:#2a1500;font:400 clamp(13px,2vh,18px) 'Pirata One',Georgia,serif;cursor:pointer}
-#qrep{margin-top:6px;font-size:clamp(16px,2.8vh,30px);font-weight:700;color:#0d6b2a}
+#qtete{font-size:15px;margin-bottom:3px}
+#qtexte{font-size:19px;line-height:1.2;overflow-wrap:anywhere}
+#qdepart,#qrepbtn{margin-top:8px;padding:5px 12px;border-radius:8px;border:2px solid #7a5000;background:#c8a030;color:#2a1500;font-size:16px;cursor:pointer}
+#qdepart{font-size:18px;padding:7px 12px;animation:winPulse 1.3s ease-in-out infinite}
+#qdepart:hover,#qrepbtn:hover{background:#e0b840}
+#qrep{margin-top:6px;font-size:21px;color:#0d6b2a}
 /* fenêtre de saisie des questions (même style que celle des règles) */
 #qmodal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,7,2,.72);align-items:center;justify-content:center;padding:14px}
 #qmodal.open{display:flex}
@@ -220,12 +230,6 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   <div id="game" style="position:relative">
     <div id="mapwrap" style="position:relative">
       <svg id="mapsvg" viewBox="0 0 460 420" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div id="qcarte" aria-live="polite">
-        <div id="qtete"></div>
-        <div id="qtexte"></div>
-        <button id="qrepbtn" onclick="montrerReponse()">Réponse</button>
-        <div id="qrep" hidden></div>
-      </div>
       <div id="abordage" role="dialog" aria-live="polite">
         <h3>⚔ À l'abordage !</h3>
         <p id="abordagetxt"></p>
@@ -235,7 +239,15 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
         </div>
       </div>
     </div>
-    <div id="sidebar"></div>
+    <div id="sidebar">
+      <!-- carte de la question : replacée sous les équipes par renderSidebar() -->
+      <div id="qcarte" aria-live="polite">
+        <div id="qtete"></div>
+        <div id="qtexte"></div>
+        <button id="qdepart" onclick="commencer()">⛵ Hissez les voiles !</button>
+        <button id="qrepbtn" onclick="montrerReponse()">Réponse</button>
+        <div id="qrep" hidden></div>
+      </div></div>
   </div>
   <div id="hint"></div>
   <div id="winbanner"><h3 id="wintxt"></h3></div>
@@ -255,7 +267,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
         <label><input type="checkbox" id="qafficher" onchange="majQuestionsSaisie()"> Afficher les questions au tableau</label>
         <p>Colle ta liste : <b>une question par ligne</b>, dans l'ordre des cases (la 1<sup>re</sup> ligne est la question de la case 1).
            Les numéros en début de ligne (« 1. », « 2) »…) sont acceptés. Pour pouvoir afficher la réponse,
-           ajoute-la en fin de ligne après <b>« R : »</b>.<br><i>Exemple : 7 × 8 = ? R : 56</i></p>
+           ajoute-la en fin de ligne après <b>« R : »</b> ou <b>« Réponse : »</b>.<br><i>Exemple : 7 × 8 = ? R : 56</i></p>
         <textarea id="qliste" oninput="majQuestionsSaisie()" placeholder="1. Quelle est la capitale de l'Espagne ? R : Madrid&#10;2. 7 × 8 = ? R : 56&#10;3. …"></textarea>
         <p id="qbilan"></p>
       </div>
@@ -300,7 +312,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
           <li><b>Gérer les diamants.</b> Quand un bateau qui partage la case d’un bateau adverse avance d’une case (bonne réponse), il le dépasse : l’application propose alors « Prendre les diamants », qui les transfère en un clic, ou « Non », qui ne change rien. On peut aussi cliquer sur un diamant de la colonne de droite pour l’allumer ou l’éteindre. Quand une équipe les a tous, la bannière de victoire s’affiche, avec des confettis et un son de victoire.</li>
           <li><b>Corriger une erreur.</b> « ↶ Annuler » défait la dernière action : déplacement d’un bateau, diamant allumé ou éteint, prise de diamants, et même « Rejouer » ou le changement du nombre d’équipes ou de cases.</li>
           <li><b>Reprendre une partie.</b> La partie est gardée au fur et à mesure : si la page se ferme ou se recharge, on la retrouve telle quelle.</li>
-          <li><b>Afficher les questions (facultatif).</b> Le bouton « ❓ Questions » ouvre une fenêtre où l’on colle la liste des questions, une par ligne, dans l’ordre des cases ; on peut ajouter la réponse en fin de ligne après « R : ». En cochant « Afficher les questions au tableau », la question de la case du bateau qui a la main apparaît au centre de l’île. Le bouton « Réponse » montre la solution : on clique dessus avant de déplacer le bateau, car la question change dès qu’il bouge. La liste est gardée pour les parties suivantes.</li>
+          <li><b>Afficher les questions (facultatif).</b> Le bouton « ❓ Questions » ouvre une fenêtre où l’on colle la liste des questions, une par ligne, dans l’ordre des cases ; on peut ajouter la réponse en fin de ligne après « R : » ou « Réponse : ». En cochant « Afficher les questions au tableau », la question de la case du bateau qui a la main apparaît sous les équipes, dans la colonne de droite. En début de partie, le bouton « Hissez les voiles ! » fait apparaître la première question. Le bouton « Réponse » montre la solution : on clique dessus avant de déplacer le bateau, car la question change dès qu’il bouge. La liste est gardée pour les parties suivantes.</li>
           <li><b>Confort de projection.</b> Le haut-parleur coupe ou rétablit les sons, et le bouton à quatre coins passe en plein écran (touche Échap pour en sortir).</li>
         </ol>
 
@@ -522,17 +534,35 @@ try { var qs = JSON.parse(localStorage.getItem(CLE_QUESTIONS) || 'null'); if (qs
 function listeQuestions(){
   return questions.texte.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean).map(function(l){
     l = l.replace(/^\d+\s*[.)\-–:]\s*/, '');                     // numéro en début de ligne
-    var m = l.match(/^(.*?)\s+(?:R|Réponse)\s*:\s*(.+)$/i);           // réponse après « R : »
+    var m = l.match(/^(.*?)\s+(?:R|Réponse)\s*:\s*(.+)$/i);           // réponse après « R : » ou « Réponse : » (majuscules ou non)
     return m ? { q: m[1].trim(), r: m[2].trim() } : { q: l, r: '' };
   });
 }
 var qCle = '';        // case + équipe affichées : la réponse se cache quand on passe à une autre question
+var commencee = true; // faux au début d'une nouvelle partie : la carte propose « Hissez les voiles ! » avant la 1re question
+function commencer(){
+  commencee = true;
+  sauverPartie();
+  majQuestion();
+}
 function majQuestion(){
   var carte = document.getElementById('qcarte');
   if (!carte) return;
-  if (!questions.afficher || activeTeam < 0 || !pos.length){ carte.classList.remove('show'); return; }
+  var finie = document.getElementById('winbanner').classList.contains('show');
+  if (!questions.afficher || !pos.length || finie){ carte.classList.remove('show'); return; }
+  carte.classList.add('show');
+  var tete = document.getElementById('qtete'), depart = document.getElementById('qdepart');
+  depart.hidden = commencee;
+  if (!commencee){                                   // début de partie : pas encore de question
+    tete.textContent = 'Prêts, moussaillons ?';
+    tete.style.color = '#7a2a00';
+    document.getElementById('qtexte').textContent = '';
+    document.getElementById('qrepbtn').hidden = true;
+    document.getElementById('qrep').hidden = true;
+    qCle = '';
+    return;
+  }
   var n = pos[activeTeam], item = listeQuestions()[n - 1], cle = activeTeam + '-' + n;
-  var tete = document.getElementById('qtete');
   tete.textContent = TEAMS[activeTeam].name + ' · case ' + n;
   tete.style.color = TEAMS[activeTeam].border;
   document.getElementById('qtexte').textContent = item ? item.q : 'Pas de question n° ' + n + ' dans la liste.';
@@ -540,7 +570,6 @@ function majQuestion(){
   if (cle !== qCle) { rep.hidden = true; qCle = cle; }
   rep.textContent = item ? item.r : '';
   btn.hidden = !item || !item.r || !rep.hidden;
-  carte.classList.add('show');
 }
 function montrerReponse(){
   document.getElementById('qrep').hidden = false;
@@ -911,7 +940,7 @@ function memoriser(){
   updateUndoButton();
 }
 function sauverPartie(){
-  try { localStorage.setItem(CLE_PARTIE, JSON.stringify({ partie: photo(), historique: moveHistory, muted: muted })); } catch(e) {}
+  try { localStorage.setItem(CLE_PARTIE, JSON.stringify({ partie: photo(), historique: moveHistory, muted: muted, commencee: commencee })); } catch(e) {}
 }
 function updateUndoButton(){
   document.getElementById('undobtn').disabled = moveHistory.length === 0;
@@ -934,8 +963,9 @@ function appliquerEtat(e){
   drawBoats();
   var gagnant = -1;
   for (var i = 0; i < nbEquipes; i++) if (nbDiamants(i) >= nbEquipes) gagnant = i;
+  commencee = true;     // « Annuler » ramène toujours à une partie déjà lancée
   if (gagnant >= 0) afficherBanniere(gagnant);
-  else document.getElementById('winbanner').classList.remove('show');
+  else masquerBanniere();
   updateUndoButton();
 }
 
@@ -943,6 +973,7 @@ function appliquerEtat(e){
 // Déplacement d'une case : delta = 1 (bonne réponse, l'équipe garde la main)
 // ou -1 (mauvaise réponse, la main passe à l'équipe suivante).
 function doMove(ti, delta) {
+  commencee = true;        // un bateau déplacé lance la partie, même sans le bouton
   fermerAbordage();
   memoriser();
   var caseQuittee = pos[ti];
@@ -1011,9 +1042,15 @@ function prendreDiamants(){
   sauverPartie();
 }
 
+// Bannière de victoire (elle remplace la carte de la question tant qu'elle est affichée)
 function afficherBanniere(ti){
   document.getElementById('wintxt').textContent = '🏴‍☠️ L\'' + TEAMS[ti].name + ' a gagné !';
   document.getElementById('winbanner').classList.add('show');
+  majQuestion();
+}
+function masquerBanniere(){
+  document.getElementById('winbanner').classList.remove('show');
+  majQuestion();
 }
 function annoncerVictoire(ti){
   soundVictoire();
@@ -1035,7 +1072,7 @@ function toggleGem(ti, di, el){
   } else {
     soundRetirerDiamant();
     registerDiamondLoss(ti);
-    if (!gems.some(function(g, j){ return nbDiamants(j) >= nbEquipes; })) document.getElementById('winbanner').classList.remove('show');
+    if (!gems.some(function(g, j){ return nbDiamants(j) >= nbEquipes; })) masquerBanniere();
   }
   sauverPartie();
 }
@@ -1098,10 +1135,10 @@ function renderGems(row, ti){
 
 function renderSidebar(){
   var sb=document.getElementById('sidebar');
-  // La bannière de victoire est rangée dans la colonne : on la détache avant de vider
-  // la colonne (sinon elle serait détruite), puis on la remet sous la dernière équipe.
-  var banner = document.getElementById('winbanner');
-  if (banner.parentNode === sb) sb.removeChild(banner);
+  // La carte de la question et la bannière de victoire sont rangées dans la colonne : on les détache
+  // avant de la vider (sinon elles seraient détruites), puis on les remet sous la dernière équipe.
+  var carte = document.getElementById('qcarte'), banner = document.getElementById('winbanner');
+  [carte, banner].forEach(function(el){ if (el.parentNode === sb) sb.removeChild(el); });
   sb.innerHTML='';
   TEAMS.slice(0, nbEquipes).forEach(function(t,i){
     var card=document.createElement('div');
@@ -1124,6 +1161,7 @@ function renderSidebar(){
     card.appendChild(drow);
     sb.appendChild(card);
   });
+  sb.appendChild(carte);
   sb.appendChild(banner);
 }
 
@@ -1146,6 +1184,7 @@ function init(){
   registerDiamondLoss.oublier();
   activeTeam=0;            // l'équipe bleue commence
   moveHistory=[];
+  commencee=false;         // la 1re question attend « Hissez les voiles ! »
   document.getElementById('winbanner').classList.remove('show');
   document.getElementById('confetti-layer').innerHTML='';
   drawMap();
@@ -1186,6 +1225,7 @@ function closeRules(){
     try {
       muted = !!sauve.muted;
       appliquerEtat(sauve.partie);
+      commencee = sauve.commencee !== false;
       moveHistory = Array.isArray(sauve.historique) ? sauve.historique.filter(valide) : [];
       updateUndoButton();
     } catch(e) { init(); }
