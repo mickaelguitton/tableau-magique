@@ -931,6 +931,7 @@ function proposerAbordage(ti){
   var leur = rivaux.length > 1 ? 'leurs' : 'ses';
   document.getElementById('abordagetxt').textContent = 'L\'' + TEAMS[ti].name.toLowerCase() + ' rejoint ' + noms + '. '
     + (n > 1 ? 'Prendre ' + leur + ' ' + n + ' diamants ?' : 'Prendre son diamant ?');
+  document.getElementById('abordageoui').textContent = n > 1 ? '💎 Prendre les ' + n + ' diamants' : '💎 Prendre le diamant';
   document.getElementById('abordage').classList.add('show');
 }
 function fermerAbordage(){
