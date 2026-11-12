@@ -94,5 +94,16 @@ self.OUTILS = [
          + 'Longueurs, codages, noms des points, sur quadrillage ou feuille blanche.',
     donnees: ['fabrique-a-figures'],
     couleur: '#D6336C', ombre: '#F8C3D5'
+  },
+  {
+    dossier: 'poursuite-des-diamants',
+    version: '1.0',
+    nom: 'À la poursuite des diamants',
+    niveau: 'tous niveaux',
+    texte: 'Jeu de révision en équipes. Quatre équipages de pirates tournent autour de l’île : une bonne réponse '
+         + 'fait avancer d’une case, une mauvaise fait reculer. En rejoignant un rival, on s’empare de ses diamants. '
+         + 'Le premier équipage à en réunir quatre gagne. L’enseignant prépare les questions, sur le thème de son choix.',
+    donnees: ['poursuite-des-diamants'],
+    couleur: '#B8860B', ombre: '#F2D98C'
   }
 ];
