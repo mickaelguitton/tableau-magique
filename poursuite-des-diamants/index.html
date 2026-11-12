@@ -49,30 +49,38 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #app{background:linear-gradient(rgba(30,16,6,.6),rgba(30,16,6,.6)),var(--bois) center/cover no-repeat,#5c3d1e;border-radius:16px;padding:12px;font-family:Georgia,serif;width:100%;max-width:720px}
 #app.app-fakefullscreen{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;max-width:none;border-radius:0;overflow:hidden;display:flex;flex-direction:column}
 #app.app-fakefullscreen #topbar{flex:0 0 auto;justify-content:flex-start;position:relative;min-height:clamp(46px,7vh,62px)}
-#app.app-fakefullscreen #titlebanner{flex:0 0 auto;text-align:center;box-sizing:border-box}
+#app.app-fakefullscreen #titlebanner{flex:0 0 auto;text-align:center;box-sizing:border-box;white-space:nowrap}
 /* plein écran : barre compacte sur deux lignes (menus, puis pictos sans texte), au-dessus des équipes */
 #app.app-fakefullscreen #controls{position:absolute;top:0;right:0;margin-left:0;width:clamp(262px,19vw,320px);display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:4px;box-sizing:border-box}
-#app.app-fakefullscreen #controls select,#app.app-fakefullscreen #controls button{font-size:clamp(11px,1.6vh,13px);padding:4px 6px}
-#app.app-fakefullscreen #controls select{padding:4px 8px}
+#app.app-fakefullscreen #controls select,#app.app-fakefullscreen #controls button{font-size:clamp(10px,1.6vh,13px);padding:clamp(2px,.5vh,4px) 6px}
+#app.app-fakefullscreen #controls select{padding:clamp(2px,.5vh,4px) 8px}
 #app.app-fakefullscreen #controls .lbl{display:none}
 #app.app-fakefullscreen #accueilbtn{display:none!important}   /* en plein écran, on sort d'abord du plein écran pour revenir à l'accueil */
 #app.app-fakefullscreen #hint{flex:0 0 auto}
 #app.app-fakefullscreen #game{flex:1 1 auto;min-height:0;align-items:stretch;justify-content:center}
 #app.app-fakefullscreen #mapwrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden;flex:0 0 auto}
-#app.app-fakefullscreen #sidebar{flex:0 0 auto;width:clamp(190px,15vw,250px);gap:clamp(6px,1vh,14px);display:flex;flex-direction:column}
-#app.app-fakefullscreen .tcard{flex:1 1 0;display:flex;flex-direction:column;justify-content:center;padding:clamp(5px,0.8vh,12px) clamp(9px,1.3vh,18px);border-radius:clamp(8px,1vh,16px);min-height:0}
-#app.app-fakefullscreen .thead{gap:clamp(8px,1.5vh,20px);margin-bottom:clamp(3px,0.7vh,8px)}
-#app.app-fakefullscreen .team-boat-img{width:clamp(36px,5.8vh,76px);height:clamp(36px,5.8vh,76px)}
-#app.app-fakefullscreen .tname{font-size:clamp(19px,3vh,36px)}
-#app.app-fakefullscreen .tpos{font-size:clamp(14px,2.3vh,26px)}
+#app.app-fakefullscreen #sidebar{flex:0 0 auto;width:clamp(150px,15vw,250px);gap:clamp(4px,1vh,14px);display:flex;flex-direction:column}
+#app.app-fakefullscreen .tcard{flex:1 1 0;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:clamp(2px,0.8vh,12px) clamp(6px,1.3vh,18px);border-radius:clamp(8px,1vh,16px);min-height:0}
+#app.app-fakefullscreen .thead{gap:clamp(4px,1.5vh,20px);margin-bottom:clamp(1px,0.7vh,8px)}
+#app.app-fakefullscreen .team-boat-img{width:clamp(20px,5.8vh,76px);height:clamp(20px,5.8vh,76px)}
+#app.app-fakefullscreen .tname{font-size:clamp(12px,2.6vh,30px);white-space:nowrap}
+#app.app-fakefullscreen .tpos{font-size:clamp(10px,2.3vh,26px)}
 #app.app-fakefullscreen .drow{gap:clamp(3px,0.6vh,8px)}
-#app.app-fakefullscreen .gem{font-size:clamp(20px,3.7vh,44px)}
+#app.app-fakefullscreen .gem{font-size:clamp(12px,3.7vh,44px)}
 #app.app-fakefullscreen #winbanner{flex:1 1 0;display:flex!important;visibility:hidden;padding:clamp(8px,1.3vh,20px) clamp(9px,1.5vh,22px);border-radius:clamp(8px,1.1vh,16px);min-height:0}
 #app.app-fakefullscreen #winbanner.show{visibility:visible}
 #app.app-fakefullscreen #winbanner h3{font-size:clamp(20px,3vh,38px)}
 /* plein écran : la question prend la place réservée à la bannière de victoire, en plus grand */
 #app.app-fakefullscreen #qcarte.show{flex:2.2 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top:0;padding:clamp(6px,1vh,14px) clamp(8px,1.2vh,16px);border-radius:clamp(8px,1vh,16px)}
 #app.app-fakefullscreen #qcarte.show ~ #winbanner:not(.show){display:none!important}
+#app.app-fakefullscreen #sidebar.avec-question .tcard{flex:0 0 auto}   /* avec une question, les équipes gardent leur hauteur et la question prend le reste */
+#app.app-fakefullscreen #sidebar.avec-question #qcarte.show{flex:1 1 0}
+/* écran peu haut (téléphone en paysage) avec une question : équipes réduites au nom et aux diamants */
+@media (max-height:500px){
+  #app.app-fakefullscreen #sidebar.avec-question .tcard{flex:1 1 0}
+  #app.app-fakefullscreen #sidebar.avec-question .tpos{display:none}
+  #app.app-fakefullscreen #sidebar.avec-question #qcarte.show{flex:1.4 1 0}
+}
 #app.app-fakefullscreen #qtete{font-size:clamp(16px,2.5vh,30px)}
 #app.app-fakefullscreen #qtexte{font-size:clamp(18px,3.2vh,40px)}
 #app.app-fakefullscreen #qdepart{font-size:clamp(16px,2.5vh,28px)}
@@ -257,7 +265,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   <div id="confetti-layer"></div>
 
   <div id="credits">
-    <span id="signature">À la poursuite des diamants – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span></span>
+    <span id="signature">À la poursuite des diamants – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></span>
     Inspiré du jeu « la course au trésor » sur monecole.fr
     · Illustrations générées avec Canva (IA)
     · Sons : <a href="https://pixabay.com" target="_blank" rel="noopener noreferrer">Pixabay</a>
@@ -552,8 +560,10 @@ function majQuestion(){
   var carte = document.getElementById('qcarte');
   if (!carte) return;
   var finie = document.getElementById('winbanner').classList.contains('show');
-  if (!questions.afficher || !pos.length || finie){ carte.classList.remove('show'); return; }
-  carte.classList.add('show');
+  var visible = questions.afficher && pos.length && !finie;
+  carte.classList.toggle('show', !!visible);
+  document.getElementById('sidebar').classList.toggle('avec-question', !!visible);
+  if (!visible) return;
   var tete = document.getElementById('qtete'), depart = document.getElementById('qdepart');
   depart.hidden = commencee;
   if (!commencee){                                   // début de partie : pas encore de question
@@ -768,66 +778,52 @@ function setFsButtonState(){
 // ne résolvent pas correctement les hauteurs en pourcentage dans un enfant flexbox imbriqué :
 // la carte se retrouvait alors minuscule, entourée d'un grand cadre vide, avec des éléments
 // dessinés dans le SVG qui débordaient de la zone visible.
+// Plein écran : la carte prend toute la hauteur disponible, le titre se cale au-dessus d'elle
+// (même largeur, sur une seule ligne) et la barre de boutons au-dessus de la colonne des équipes.
 function fitFullscreenMap(){
   setTimeout(ajusterQuestion, 60);
-  var app = document.getElementById('app');
-  var svgEl = document.getElementById('mapsvg');
-  var wrap = document.getElementById('mapwrap');
-  var game = document.getElementById('game');
-  var sb = document.getElementById('sidebar');
-  var title = document.getElementById('titlebanner');
-  var topbar = document.getElementById('topbar');
-  var controls = document.getElementById('controls');
-  if (!app || !svgEl || !wrap || !game) return;
-  if (!app.classList.contains('app-fakefullscreen')) {
-    svgEl.style.width = '';
-    svgEl.style.height = '';
-    wrap.style.flex = '';
-    wrap.style.width = '';
-    if (title) { title.style.width = ''; title.style.marginLeft = ''; }
-    if (controls) { controls.style.width = ''; controls.style.right = ''; }
-    if (topbar) topbar.style.minHeight = '';
+  var app = document.getElementById('app'), svgEl = document.getElementById('mapsvg'), wrap = document.getElementById('mapwrap'),
+      game = document.getElementById('game'), sb = document.getElementById('sidebar'), title = document.getElementById('titlebanner'),
+      titre = title.querySelector('span'), topbar = document.getElementById('topbar'), controls = document.getElementById('controls');
+  if (!app.classList.contains('app-fakefullscreen')) {      // retour à l'affichage normal : on efface les réglages
+    svgEl.style.width = svgEl.style.height = wrap.style.flex = wrap.style.width = '';
+    title.style.width = title.style.marginLeft = titre.style.fontSize = '';
+    controls.style.width = controls.style.right = topbar.style.minHeight = '';
     return;
   }
-  // On mesure la hauteur disponible (wrap.clientHeight) pour dimensionner la carte,
-  // puis on resserre #mapwrap exactement autour de la carte (au lieu de le laisser
-  // flex:1 avec un grand espace vide). Le groupe carte+sidebar est ensuite centré
-  // horizontalement (#game a justify-content:center), ce qui répartit l'espace
-  // restant de part et d'autre plutôt que de le laisser entièrement à droite.
-  // La barre de boutons prend la largeur de la colonne des équipes ; si elle passe alors sur 3 lignes
-  // (petit écran), la bande du haut s'agrandit pour qu'elle ne chevauche jamais les équipes.
-  if (controls && sb && topbar) {
-    controls.style.width = Math.ceil(sb.getBoundingClientRect().width) + 'px';
+  titre.style.fontSize = '';
+  var tailleTitre = parseFloat(getComputedStyle(titre).fontSize);
+  // Trois passes : la taille de la carte dépend de la hauteur de la bande du haut, qui dépend
+  // de la barre de boutons et du titre, qui dépendent eux-mêmes de la largeur de la carte.
+  for (var passe = 0; passe < 3; passe++) {
+    // 1. Barre de boutons : largeur de la colonne des équipes. Si elle passe alors sur plus de deux lignes
+    //    (écran peu haut, téléphone), elle s'étend vers la droite, jusqu'au bord de l'écran.
+    var sbRect = sb.getBoundingClientRect(), topRect = topbar.getBoundingClientRect();
+    controls.style.width = Math.ceil(sbRect.width) + 'px';
+    controls.style.right = Math.max(0, Math.round(topRect.right - sbRect.right)) + 'px';
+    var ligne = controls.firstElementChild.offsetHeight || 26;
+    if (passe > 0 && controls.offsetHeight > 2 * ligne + 12) {
+      controls.style.right = '0px';
+      controls.style.width = Math.floor(topRect.right - wrap.getBoundingClientRect().right - 10) + 'px';
+    }
+    // 2. La bande du haut est au moins aussi haute que la barre, qui ne chevauche ainsi jamais les équipes.
     topbar.style.minHeight = '';
     var besoin = controls.offsetHeight + 8;
     if (besoin > topbar.offsetHeight) topbar.style.minHeight = besoin + 'px';
-  }
-  var h = wrap.clientHeight;
-  if (h <= 0) return;
-  var ratio = 460/420;
-  var sbWidth = sb ? sb.getBoundingClientRect().width : 0;
-  var maxW = game.clientWidth - sbWidth - 10;
-  var useH = h, useW = h*ratio;
-  if (useW > maxW && maxW > 0) { useW = maxW; useH = useW/ratio; }
-  svgEl.style.width = Math.floor(useW) + 'px';
-  svgEl.style.height = Math.floor(useH) + 'px';
-  wrap.style.flex = '0 0 auto';
-  wrap.style.width = Math.ceil(useW) + 'px';
-  // Le titre est aligné et centré au-dessus de la carte : même largeur qu'elle,
-  // et même décalage à gauche (mesuré directement, car #game centre la carte
-  // horizontalement et laisse une marge variable à gauche selon l'écran).
-  if (title) {
+    // 3. Carte : la plus grande possible dans la hauteur restante, sans empiéter sur la colonne des équipes.
+    var h = wrap.clientHeight;
+    if (h <= 0) return;
+    var maxW = game.clientWidth - sbRect.width - 10;
+    var useW = Math.min(h * W / H, maxW > 0 ? maxW : Infinity), useH = useW * H / W;
+    svgEl.style.width = Math.floor(useW) + 'px';
+    svgEl.style.height = Math.floor(useH) + 'px';
+    wrap.style.flex = '0 0 auto';
+    wrap.style.width = Math.ceil(useW) + 'px';
+    // 4. Titre : même largeur et même position que la carte (#game la centre), sur une seule ligne :
+    //    sa taille diminue si la carte est étroite.
     title.style.width = Math.ceil(useW) + 'px';
-    var wrapLeft = wrap.getBoundingClientRect().left;
-    var gameLeft = game.getBoundingClientRect().left;
-    title.style.marginLeft = Math.max(0, Math.round(wrapLeft - gameLeft)) + 'px';
-  }
-  // La barre de boutons (largeur fixée plus haut) est alignée sur le bord droit de la colonne
-  // des équipes, mesuré directement comme pour le titre ci-dessus.
-  if (controls && sb && topbar) {
-    var sbRect = sb.getBoundingClientRect();
-    var topbarRect = topbar.getBoundingClientRect();
-    controls.style.right = Math.max(0, Math.round(topbarRect.right - sbRect.right)) + 'px';
+    title.style.marginLeft = Math.max(0, Math.round(wrap.getBoundingClientRect().left - game.getBoundingClientRect().left)) + 'px';
+    titre.style.fontSize = Math.min(tailleTitre, (useW - 60) / 14.5).toFixed(1) + 'px';   // 60 px : clous et marges du bandeau
   }
 }
 window.addEventListener('resize', fitFullscreenMap);

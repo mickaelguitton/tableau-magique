@@ -97,7 +97,7 @@ self.OUTILS = [
   },
   {
     dossier: 'poursuite-des-diamants',
-    version: '1.0',
+    version: '1.1',
     nom: 'À la poursuite des diamants',
     niveau: 'tous niveaux',
     texte: 'Jeu de révision en équipes. Trois ou quatre équipages de pirates tournent autour de l’île : une bonne réponse '
