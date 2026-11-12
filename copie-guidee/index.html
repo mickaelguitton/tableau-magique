@@ -97,7 +97,9 @@ body{
 @media print{ .tp-accueil{ display:none!important; } }
 /* picto du plein écran (le même dans tous les outils du portail) */
 .ico-pe{ width:1.35em; height:1.35em; display:block; }
-#fullscreenBtn{ display:inline-flex; align-items:center; justify-content:center; }
+#fullscreenBtn, #sonBtn{ display:inline-flex; align-items:center; justify-content:center; }
+.ico-son{ width:1.35em; height:1.35em; display:block; }
+#sonBtn.coupe{ opacity:.6; }
 .tp-logo::before{ content:'✎'; margin-right:10px; font-style:normal; color:var(--margin); }
 
 /* deux colonnes */
@@ -518,6 +520,7 @@ body.edit-mode #text{ margin-top:96px; }
     <div class="ctrl-sep"></div>
     <button id="pacingBtn" class="bg-light" title="Basculer entre avancée automatique et manuelle (clic sur un groupe ou →)"></button>
     <button id="editBtn" class="bg-light" title="Corriger le découpage en groupes de mots (touche E)">✏️ Modifier groupes de mots</button>
+    <button id="sonBtn" class="bg-light" aria-label="Couper la lecture à voix haute"></button>
     <button id="fullscreenBtn" class="bg-light" aria-label="Plein écran"></button>
   </div>
 </div>
@@ -1889,6 +1892,25 @@ function majBoutonPE(actif){
 }
 majBoutonPE(false);
 
+/* Picto du son dans le bandeau : active ou coupe la lecture à voix haute sans quitter la projection
+   (c'est la même case que « Lire chaque groupe à voix haute » de l'écran enseignant) */
+const ICONE_SON = on => on ? '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+                          : '<svg class="ico-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.6L12 5.4v13.2l-4.9-4.1H3.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".45"/><path d="M3 3.5l18 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+function majBoutonSon(){
+  const b = $('sonBtn'), on = speechToggle.checked;
+  b.innerHTML = ICONE_SON(on);
+  b.title = on ? 'Couper la lecture à voix haute' : 'Activer la lecture à voix haute';
+  b.setAttribute('aria-label', b.title);
+  b.classList.toggle('coupe', !on);
+}
+$('sonBtn').onclick = () => {
+  speechToggle.checked = !speechToggle.checked;
+  if(!speechToggle.checked) stopSpeech(); else if(started && !paused && !finished) showCurrent();
+  majBoutonSon(); savePrefs();
+};
+speechToggle.addEventListener('change', majBoutonSon);
+majBoutonSon();
+
 function setFullscreen(on){
   if(!on && editMode) setEditMode(false);
   if(!on) pauserSiEnCours();
@@ -2007,6 +2029,7 @@ function applyConfig(c){
   if(c.nlVoice !== undefined) nlVoiceChk.checked = c.nlVoice;
   if(c.ptVoice !== undefined) ptVoiceChk.checked = c.ptVoice;
   if(c.speechEnabled !== undefined) speechToggle.checked = c.speechEnabled;
+  if(typeof majBoutonSon === 'function') majBoutonSon();
   if(Number.isFinite(Number(c.voiceRate)) && Number(c.voiceRate) >= 0.3 && Number(c.voiceRate) <= 1.5){ voiceRate.value = String(c.voiceRate); voiceRateVal.textContent = c.voiceRate; }
   updateSpeed(); applyToggles(); loadText();
 }
