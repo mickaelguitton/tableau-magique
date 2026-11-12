@@ -51,7 +51,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #app.app-fakefullscreen #topbar{flex:0 0 auto;justify-content:flex-start;position:relative;min-height:clamp(46px,7vh,62px)}
 #app.app-fakefullscreen #titlebanner{flex:0 0 auto;text-align:center;box-sizing:border-box}
 /* plein écran : barre compacte sur deux lignes (menus, puis pictos sans texte), au-dessus des équipes */
-#app.app-fakefullscreen #controls{position:absolute;top:0;right:0;margin-left:0;width:clamp(230px,18vw,300px);display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:4px;box-sizing:border-box}
+#app.app-fakefullscreen #controls{position:absolute;top:0;right:0;margin-left:0;width:clamp(262px,19vw,320px);display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:4px;box-sizing:border-box}
 #app.app-fakefullscreen #controls select,#app.app-fakefullscreen #controls button{font-size:clamp(11px,1.6vh,13px);padding:4px 6px}
 #app.app-fakefullscreen #controls select{padding:4px 8px}
 #app.app-fakefullscreen #controls .lbl{display:none}
@@ -84,18 +84,18 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #titlebanner::before{left:14px}
 #titlebanner::after{right:14px}
 #titlebanner span{font-family:'Pirata One',Georgia,serif;font-size:36px;font-weight:700;color:#3d1a00;letter-spacing:1.5px}
-#controls{display:flex;align-items:center;gap:8px}
+#controls{display:flex;align-items:stretch;gap:6px}   /* boutons et menus de même hauteur */
 #controls label{font-size:14px;color:#e8d090}
-#eqsel,#szsel,#rbtn,#undobtn,#qbtn,#rulesbtn,#mutebtn,#fsbtn{padding:6px 12px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:14px;cursor:pointer}
+#eqsel,#szsel,#rbtn,#undobtn,#qbtn,#rulesbtn,#mutebtn,#fsbtn{white-space:nowrap;padding:6px 8px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:13px;font-weight:700;cursor:pointer}   /* gras : rappelle la police du titre */
 #rbtn:hover,#undobtn:hover:not(:disabled),#qbtn:hover,#rulesbtn:hover,#mutebtn:hover,#fsbtn:hover{background:#3a2200}
 #undobtn:disabled{opacity:.35;cursor:not-allowed}
 #qbtn.actif{background:#c8a030;color:#2a1500}   /* questions affichées au tableau */
-#mutebtn,#fsbtn{font-size:16px;padding:6px 10px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+#mutebtn,#fsbtn{font-size:16px;padding:0 10px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 #mutebtn.muted{opacity:.5}
 /* pictos son et plein écran : les mêmes que dans les autres outils du portail */
 .ico-son,.ico-pe{width:1.25em;height:1.25em;display:block}
 /* bouton « Accueil » du portail (caché quand le fichier est ouvert seul) */
-#accueilbtn{padding:6px 12px;border-radius:6px;border:1px solid #8b6000;background:#c8a030;color:#2a1500;font-size:14px;font-weight:700;cursor:pointer;align-items:center}
+#accueilbtn{padding:6px 10px;border-radius:6px;border:1px solid #8b6000;background:#c8a030;color:#2a1500;font-size:13px;font-weight:700;cursor:pointer;align-items:center}
 #accueilbtn:hover{background:#d8b040}
 /* proposition de prise des diamants (abordage) */
 #abordage{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(78%,420px);
@@ -209,7 +209,10 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   <div id="topbar">
     <div id="titlebanner"><span>⚓ À la poursuite des diamants ⚓</span></div>
     <div id="controls">
+      <!-- ordre : accueil (seulement dans le portail), règles, questions, réglages de la partie, actions, son, plein écran -->
       <button id="accueilbtn" class="portail-accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
+      <button id="rulesbtn" onclick="openRules()" title="Règles du jeu et mode d'emploi" aria-haspopup="dialog">📜<span class="lbl"> Règles</span></button>
+      <button id="qbtn" onclick="ouvrirQuestions()" title="Questions affichées au tableau (facultatif)" aria-haspopup="dialog">❓<span class="lbl"> Questions</span></button>
       <select id="eqsel" onchange="majMenuCases(); nouvellePartie()" title="Nombre d'équipes">
         <option value="3">3 équipes</option>
         <option value="4" selected>4 équipes</option>
@@ -222,8 +225,6 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
       </select>
       <button id="rbtn" onclick="nouvellePartie()" title="Nouvelle partie (« Annuler » permet de revenir à la partie précédente)">↺<span class="lbl"> Rejouer</span></button>
       <button id="undobtn" onclick="undoMove()" title="Annuler la dernière action (bateau, diamant, nouvelle partie)" disabled>↶<span class="lbl"> Annuler</span></button>
-      <button id="qbtn" onclick="ouvrirQuestions()" title="Questions affichées au tableau (facultatif)" aria-haspopup="dialog">❓<span class="lbl"> Questions</span></button>
-      <button id="rulesbtn" onclick="openRules()" title="Règles du jeu et mode d'emploi" aria-haspopup="dialog">📜<span class="lbl"> Règles</span></button>
       <button id="mutebtn" onclick="toggleMute()" title="Couper le son" aria-label="Couper le son"></button>
       <button id="fsbtn" onclick="toggleFullscreen()" title="Plein écran" aria-label="Plein écran"></button>
     </div>
@@ -784,6 +785,7 @@ function fitFullscreenMap(){
     wrap.style.width = '';
     if (title) { title.style.width = ''; title.style.marginLeft = ''; }
     if (controls) { controls.style.width = ''; controls.style.right = ''; }
+    if (topbar) topbar.style.minHeight = '';
     return;
   }
   // On mesure la hauteur disponible (wrap.clientHeight) pour dimensionner la carte,
@@ -791,6 +793,14 @@ function fitFullscreenMap(){
   // flex:1 avec un grand espace vide). Le groupe carte+sidebar est ensuite centré
   // horizontalement (#game a justify-content:center), ce qui répartit l'espace
   // restant de part et d'autre plutôt que de le laisser entièrement à droite.
+  // La barre de boutons prend la largeur de la colonne des équipes ; si elle passe alors sur 3 lignes
+  // (petit écran), la bande du haut s'agrandit pour qu'elle ne chevauche jamais les équipes.
+  if (controls && sb && topbar) {
+    controls.style.width = Math.ceil(sb.getBoundingClientRect().width) + 'px';
+    topbar.style.minHeight = '';
+    var besoin = controls.offsetHeight + 8;
+    if (besoin > topbar.offsetHeight) topbar.style.minHeight = besoin + 'px';
+  }
   var h = wrap.clientHeight;
   if (h <= 0) return;
   var ratio = 460/420;
