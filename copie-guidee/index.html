@@ -1626,6 +1626,9 @@ function togglePause(){
   }
 }
 let resteGroupe = null;
+/* retour à l'écran enseignant pendant une copie : elle se met en pause (chrono arrêté) ;
+   on la reprend en revenant à la projection, avec le bouton Pause/Reprendre ou la barre d'espace */
+function pauserSiEnCours(){ if(started && !paused && !finished) togglePause(); }
 
 function reset(){
   started = false; paused = true; finished = false; posSet = false; index = 0;
@@ -1888,6 +1891,7 @@ majBoutonPE(false);
 
 function setFullscreen(on){
   if(!on && editMode) setEditMode(false);
+  if(!on) pauserSiEnCours();
   document.body.classList.toggle('fullscreen-mode', on);
   majBoutonPE(on);
   if(on){
@@ -1900,10 +1904,17 @@ function setFullscreen(on){
 }
 $('fullscreenBtn').onclick = () => setFullscreen(!document.body.classList.contains('fullscreen-mode'));
 $('exitBtn').onclick = () => setFullscreen(false);
-$('projectBtn').onclick = () => { loadText(); setFullscreen(true); };
+/* « Projeter » : si une copie est en cours et que le texte n'a pas changé, on la retrouve là où elle en était
+   (même groupe, même chrono), en pause ; sinon on repart du début avec le nouveau texte. */
+$('projectBtn').onclick = () => {
+  const memeTexte = (richEditor.textContent || '') === texte;
+  if(!(started && !finished && memeTexte)) loadText();
+  setFullscreen(true);
+};
 document.addEventListener('fullscreenchange', () => {
   if(!document.fullscreenElement){
     if(editMode) setEditMode(false);
+    pauserSiEnCours();
     document.body.classList.remove('fullscreen-mode');
     majBoutonPE(false);
     setTimeout(refreshDisplay, 200);
