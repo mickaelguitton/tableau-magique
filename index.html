@@ -206,6 +206,11 @@
   }
   #bulle-outil.dessus::after{bottom:-11px;border-top:none;border-left:none}
   #bulle-outil.dessous::after{top:-11px;border-bottom:none;border-right:none}
+  #bulle-outil .ouvrir{                      /* lien direct vers l'outil (utile aussi aux moteurs de recherche) */
+    display:inline-block;margin-top:10px;padding:7px 16px;border-radius:999px;background:var(--couleur);color:#fff;
+    font-weight:700;text-decoration:none;box-shadow:0 4px 0 var(--ombre);transition:transform .15s;
+  }
+  #bulle-outil .ouvrir:hover,#bulle-outil .ouvrir:focus-visible{transform:translateY(-2px);outline:none}
 
 
   /* Écran très bas (téléphone en paysage) : on resserre la page d'accueil */
@@ -384,7 +389,7 @@
     + '<img src="images/' + o.dossier + '.jpg" alt="">'
     + '<div class="nom">' + echapper(o.nom) + '</div></a>').join('');
 
-  /* Aperçus de la page d'accueil (non cliquables pour jouer : un clic ouvre la bulle d'explication) */
+  /* Aperçus de la page d'accueil : un clic ouvre la bulle d'explication, avec un lien « Ouvrir … » vers l'outil */
   document.getElementById('apercus').innerHTML = OUTILS.map((o, i) =>
     '<button class="apercu" type="button" data-i="' + i + '" aria-expanded="false" style="' + couleurs(o) + '">'
     + '<img src="images/' + o.dossier + '.jpg" alt="">'
@@ -459,7 +464,8 @@
     if (ouverte === carte) { fermerBulle(); return; }
     fermerBulle();
     bulle.setAttribute('style', couleurs(o));
-    bulle.innerHTML = '<h2>' + echapper(o.nom) + '</h2><div class="niveau">' + echapper(o.niveau) + '</div><p>' + echapper(o.texte) + '</p>';
+    bulle.innerHTML = '<h2>' + echapper(o.nom) + '</h2><div class="niveau">' + echapper(o.niveau) + '</div><p>' + echapper(o.texte) + '</p>'
+      + '<a class="ouvrir" href="' + o.dossier + '/">Ouvrir ' + echapper(o.nom) + ' →</a>';
     bulle.setAttribute('aria-label', o.nom);
     bulle.hidden = false;
     // placement : centrée sur la carte, au-dessus si la place le permet, sinon en dessous
