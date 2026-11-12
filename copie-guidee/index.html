@@ -1607,6 +1607,8 @@ function togglePause(){
   paused = !paused;
   if(paused){
     pauseOffset = Date.now();
+    /* temps qu'il restait au groupe affiché : à la reprise, il repart de là (et non du début du groupe) */
+    resteGroupe = (!isManual() && units.length && !markerSpoken) ? Math.max(300, groupDelay(units[index]) - (pauseOffset - groupStartTs)) : null;
     clearTimeout(timerId); clearInterval(elapsedTimer);
     stopSpeech();
     setStatus('⏸ Pause', true);
@@ -1615,9 +1617,15 @@ function togglePause(){
     elapsedTimer = setInterval(updateElapsed, 1000);
     setStatus('En cours');
     showCurrent();
-    schedule();
+    if(resteGroupe !== null && !isManual()){
+      groupStartTs += Date.now() - pauseOffset;          // le groupe garde le temps déjà passé avant la pause
+      markerSpoken = false;
+      armTimer(resteGroupe);
+    } else schedule();
+    resteGroupe = null;
   }
 }
+let resteGroupe = null;
 
 function reset(){
   started = false; paused = true; finished = false; posSet = false; index = 0;
