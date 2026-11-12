@@ -85,7 +85,7 @@ self.OUTILS = [
   },
   {
     dossier: 'fabrique-a-figures',
-    version: '1.52',
+    version: '2.1',
     nom: 'La fabrique à figures',
     niveau: 'cycle 3',
     texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
