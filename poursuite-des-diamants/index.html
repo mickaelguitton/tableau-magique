@@ -89,6 +89,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 #eqsel,#szsel,#rbtn,#undobtn,#qbtn,#rulesbtn,#mutebtn,#fsbtn{white-space:nowrap;padding:6px 8px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:13px;font-weight:700;cursor:pointer}   /* gras : rappelle la police du titre */
 #rbtn:hover,#undobtn:hover:not(:disabled),#qbtn:hover,#rulesbtn:hover,#mutebtn:hover,#fsbtn:hover{background:#3a2200}
 #undobtn:disabled{opacity:.35;cursor:not-allowed}
+#eqsel option,#szsel option{font-weight:700}
 #qbtn.actif{background:#c8a030;color:#2a1500}   /* questions affichées au tableau */
 #mutebtn,#fsbtn{font-size:16px;padding:0 10px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 #mutebtn.muted{opacity:.5}
@@ -172,33 +173,34 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
 /* fenêtre de saisie des questions (même style que celle des règles) */
 #qmodal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,7,2,.72);align-items:center;justify-content:center;padding:14px}
 #qmodal.open{display:flex}
-#qbox{width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:'Pirata One',Georgia,serif}
+#qbox{width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:Georgia,serif}
 #qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:2px solid #b8923c;background:#c8a030;border-radius:9px 9px 0 0}
 #qhead h2{font-family:'Pirata One',Georgia,serif;font-size:30px;color:#3d1a00}
-#qcorps{overflow-y:auto;padding:12px 20px 8px;font-size:15px;line-height:1.45}
+#qcorps{overflow-y:auto;padding:12px 20px 8px;font-size:15px;line-height:1.45;font-weight:700}
 #qcorps p{margin:0 0 8px}
 #qcorps label{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px;cursor:pointer}
 #qcorps input[type=checkbox]{width:20px;height:20px}
-#qliste{width:100%;min-height:240px;resize:vertical;font:15px/1.45 Georgia,serif;padding:8px 10px;border:2px solid #b8923c;border-radius:8px;background:#fffaf0;color:#2a1500}
+#qliste{width:100%;min-height:240px;resize:vertical;font:700 15px/1.45 Georgia,serif;padding:8px 10px;border:2px solid #b8923c;border-radius:8px;background:#fffaf0;color:#2a1500}
 #qbilan{font-size:14px;color:#7a2a00;min-height:1.4em}
 #qpied{padding:10px 18px 14px;text-align:center}
 
 /* --- Fenêtre « Règles du jeu » --- */
 #rulesmodal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,7,2,.72);align-items:center;justify-content:center;padding:14px}
 #rulesmodal.open{display:flex}
-#rulesbox{position:relative;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:'Pirata One',Georgia,serif}
+#rulesbox{position:relative;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;background:#ecdcae;color:#3d1a00;border:4px solid #7a5000;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);font-family:Georgia,serif}
 #ruleshead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:2px solid #b8923c;background:#c8a030;border-radius:9px 9px 0 0}
 #ruleshead h2{font-family:'Pirata One',Georgia,serif;font-size:30px;font-weight:700;letter-spacing:1px;color:#3d1a00}
 /* boutons de fermeture des deux fenêtres (✕ en haut, « Fermer » en bas) */
 #qx,#rulesx,#qpied button,#rulesclose{padding:8px 22px;border-radius:6px;border:1px solid #8b6000;background:#2a1500;color:#e8c060;font-size:15px;cursor:pointer}
 #qx,#rulesx{padding:6px 10px;font-size:16px;line-height:1}
 #qx:hover,#rulesx:hover,#qpied button:hover,#rulesclose:hover{background:#3a2200}
-#rulesbody{overflow-y:auto;padding:14px 20px 8px;font-size:15px;line-height:1.5}
+#rulesbody{overflow-y:auto;padding:14px 20px 8px;font-size:15px;line-height:1.5;font-weight:700}   /* texte en gras ; titres en Pirata One */
 #rulesbody h3{font-family:'Pirata One',Georgia,serif;font-size:22px;font-weight:700;letter-spacing:.5px;margin:12px 0 4px;color:#7a2a00}
 #rulesbody h3:first-child{margin-top:0}
 #rulesbody p{margin:0 0 6px}
 #rulesbody ul,#rulesbody ol{margin:0 0 6px 22px}
 #rulesbody li{margin-bottom:4px}
+#rulesbody b,#qcorps b{color:#7a2a00}   /* le texte étant en gras, les mots importants ressortent par la couleur */
 #rulesbody .note{background:rgba(122,80,0,.12);border-left:4px solid #b8923c;border-radius:4px;padding:6px 10px;margin:8px 0}
 #rulesfoot{padding:10px 18px 14px;text-align:center}
 @media (max-width:520px){#ruleshead h2{font-size:24px}#rulesbody{font-size:14px}}
@@ -575,8 +577,8 @@ function majQuestion(){
   btn.hidden = !item || !item.r || !rep.hidden;
   ajusterQuestion();
 }
-// Typographie française : pas de retour à la ligne entre « » ? ! : ; et le mot voisin
-function insecable(t){ return t.replace(/« /g, '«\u00a0').replace(/ ([»?!:;])/g, '\u00a0$1'); }
+// Typographie française : pas de retour à la ligne avant « » ? ! : ; = ni autour de × ÷ + − (« 11 × 8 » reste entier)
+function insecable(t){ return t.replace(/« /g, '«\u00a0').replace(/ ([»?!:;=])/g, '\u00a0$1').replace(/ ([×÷+−-]) /g, '\u00a0$1\u00a0'); }
 function montrerReponse(){
   document.getElementById('qrep').hidden = false;
   document.getElementById('qrepbtn').hidden = true;
