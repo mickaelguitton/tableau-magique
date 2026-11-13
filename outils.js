@@ -118,5 +118,16 @@ self.OUTILS = [
          + 'Copie dans Word, impression ou affichage en plein écran.',
     donnees: ['syllabes-en-couleur'],
     couleur: '#0B7FB8', ombre: '#B5E0F5'
+  },
+  {
+    dossier: 'route-des-nombres',
+    version: '1.36',
+    nom: 'La route des nombres',
+    niveau: 'du CP au CM2',
+    texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
+         + 'placer un nombre, ou explorer en zoomant de 10 en 10. Entiers, décimaux et fractions, trois niveaux de difficulté. '
+         + 'Fiches Word à imprimer, avec corrigé.',
+    donnees: ['route-des-nombres'],
+    couleur: '#F2662E', ombre: '#FFD0BC'
   }
 ];

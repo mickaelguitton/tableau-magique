@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-court="La route des nombres">La route des nombres : droites graduées interactives du CP au CM2 – Le tableau magique</title>
+<meta name="description" content="Outil gratuit de droites graduées à projeter au TBI, du CP au CM2 : trouver un nombre, le placer, explorer en zoomant. Entiers, décimaux et fractions, trois niveaux de difficulté, sur le modèle des évaluations nationales. Fiches Word à imprimer avec corrigé, sans connexion.">
+<!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
+<link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/route-des-nombres/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Le tableau magique">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="La route des nombres : droites graduées interactives du CP au CM2 – Le tableau magique">
+<meta property="og:description" content="Outil gratuit de droites graduées à projeter au TBI, du CP au CM2 : trouver un nombre, le placer, explorer en zoomant. Entiers, décimaux et fractions, trois niveaux de difficulté, sur le modèle des évaluations nationales. Fiches Word à imprimer avec corrigé, sans connexion.">
+<meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/route-des-nombres/">
+<meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-route-des-nombres.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Portail « Le tableau magique » : version, bouton Accueil, hors ligne et mise à jour (voir ../portail.js) -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icone-tbi-favicon.png">
+<link rel="apple-touch-icon" href="../icone-tbi-apple.png">
+<script src="../version.js"></script>
+<script src="../outils.js"></script>
+<script src="../portail.js"></script>
+<!--
+  La route des nombres – M. Guitton – licence CC BY-NC 4.0 – v1.36
+  Intégré au portail « Le tableau magique » (bouton Accueil, version, hors ligne : voir ../portail.js).
+  Mis au point avec l'aide de Claude AI.
+
+  Outil de classe projeté au tableau (élèves sur ardoise), du CP au CM2 :
+  trouver, placer et explorer des nombres sur une droite graduée (entiers,
+  décimaux, fractions), sur le modèle des évaluations nationales et des
+  programmes. Impression de fiches Word (avec corrigé), sans connexion.
+
+  Organisation du code (script en bas de page) :
+    1. Réglages et état
+    2. Outils (hasard, écriture des nombres, mesure du texte, SVG)
+    3. Génération des droites (entiers, décimaux, fractions)
+    4. Valeurs affichées (graduations, réponse, consigne, propositions)
+    5. Dessin : éléments communs (droite, étiquettes, flèche, cadre, chemin, lettres)
+    6. Dessin des modes « Trouver », « Placer », « Explorer »
+    7. Menu de gauche, boutons, clavier, mémorisation
+    8. Fiche Word à imprimer
+    9. Vérification automatique (ouvrir le fichier avec #verifier à la fin de l'adresse)
+   10. Démarrage
+-->
+<style>
+  /* ===== Palette : vert, orange, violet + noir (et des gris neutres) ===== */
+  :root{
+    --noir:#1e1e24; --orange:#ff6b35; --vert:#2a9d8f; --violet:#9b5de5;
+    --fond:#f5f3ef; --carte:#ffffff; --gris-clair:#efefed; --doux:#66666e; --gris:#b0b0b0;
+    --police:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  }
+
+  /* ===== Page : menu à gauche, droite à droite, signature en bas ===== */
+  *{box-sizing:border-box}
+  html,body{margin:0; height:100%}
+  body{
+    font-family:var(--police); background:var(--fond); color:var(--noir);
+    display:grid; grid-template-columns:var(--colonne, 270px) 1fr; grid-template-rows:minmax(0,1fr) auto auto;
+    height:100vh; height:100dvh; overflow:hidden;    /* tout tient dans l'écran : seule la colonne défile si besoin */
+  }
+  button{font:inherit; font-weight:600; border:none; cursor:pointer}
+
+  /* ===== Colonne de gauche : titre, classes, modes ===== */
+  header{
+    grid-column:1; grid-row:1; display:flex; flex-direction:column; gap:14px;
+    background:#fff; padding:16px 14px 8px; min-height:0; overflow-y:auto; scrollbar-width:thin;
+  }
+  .titre{text-align:center}
+  .titre h1{margin:4px 0 0; font-size:1.9rem; line-height:1.08; letter-spacing:.5px; color:var(--orange)}
+  .sous-titre{margin:4px 0; font-size:.85rem; font-weight:600; color:var(--vert); line-height:1.3}
+
+  /* Classes CP … CM2, séparées des modes par un trait noir */
+  #classes{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin:2px 0 10px;
+    padding-bottom:10px; border-bottom:2px solid var(--noir);
+  }
+  #classes button{font-weight:700; font-size:.85rem; border-radius:8px; padding:7px 0; background:rgba(155,93,229,.12); color:var(--violet)}
+  #classes button.actif{background:var(--violet); color:#fff}
+
+  /* Modes (une couleur par mode, transmise par --c) */
+  #modes{display:flex; flex-direction:column; gap:5px}
+  #modes > button{
+    border-radius:14px; padding:8px 14px; text-align:left;
+    background:var(--carte); color:var(--c); box-shadow:inset 0 0 0 2px var(--c);
+  }
+  #modes > button.actif{background:var(--c); color:#fff}
+
+  /* Sous-menu du mode choisi : en retrait, avec un filet de la couleur du mode */
+  #sousMenu{display:flex; flex-direction:column; gap:6px; margin:0 0 4px 8px; padding:4px 0 4px 10px; border-left:3px solid var(--c)}
+  #types{display:flex; flex-direction:column; gap:5px}
+  #types > button{
+    font-size:.95rem; border-radius:10px; padding:5px 12px; text-align:left;
+    background:var(--carte); color:var(--c); box-shadow:inset 0 0 0 2px var(--c);
+  }
+  #types > button.actif{background:var(--c); color:#fff}
+
+  /* Pastilles (niveaux, départs, réglages) */
+  .puces{display:flex; flex-direction:column; gap:6px}
+  .puces button{font-size:.95rem; border-radius:10px; padding:7px 14px; text-align:left; background:var(--gris-clair); color:var(--noir)}
+  #sousMenu .puces button{padding:5px 12px}
+  #sousMenu .puces button.actif{background:color-mix(in srgb, var(--c) 25%, white)}
+  #niveaux{margin:0 0 3px 14px; gap:4px}
+  #departs, #formatReponse, #difficulte{flex-direction:row; flex-wrap:wrap; align-items:center; gap:5px}
+  #departs .titre-departs{width:100%; font-weight:700; font-size:.95rem; margin-bottom:2px}
+  #sousMenu #departs button{padding:5px 9px; border-radius:999px; text-align:center}
+  #formatReponse, #difficulte{margin-top:4px}
+  #formatReponse:empty, #difficulte:empty{display:none}
+  .titre-reponse{font-weight:700; font-size:.85rem; margin-right:2px}
+  #sousMenu #formatReponse button, #sousMenu #difficulte button{padding:4px 9px; font-size:.82rem}
+
+  /* Bas de la colonne : réglage d'affichage */
+  #reglages{grid-column:1; grid-row:2; display:flex; flex-direction:column; justify-content:flex-end; background:#fff; padding:8px 14px 12px}
+  #affichage{padding-top:12px; border-top:2px solid var(--gris-clair)}
+  #affichage button.actif{background:var(--violet); color:#fff}
+
+  /* ===== Zone de la droite ===== */
+  main{grid-column:2; grid-row:1 / 3; display:flex; flex-direction:column; padding:16px; min-height:0}
+  .scene{
+    position:relative; flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center;
+    background:var(--carte); border-radius:28px; box-shadow:0 4px 18px rgba(0,0,0,.08); padding:10px 14px;
+  }
+  #dessin{width:100%; height:auto; min-height:0; flex-shrink:1; max-height:calc(100dvh - 250px); display:block; margin:0 auto; user-select:none}
+  #dessin.cliquable{cursor:pointer}
+
+  /* Pictos en haut à droite : imprimer, accueil, plein écran */
+  .barre-outils{position:absolute; top:14px; right:16px; display:flex; gap:8px; z-index:2}
+  .picto{
+    width:42px; height:42px; border-radius:12px; background:var(--carte); padding:0; cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.12); display:grid; place-items:center;
+  }
+  .picto svg{width:24px; height:24px}
+  #accueil{display:none}                         /* l'accueil n'existe que dans le portail (classe posée par portail.js) */
+  html.dans-portail #accueil{display:grid}
+
+  /* Phrase d'aide sous la droite */
+  #explication{min-height:2.2em; text-align:center; font-size:1.25rem; line-height:1.9; padding:0 10px}
+  #explication b{color:var(--violet)}
+  #explication .espace{display:inline-block; width:2.5em}
+  #explication b.vert{color:var(--vert)}
+  #explication .bilan{font-weight:700; padding:.05em .5em; border-radius:6px}
+  #explication .bilan.ok{background:var(--vert); color:#fff}
+  #explication .bilan.non{background:var(--orange); color:#fff}
+  #explication .zoom{display:block; color:var(--noir)}
+  .frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; line-height:1.05; margin:0 2px; font-weight:700; color:var(--violet)}
+  .frac span:first-child{border-bottom:2px solid currentColor; padding:0 3px}
+
+  /* Propositions (« Trouver » avec propositions) */
+  #propositions{display:flex; justify-content:center; gap:14px; flex-wrap:wrap; padding:4px 0 8px}
+  #propositions:empty{display:none}
+  #propositions button{
+    font-size:clamp(1.25rem, 2.4vw, 2rem); font-weight:700; min-width:clamp(64px, 6.5vw, 96px); padding:6px 18px; border-radius:18px;
+    border:3px solid var(--noir); background:#fff; color:var(--noir);
+  }
+  #propositions.longues button{font-size:clamp(1rem, 1.6vw, 1.35rem); min-width:70px; padding:8px 14px}
+  #propositions .frac{color:inherit; font-size:.8em}
+  #propositions .frac span:first-child{border-bottom-width:3px}
+  #propositions button.juste{background:var(--vert); border-color:var(--vert); color:#fff}
+  #propositions button.faux{background:var(--orange); border-color:var(--orange); color:#fff; opacity:.6}
+
+  /* Boutons du bas */
+  #actions{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; padding:10px 0 2px}
+  #actions button{font-size:1.05rem; border-radius:16px; padding:13px 24px; background:var(--carte); color:var(--noir); box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  #actions button.actif{background:var(--violet); color:#fff}
+  #actions button.principal{background:var(--orange); color:#fff}
+  #actions button.nouveau{background:var(--vert); color:#fff}
+
+  footer{grid-column:1 / 3; text-align:right; font-size:.7rem; color:var(--doux); padding:2px 20px 6px 0}
+
+  /* ===== Petits écrans et vidéoprojecteurs de faible résolution ===== */
+  @media (max-width:1100px){
+    body{--colonne:228px}
+    .titre h1{font-size:1.6rem}
+    #actions button{font-size:.95rem; padding:10px 16px}
+  }
+  @media (max-height:760px){                      /* ex. 1280×720, 1024×768 : colonne et boutons resserrés */
+    header{gap:8px; padding:10px 12px 6px}
+    .titre h1{font-size:1.5rem}
+    .sous-titre{font-size:.78rem}
+    #classes{margin:0 0 4px; padding-bottom:7px}
+    #classes button{padding:5px 0}
+    #modes > button{padding:6px 12px}
+    #types > button, #sousMenu .puces button{padding:3px 10px; font-size:.9rem}
+    #reglages{padding:4px 12px 8px}
+    #affichage{padding-top:6px}
+    #affichage button{padding:5px 12px}
+    main{padding:10px}
+    #actions{padding-top:6px}
+    #actions button{padding:9px 16px}
+    #explication{font-size:1.1rem; line-height:1.6}
+  }
+  @media (max-width:760px){                       /* téléphone, demi-écran : tout à la suite, la page défile */
+    body{display:flex; flex-direction:column; height:auto; overflow:visible}
+    main{order:1} #reglages{order:2} footer{order:3}
+    header{overflow:visible}
+    main{padding:8px; min-height:70vh}
+    .scene{border-radius:18px; padding:56px 6px 8px}
+    #dessin{max-height:none}
+    .picto{width:36px; height:36px}
+    #explication{font-size:1rem}
+    #propositions{gap:8px}
+    #propositions button{padding:4px 10px; border-radius:12px}
+    #actions button{font-size:.9rem; padding:9px 12px}
+    footer{padding:6px 10px}
+  }
+
+  /* ===== Dessin ===== */
+  .segment{display:none}                       /* bandes colorées, avec « Intervalles en couleur » */
+  body.couleurs .segment{display:inline}
+  body.couleurs .segment.s0{fill:#ffd3bf}
+  body.couleurs .segment.s1{fill:#bfe5df}
+  body.couleurs .axe{stroke-width:0}
+  body.couleurs .graduation{stroke-width:5}
+  .saut{fill:none; stroke:var(--violet); stroke-width:4; stroke-linecap:round;
+        stroke-dasharray:300; stroke-dashoffset:300; animation:trace .45s ease-out forwards}
+  .etiquette-saut{opacity:0; animation:apparait .3s ease-out forwards}
+  .apparait{animation:apparait .35s ease-out}
+  .zone{fill:transparent; cursor:zoom-in}
+  .zone:hover{fill:rgba(155,93,229,.13)}
+  @keyframes trace{to{stroke-dashoffset:0}}
+  @keyframes apparait{from{opacity:0} to{opacity:1}}
+
+  /* ===== Fenêtre « Fiche à imprimer » ===== */
+  #fenetreFiche{position:fixed; inset:0; background:rgba(0,0,0,.35); display:grid; place-items:center; z-index:10}
+  #fenetreFiche[hidden]{display:none}
+  #fenetreFiche .panneau{background:#fff; border-radius:22px; padding:22px 26px; width:min(440px,92vw); box-shadow:0 10px 40px rgba(0,0,0,.2)}
+  #fenetreFiche h2{margin:0 0 6px; color:var(--orange); font-size:1.4rem}
+  #fenetreFiche .etiquette{margin:14px 0 6px; font-weight:700}
+  #fenetreFiche .resume{margin:0; font-weight:600; color:var(--vert)}
+  #fenetreFiche .aide{margin:4px 0 0; font-size:.85rem; color:var(--doux)}
+  #fenetreFiche .choix{display:flex; flex-wrap:wrap; gap:6px}
+  #fenetreFiche button{border-radius:999px; padding:7px 14px; background:var(--gris-clair); color:var(--noir)}
+  #fenetreFiche .choix button.actif{background:var(--violet); color:#fff}
+  #fenetreFiche .boutons{display:flex; justify-content:flex-end; gap:10px; margin-top:22px}
+  #fenetreFiche .boutons button.creer{background:var(--vert); color:#fff; padding:10px 18px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titre">
+    <h1>La route<br>des nombres</h1>
+    <p class="sous-titre">Droites graduées interactives<br>du CP au CM2</p>
+  </div>
+  <div id="classes"></div>
+  <nav id="modes">
+    <button data-mode="trouver"  style="--c:var(--orange)">Trouver le nombre</button>
+    <button data-mode="placer"   style="--c:var(--vert)">Placer le nombre</button>
+    <button data-mode="explorer" style="--c:var(--violet)">Explorer</button>
+    <!-- Sous-menu : déplacé sous le mode choisi (voir majMenu) -->
+    <div id="sousMenu">
+      <div id="types">
+        <button data-type="entiers">Entiers</button>
+        <button data-type="decimaux">Décimaux</button>
+        <button data-type="fractions">Fractions</button>
+      </div>
+      <div id="niveaux" class="puces"></div>
+      <div id="departs" class="puces"></div>
+      <div id="difficulte" class="puces"></div>
+      <div id="formatReponse" class="puces"></div>
+    </div>
+  </nav>
+</header>
+
+<section id="reglages">
+  <div id="affichage" class="puces"></div>
+</section>
+
+<main>
+  <div class="scene">
+    <div class="barre-outils">
+      <button id="imprimer" class="picto" title="Fiche Word à imprimer" aria-label="Fiche Word à imprimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
+        </svg>
+      </button>
+      <a id="accueil" class="picto" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>
+        </svg>
+      </a>
+      <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+        </svg>
+      </button>
+    </div>
+    <svg id="dessin" viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="propositions"></div>
+    <div id="explication"></div>
+  </div>
+  <div id="actions"></div>
+</main>
+
+<div id="fenetreFiche" hidden>
+  <div class="panneau">
+    <h2>Fiche à imprimer</h2>
+    <p id="ficheResume" class="resume"></p>
+    <p class="aide">La fiche reprend ce qui est choisi dans le menu de gauche.</p>
+    <p class="etiquette">Nombre de droites (sur une page)</p>
+    <div id="ficheNombre" class="choix"></div>
+    <p class="etiquette">Ligne « Prénom »</p>
+    <div id="fichePrenom" class="choix"></div>
+    <p class="etiquette">Corrigé (page suivante)</p>
+    <div id="ficheCorrige" class="choix"></div>
+    <div class="boutons">
+      <button id="ficheAnnuler">Annuler</button>
+      <button id="ficheCreer" class="creer">Créer la fiche Word</button>
+    </div>
+  </div>
+</div>
+
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.36</span></footer>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   1. RÉGLAGES ET ÉTAT
+   ===================================================================== */
+
+// Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'route-des-nombres') || { version: '1.36' }).version;
+const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
+
+// Niveaux proposés pour chaque type de nombres
+const NIVEAUX = {
+  entiers:   [{id:'c0', nom:'de 0 à 10'}, {id:'i0', nom:'jusqu’à 100'}, {id:'i1', nom:'jusqu’à 1 000'},
+              {id:'i2', nom:'jusqu’à 10 000'}, {id:'i3', nom:'jusqu’à 1 000 000'}, {id:'i4', nom:'jusqu’au milliard'}],
+  decimaux:  [{id:'d1', nom:'dixièmes'}, {id:'d2', nom:'centièmes'}, {id:'d3', nom:'millièmes'}],
+  fractions: [{id:'f1', nom:'plus petites que 1'}, {id:'f2', nom:'plus grandes que 1'},
+              {id:'f3', nom:'dixièmes'}, {id:'f4', nom:'centièmes'}, {id:'f5', nom:'millièmes'}]
+};
+const NOM_TYPE = { entiers:'Entiers', decimaux:'Décimaux', fractions:'Fractions' };
+
+/* Classe de chaque niveau, d'après le programme de la classe (les évaluations nationales
+   de début d'année testent le niveau de la classe précédente).
+   Une classe voit ses niveaux et ceux des classes précédentes ; en CM1–CM2,
+   on retire ce qui relève du CP et du CE1. */
+const CLASSES = ['CP', 'CE1', 'CE2', 'CM1', 'CM2'];
+const CLASSE_DU_NIVEAU = {
+  c0:'CP', i0:'CP', i1:'CE1', i2:'CE2', i3:'CM1', i4:'CM2',     // entiers (programme de chaque classe)
+  d1:'CM1', d2:'CM1', d3:'CM2',                                 // décimaux
+  f1:'CE2', f2:'CM1', f3:'CM1', f4:'CM1', f5:'CM2'             // fractions
+};
+const rangClasse = c => CLASSES.indexOf(c);
+function niveauVisible(id) {
+  if (!(id in CLASSE_DU_NIVEAU)) return false;                 // identifiant inconnu (ancienne version…)
+  const n = rangClasse(CLASSE_DU_NIVEAU[id]), c = rangClasse(etat.classe);
+  return n <= c && (c < 3 || n >= 2);
+}
+
+// Départs du mode « Explorer » : de 0 à …  (a et s sont des mantisses, voir ecrire())
+const DEPARTS = [
+  {nom:'1',             scale:1, a:0, s:1,         classe:'CM1'},
+  {nom:'10',            scale:0, a:0, s:1,         classe:'CM1'},   // utile seulement avec les décimaux
+  {nom:'100',           scale:0, a:0, s:10,        classe:'CP'},
+  {nom:'1 000',         scale:0, a:0, s:100,       classe:'CE1'},
+  {nom:'10 000',        scale:0, a:0, s:1000,      classe:'CE2'},
+  {nom:'100 000',       scale:0, a:0, s:10000,     classe:'CM1'},
+  {nom:'1 000 000',     scale:0, a:0, s:100000,    classe:'CM1'},
+  {nom:'1 000 000 000', scale:0, a:0, s:100000000, classe:'CM2'}
+];
+const departVisible = d => rangClasse(d.classe) <= rangClasse(etat.classe);
+
+// Zoom le plus fin (chiffres après la virgule) : pas de nombres à virgule avant le CM1
+const ZOOM_MAX = { CP:0, CE1:0, CE2:0, CM1:2, CM2:3 };
+const UNITE_MINI = ['unités', 'dixièmes', 'centièmes', 'millièmes'];
+
+// Géométrie du dessin (unités du viewBox 1000 × 330) et couleurs (lues une fois dans le CSS)
+const L = 1000, X0 = 90, X1 = 910;
+const css = getComputedStyle(document.documentElement);
+const POLICE = css.getPropertyValue('--police').trim();
+const COULEURS = {
+  noir: css.getPropertyValue('--noir').trim(),     orange: css.getPropertyValue('--orange').trim(),
+  vert: css.getPropertyValue('--vert').trim(),     violet: css.getPropertyValue('--violet').trim(),
+  gris: css.getPropertyValue('--gris').trim()
+};
+
+const MODES = ['trouver', 'placer', 'explorer'];
+const DIFFICULTES = [1, 2, 3, 'prog'];   // paliers fixes, ou « progressive » (montée toutes les 3 droites)
+const DROITES_PAR_PALIER = 3;
+
+// Réglages mémorisés (et leurs valeurs d'origine)
+const REGLAGES_PAR_DEFAUT = {
+  classe: 'CM2',
+  mode: 'trouver',                       // 'trouver' | 'placer' | 'explorer'
+  type: 'entiers',                       // 'entiers' | 'decimaux' | 'fractions'
+  niveau: { entiers:'i1', decimaux:'d1', fractions:'f1' },
+  reponse: 'ecrire',                     // « Trouver » : 'ecrire' (sans propositions) ou 'entourer' (6 propositions)
+  lettres: false,                        // « Placer » : lettres au-dessus des graduations (réponse sur l'ardoise)
+  couleurs: false,                       // intervalles en couleur (orange pâle / vert pâle)
+  difficulte: 1                          // 1, 2, 3 ou 'prog' (progressive)
+};
+
+const etat = {
+  ...structuredClone(REGLAGES_PAR_DEFAUT),
+  serie: 0,                              // droites déjà tirées depuis le dernier changement de réglage
+  menuOuvert: false,                     // sous-menu du mode visible ou non (fermé au départ)
+  exo: null,                             // la droite en cours (voir partie 3)
+  voirReponse: false, voirChemin: false, voirGraduations: false,
+  placement: null,                       // graduation touchée en mode « Placer »
+  explo: { depart:1, scale:0, a:0, s:1, historique:[] }
+};
+
+/* =====================================================================
+   2. OUTILS
+   ===================================================================== */
+
+const alea    = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+const choisir = t => t[Math.floor(Math.random() * t.length)];
+const pgcd    = (a, b) => b ? pgcd(b, a % b) : a;
+const borner  = (v, min, max) => Math.max(min, Math.min(max, v));
+function melanger(t) {                   // mélange de Fisher-Yates (renvoie le tableau)
+  for (let i = t.length - 1; i > 0; i--) { const j = alea(0, i); [t[i], t[j]] = [t[j], t[i]]; }
+  return t;
+}
+
+/* Écrit un nombre à la française à partir d'une mantisse entière
+   (on travaille en entiers pour éviter les erreurs d'arrondi des décimaux) :
+   ecrire(1380, 0) → « 1 380 » ; ecrire(83, 1) → « 8,3 » ; ecrire(250, 2) → « 2,5 » ;
+   avec complet = true, tous les chiffres sont gardés : ecrire(250, 2, true) → « 2,50 » */
+function ecrire(m, scale, complet = false) {
+  const negatif = m < 0;
+  m = Math.abs(m);
+  const p = 10 ** scale;
+  const entier = String(Math.floor(m / p)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  let decimales = scale ? String(m % p).padStart(scale, '0') : '';
+  if (!complet) decimales = decimales.replace(/0+$/, '');
+  return (negatif ? '−' : '') + entier + (decimales ? ',' + decimales : '');
+}
+
+// Largeur d'un texte en gras (pour centrer les nombres), mémorisée car très souvent demandée
+const ctxMesure = document.createElement('canvas').getContext('2d');
+const memoLargeurs = new Map();
+function largeurTexte(texte, taille) {
+  const cle = taille + '|' + texte;
+  if (!memoLargeurs.has(cle)) {
+    ctxMesure.font = `700 ${taille}px ${POLICE}`;
+    memoLargeurs.set(cle, ctxMesure.measureText(texte).width);
+  }
+  return memoLargeurs.get(cle);
+}
+
+// Création d'un élément SVG dans « svg » (variable : la fiche Word dessine un moment ailleurs)
+let svg = document.getElementById('dessin');
+function el(nom, attributs, parent) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', nom);
+  for (const k in attributs) e.setAttribute(k, attributs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+const fracHTML = (n, d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+
+/* =====================================================================
+   3. GÉNÉRATION DES DROITES
+   Une droite = { genre, n (nombre d'intervalles), t (graduation visée, 1 à n-1), … }
+     genre 'nombre'   : graduation i = (a + i × s) / 10^scale
+     genre 'fraction' : graduation i = (origine + i) / den
+   Variables reprises des évaluations nationales : bornes non nulles, valeur d'une
+   graduation (1, 10, 100…), nombre de graduations, place du nombre cherché.
+   ===================================================================== */
+
+let dernierPas = null;   // valeur de graduation de la droite précédente (pour varier)
+
+/* PALIERS DE DIFFICULTÉ (1 simple → 3 complexe), d'après les variables des fiches Eduscol :
+   bornes (0, rondes, quelconques), valeur d'une graduation, nombre d'intervalles,
+   place du nombre cherché. Le tirage reste aléatoire à l'intérieur du palier.
+
+   Palier   Entiers                         Décimaux                       Fractions
+   1        graduations 1, 10, 100…,        d'un nombre « rond » au        demis/quarts/dixièmes ; de 0 à 2 ;
+            bornes rondes, 4–5 intervalles  suivant, pas de 0,1 (2 → 3)    dixièmes de 0 à 1
+   2        graduations 2, 5…, bornes       bornes à virgule (7,8 → 8,3)   tiers, cinquièmes, huitièmes ;
+            quelconques, nombre au milieu   ou pas de 0,5                  jusqu'à 3, départ à 1
+   3        graduations 20, 50…, 6–10       passage d'une unité            fractions simplifiables ; départ
+            intervalles, loin des bornes    (0,95 → 1,05), pas de 0,05     quelconque ; passage d'un entier  */
+const puissanceDe10 = x => Number.isInteger(Math.log10(x));
+
+// Graduation cherchée : près d'une borne ou au milieu (1), n'importe où (2), loin des bornes (3)
+function positionCherchee(n, palier) {
+  if (n <= 3) return alea(1, n - 1);
+  if (palier === 1) return choisir([1, n - 1, Math.round(n / 2)]);
+  if (palier === 3) return alea(2, n - 2);
+  return alea(1, n - 1);
+}
+
+function genererEntiers(niveau, palier) {
+  if (niveau === 'c0') {                    // CP : de 0 à 10, comme l'évaluation
+    // Palier 3 : mêmes positions que le palier 2, mais sans le trait plus long du milieu pour se repérer
+    const t = palier === 1 ? choisir([1, 2, 5, 8, 9]) : choisir([3, 4, 6, 7]);
+    return { genre:'nombre', scale:0, a:0, s:1, n:10, t, sansMilieu: palier === 3 };
+  }
+  const cfg = {
+    i0: { lim:1e2, pas:[1, 1, 2, 5, 10, 10] },
+    i1: { lim:1e3, pas:[1, 2, 5, 10, 10, 20, 50, 100, 100] },
+    i2: { lim:1e4, pas:[1, 10, 20, 50, 100, 100, 200, 500, 1000, 1000] },
+    i3: { lim:1e6, pas:[10, 100, 1000, 1000, 5000, 1e4, 1e4, 5e4, 1e5] },
+    i4: { lim:1e9, pas:[1e4, 1e5, 1e6, 1e6, 5e6, 1e7, 1e7, 1e8] }
+  }[niveau];
+  const ronds = cfg.pas.filter(puissanceDe10), autres = cfg.pas.filter(p => !puissanceDe10(p));
+  const possibles = palier === 1 ? ronds : palier === 2 ? cfg.pas : [...autres, ...autres, ...ronds];
+  let s;
+  do { s = choisir(possibles); } while (s === dernierPas && Math.random() < 0.7);
+  dernierPas = s;
+  let n = choisir(palier === 1 ? [4, 5] : palier === 2 ? [4, 5, 6, 8] : [6, 8, 10]);
+  if (niveau === 'i0' && s === 1 && palier === 3 && Math.random() < 0.4) n = choisir([20, 30]);   // ex. 20 → 50
+  while (n * s > cfg.lim) n--;
+
+  // Bornes : 0 ou très rondes (1), multiples du pas (2), « pas rondes » (3, ex. 2 050 → 6 050)
+  if (palier === 1 && Math.random() < 0.25 && n * s >= 10) return { genre:'nombre', scale:0, a:0, s, n, t:positionCherchee(n, palier) };
+  const haut = cfg.lim - n * s, bas = Math.min(haut, cfg.lim / 10);
+  const tirer = arrondi => {
+    const mini = Math.ceil(bas / arrondi), maxi = Math.floor(haut / arrondi);
+    return mini <= maxi ? arrondi * alea(mini, maxi) : null;
+  };
+  let a = palier === 1 ? (tirer(10 * s) ?? tirer(s)) : tirer(s);
+  if (palier === 3 && s >= 10) {
+    const decale = a + (s / 10) * alea(1, 9);
+    if (decale <= haut) a = decale;
+  } else if (palier === 3) a = tirer(1);
+  return { genre:'nombre', scale:0, a, s, n, t:positionCherchee(n, palier) };
+}
+
+function genererDecimaux(niveau, palier) {
+  const scale = { d1:1, d2:2, d3:3 }[niveau];       // dixièmes, centièmes, millièmes
+  const max = { 1:19, 2:99, 3:999 }[scale];         // partie « ronde » de la borne de gauche
+  if (palier === 1) {                               // ex. 2 → 3 ; 4,3 → 4,4 ; 2,37 → 2,38
+    return { genre:'nombre', scale, a:alea(0, max) * 10, s:1, n:10, t:positionCherchee(10, 1) };
+  }
+  if (palier === 2) {
+    if (Math.random() < 0.5) {                      // bornes à virgule : 7,8 → 8,3
+      const n = choisir([4, 5, 6, 8]);
+      return { genre:'nombre', scale, a:alea(0, max) * 10 + alea(1, 9), s:1, n, t:positionCherchee(n, 2) };
+    }
+    const n = choisir([4, 6]);                      // pas de 0,5 / 0,05 / 0,005 : 3 → 6 ; 1,9 → 2,1
+    return { genre:'nombre', scale, a:alea(0, max) * 10, s:5, n, t:positionCherchee(n, 2) };
+  }
+  // Palier 3 : la droite passe d'une unité à la suivante (0,95 → 1,05 ; 4,990 → 5,020)
+  const s = choisir([1, 5]), n = choisir([6, 8, 10]);
+  const unite = 10 ** scale, avant = alea(1, n - 1);                 // graduations avant l'entier franchi
+  const a = alea(Math.ceil((s * avant + 1) / unite), 9) * unite - s * avant;
+  return { genre:'nombre', scale, a, s, n, t:positionCherchee(n, 3) };
+}
+
+function genererFractions(niveau, palier) {
+  if (niveau === 'f1') {                    // de 0 à 1 (CE2 : dénominateurs jusqu'à 12)
+    const grands = rangClasse(etat.classe) >= 3 ? [12, 15, 20] : [12];
+    if (palier === 3) {                     // fraction simplifiable (6/8 = 3/4)
+      const den = choisir([6, 8, 10, ...grands]);
+      let t; do { t = alea(1, den - 1); } while (pgcd(t, den) === 1);
+      return { genre:'fraction', niveau, den, origine:0, n:den, t };
+    }
+    const den = choisir(palier === 1 ? [4, 10] : [3, 5, 6, 8]);
+    return { genre:'fraction', niveau, den, origine:0, n:den, t:positionCherchee(den, palier) };
+  }
+  if (niveau === 'f2') {                    // fraction plus grande que 1, non entière
+    const den = choisir(palier === 1 ? [2, 4] : palier === 2 ? [3, 5] : [3, 4, 6, 8]);
+    const depart = palier === 1 ? 0 : palier === 2 ? choisir([0, 1]) : alea(1, 3);
+    const unites = palier === 1 ? 2 : den >= 6 ? 2 : 3;
+    const n = unites * den;
+    let t; do { t = alea(1, n - 1); } while (t % den === 0 || depart * den + t <= den);
+    return { genre:'fraction', niveau, den, origine: depart * den, n, t };
+  }
+  // Fractions décimales : dixièmes (f3), centièmes (f4), millièmes (f5), 10 graduations
+  const den = { f3:10, f4:100, f5:1000 }[niveau];
+  let origine;
+  if (niveau === 'f3') origine = palier === 1 ? 0 : palier === 2 ? alea(1, 4) * 10 : alea(0, 4) * 10 + 5;   // 2,5 → 3,5
+  else if (palier === 1) origine = alea(0, den / 10 - 1) * 10;                     // 30/100 → 40/100
+  else if (palier === 2) origine = alea(den / 10, 5 * den / 10 - 1) * 10;          // 120/100 → 130/100
+  else origine = alea(1, 4) * den - alea(1, 9);                                     // 95/100 → 105/100
+  return { genre:'fraction', niveau, den, origine, n:10, t:positionCherchee(10, palier) };
+}
+
+// Palier de la prochaine droite : fixe, ou progressif (palier 1, puis 2, puis 3 toutes les 3 droites)
+function palierCourant(rang = etat.serie) {
+  return etat.difficulte === 'prog' ? Math.min(3, 1 + Math.floor(rang / DROITES_PAR_PALIER)) : etat.difficulte;
+}
+
+// Une droite du type et du niveau choisis, au palier demandé, prête à l'emploi
+function genererExercice(palier = palierCourant()) {
+  const niveau = etat.niveau[etat.type];
+  const exo = etat.type === 'entiers'  ? genererEntiers(niveau, palier)
+            : etat.type === 'decimaux' ? genererDecimaux(niveau, palier)
+            : genererFractions(niveau, palier);
+  exo.palier = palier;
+  exo.ecriture = choisir(['fraction', 'autre']);     // « Placer » : fraction, nombre mixte ou décimal
+  exo.propositions = propositionsAEntourer(exo);
+  exo.choix = null;
+  return exo;
+}
+
+// Nouvelle série : le mode progressif repart du palier 1 (changement de classe, de niveau, de mode…)
+function nouvelleSerie() { etat.serie = 0; nouvelleDroite(); }
+
+function nouvelleDroite() {
+  etat.exo = genererExercice();
+  etat.serie++;
+  etat.voirReponse = etat.voirChemin = etat.voirGraduations = false;
+  etat.placement = null;
+  rendre();
+}
+
+/* =====================================================================
+   4. VALEURS AFFICHÉES
+   Un nombre affiché = liste de « parties » : {txt:'…'} ou {num, den}
+   (permet d'écrire 5/4 = 1 + 1/4 avec de vraies fractions superposées)
+   ===================================================================== */
+
+const decimalFraction = exo => ['f3', 'f4', 'f5'].includes(exo.niveau);
+const aUneFraction = parties => parties.some(p => p.txt === undefined);
+
+// Étiquette écrite sous une graduation : en centièmes et millièmes, tous les chiffres (4,40 ; 1,00)
+function etiquetteGraduation(exo, i) {
+  if (exo.genre === 'nombre' && exo.scale >= 2) return [{ txt: ecrire(exo.a + i * exo.s, exo.scale, true) }];
+  return partiesGraduation(exo, i);
+}
+
+// Valeur d'une graduation, écrite le plus simplement possible (réponses, propositions)
+function partiesGraduation(exo, i) {
+  if (exo.genre === 'nombre') return [{ txt: ecrire(exo.a + i * exo.s, exo.scale) }];
+  const num = exo.origine + i;
+  return num % exo.den === 0 ? [{ txt: String(num / exo.den) }] : [{ num, den: exo.den }];
+}
+
+// Réponse complète, avec les écritures égales (7/4 = 1 + 3/4 ; 23/10 = 2 + 3/10 = 2,3)
+function partiesReponse(exo) {
+  if (exo.genre === 'nombre') return partiesGraduation(exo, exo.t);
+  const d = exo.den, num = exo.origine + exo.t, q = Math.floor(num / d), r = num % d;
+  const p = [{ num, den: d }];
+  if (q > 0 && r > 0) p.push({ txt:` = ${q} + ` }, { num: r, den: d });     // pas de « 1 + 0/10 » sur un entier
+  if (exo.niveau === 'f2' && r > 0) p.push({ txt:` = ${q + 1} − ` }, { num: d - r, den: d });   // 8/3 = 2 + 2/3 = 3 − 1/3
+  if (decimalFraction(exo)) p.push({ txt:' = ' + ecrire(num, Math.log10(d)) });
+  else if (q === 0 && pgcd(num, d) > 1) p.push({ txt:' = ' }, { num: num / pgcd(num, d), den: d / pgcd(num, d) });
+  return p;
+}
+
+// Nombre à placer (mode « Placer »), écrit de façons variées
+function partiesConsigne(exo) {
+  if (exo.genre === 'nombre' || exo.ecriture === 'fraction') return partiesGraduation(exo, exo.t);
+  const d = exo.den, num = exo.origine + exo.t;
+  if (decimalFraction(exo)) return [{ txt: ecrire(num, Math.log10(d)) }];
+  if (exo.niveau === 'f2') return [{ txt:`${Math.floor(num / d)} + ` }, { num: num % d, den: d }];
+  return partiesGraduation(exo, exo.t);
+}
+
+/* Six propositions (« Trouver » avec propositions) : la bonne réponse et 5 erreurs plausibles,
+   dans le désordre. Règles (vérifiées automatiquement sur des milliers de droites) :
+     – six valeurs différentes (jamais deux écritures d'un même nombre, comme 2/4 et 1/2) ;
+     – une seule est juste ; jamais une borne (elle est écrite sur la droite) ;
+     – pas de proposition trop facile à éliminer : toutes restent près de la droite
+       (une demi-droite au-delà des bornes, au moins 3 graduations), sauf au plus UNE erreur
+       d'écriture (chiffres inversés, virgule déplacée, fraction inversée), une fois sur deux.
+   Erreurs utilisées, par ordre de priorité :
+     nombres  : une graduation de trop ou de moins ; mauvaise valeur de graduation (« chaque trait
+                vaut 10 ») ; traits comptés de 1 en 1 ; erreur d'écriture ; nombre de traits compté
+                (CP–CE1) ; autres graduations ; nombres entre deux graduations.
+     fractions : graduation voisine ; oubli de compter depuis 0 ; division par tous les intervalles
+                de la droite ; traits comptés au lieu des intervalles (dénominateur ± 1) ;
+                erreur d'écriture (fraction inversée, dixièmes / centièmes / millièmes confondus) ;
+                demi-graduations ; autres graduations. */
+function valeurParties(p) {               // valeur d'un nombre affiché : « 2,5 », « 7/4 », « 2 + 1/4 », « 3 − 1/3 »
+  let v = 0, signe = 1;
+  for (const x of p) {
+    if (x.txt === undefined) { v += signe * x.num / x.den; signe = 1; continue; }
+    const t = x.txt.replace(/\s/g, ''), moins = t.endsWith('−');
+    const nombre = t.replace(/[+−]$/, '').replace(',', '.');
+    if (nombre) v += signe * Number(nombre);
+    signe = moins ? -1 : 1;
+  }
+  return v;
+}
+
+function propositionsAEntourer(exo) {
+  const cle = v => v.toFixed(9);
+  const juste = partiesGraduation(exo, exo.t);
+  const debut = valeurParties(partiesGraduation(exo, 0)), fin = valeurParties(partiesGraduation(exo, exo.n));
+  // « Près de la droite » : une demi-droite au-delà des bornes (au moins 3 graduations, pour les droites courtes)
+  const marge = Math.max((fin - debut) / 2, 3 * (fin - debut) / exo.n);
+  const mini = debut - marge, maxi = fin + marge;
+  const liste = [juste], vues = new Set([cle(valeurParties(juste)), cle(debut), cle(fin)]);
+  let loin = 0;
+  const ajouter = (p, ecriture = false) => {
+    if (!p || liste.length >= 6) return;
+    const v = valeurParties(p), dehors = v < mini || v > maxi;
+    if (!(v > 0) || vues.has(cle(v)) || (dehors && (!ecriture || loin >= 1))) return;
+    vues.add(cle(v)); liste.push(p); if (dehors) loin++;
+  };
+
+  if (exo.genre === 'nombre') {
+    const sc = exo.scale, s = exo.s, v = exo.a + exo.t * s, unite = 10 ** sc;
+    const nb = (m, echelle = sc) => (m > 0 && Number.isInteger(m) ? [{ txt: ecrire(m, echelle) }] : null);
+    melanger([v + s, v - s]).forEach(m => ajouter(nb(m)));                           // une graduation de trop / de moins
+    melanger(pasErrones(exo)).slice(0, 2).forEach(p => ajouter(nb(exo.a + exo.t * p)));   // « chaque trait vaut… »
+    if (s !== unite && s < 20 * unite) ajouter(nb(exo.a + exo.t * unite));          // traits comptés de 1 en 1 (petits pas seulement)
+    if (sc === 0 && v >= 10 && v < 100 && v % 10) ajouter(nb(Number(String(v).split('').reverse().join(''))), true);
+    if (sc > 0 && Math.random() < 0.5) ajouter(choisir([nb(v, sc + 1), nb(v, sc - 1)]), true);   // virgule déplacée
+    if (sc === 0 && v < 100) ajouter(nb(exo.t), true);                               // nombre de traits (CP–CE1)
+    for (let k = 2; k < exo.n; k++) melanger([v + k * s, v - k * s]).forEach(m => ajouter(nb(m)));
+    for (let k = 1; liste.length < 6 && k < 60; k++) {                              // entre deux graduations
+      melanger([v + k * s / 2, v - k * s / 2, v + k * unite, v - k * unite]).forEach(m => ajouter(nb(m)));
+    }
+  } else {
+    const d = exo.den, num = exo.origine + exo.t;
+    const fr = (a, b) => (a > 0 && b > 0 ? (a % b === 0 ? [{ txt: String(a / b) }] : [{ num: a, den: b }]) : null);
+    melanger([fr(num + 1, d), fr(num - 1, d)]).forEach(p => ajouter(p));
+    melanger([exo.origine > 0 ? fr(exo.t, d) : null, exo.n !== d ? fr(num, exo.n) : null,
+              d < 10 ? fr(num, d + 1) : null, d < 10 ? fr(num, d - 1) : null]).forEach(p => ajouter(p));
+    if (Math.random() < 0.5) {                                                       // erreur d'écriture
+      ajouter(d % 10 === 0 ? choisir([fr(num, d * 10), fr(num, d / 10)]) : [{ num: d, den: num }], true);   // 3/5 → 5/3
+    }
+    for (let k = 1; liste.length < 6 && k < 40; k++) {
+      const demis = d < 10 ? [fr(2 * num + 2 * k - 1, 2 * d), fr(2 * num - 2 * k + 1, 2 * d)] : [];   // demi-graduations (petits dénominateurs)
+      melanger([...demis, fr(num + k + 1, d), fr(num - k - 1, d)]).forEach(p => ajouter(p));
+    }
+  }
+  // Filet de sécurité (droites très courtes) : graduations suivantes, même un peu plus loin
+  for (let k = 1; liste.length < 6 && k < 60; k++) {
+    const p = exo.genre === 'nombre' ? [{ txt: ecrire(exo.a + (exo.n + k) * exo.s, exo.scale) }] : [{ num: exo.origine + exo.n + k, den: exo.den }];
+    const v = valeurParties(p);
+    if (!vues.has(cle(v))) { vues.add(cle(v)); liste.push(p); }
+  }
+  melanger(liste);
+  return { liste, juste: liste.indexOf(juste) };
+}
+
+/* Valeurs de graduation qu'un élève peut croire à tort (mantisses) :
+   puissances de 10 (« chaque trait vaut 1 », « … vaut 10 »), et 5, 50, 500… pour les entiers. */
+function pasErrones(exo) {
+  const p = [1, 10, 100, 1000, 1e4, 1e5, 1e6, 1e7, 1e8];
+  if (exo.scale === 0) p.push(5, 50, 500, 5000, 5e4, 5e5, 5e6, 5e7);
+  return p.filter(x => x !== exo.s && x < 20 * exo.s && x > exo.s / 20);
+}
+
+const propositionHTML = p => p.map(x => x.txt !== undefined ? x.txt : fracHTML(x.num, x.den)).join('');
+
+/* =====================================================================
+   5. DESSIN : ÉLÉMENTS COMMUNS
+   ===================================================================== */
+
+const xDe = (i, n) => X0 + (X1 - X0) * i / n;
+
+// Largeur d'un nombre affiché (texte + fractions) pour une taille de police T
+function largeurParties(parties, T) {
+  return parties.reduce((w, p) => w + (p.txt !== undefined
+    ? largeurTexte(p.txt, T)
+    : Math.max(largeurTexte(String(p.num), T * .8), largeurTexte(String(p.den), T * .8)) + T * .35), 0);
+}
+
+// Dessine un nombre centré en (cx, cy) ; les fractions sont centrées sur leur trait
+function dessinerParties(parent, parties, cx, cy, T, couleur) {
+  let x = cx - largeurParties(parties, T) / 2;
+  const g = el('g', { fill: couleur, 'font-weight': 700 }, parent);
+  for (const p of parties) {
+    if (p.txt !== undefined) {
+      el('text', { x, y: cy + T * .35, 'font-size': T }, g).textContent = p.txt.replace(/ /g, ' ');
+      x += largeurTexte(p.txt, T);
+    } else {
+      const f = T * .8, w = Math.max(largeurTexte(String(p.num), f), largeurTexte(String(p.den), f)) + T * .35;
+      el('text', { x: x + w / 2, y: cy - T * .12, 'font-size': f, 'text-anchor': 'middle' }, g).textContent = p.num;
+      el('line', { x1: x + T * .08, x2: x + w - T * .08, y1: cy, y2: cy, stroke: couleur,
+                   'stroke-width': Math.max(2, T * .07), 'stroke-linecap': 'round' }, g);
+      el('text', { x: x + w / 2, y: cy + T * .12 + f * .74, 'font-size': f, 'text-anchor': 'middle' }, g).textContent = p.den;
+      x += w;
+    }
+  }
+  return g;
+}
+
+// La droite et ses graduations ; longueur(i) renvoie 'grand' | 'moyen' | 'petit'
+function dessinerDroite(n, y, longueur, epaisseur = 5) {
+  const h = 26 * epaisseur / 5;                           // bandes colorées (« Intervalles en couleur »)
+  for (let i = 0; i < n; i++) {
+    el('rect', { x: xDe(i, n), y: y - h / 2, width: (X1 - X0) / n, height: h, class: 'segment s' + (i % 2) }, svg);
+  }
+  const g = el('g', { stroke: COULEURS.noir, 'stroke-linecap': 'round' }, svg);
+  el('line', { x1: X0 - 28, x2: X1 + 28, y1: y, y2: y, 'stroke-width': epaisseur, class: 'axe' }, g);
+  const demi = { grand: 24, moyen: 18, petit: 13 };
+  for (let i = 0; i <= n; i++) {
+    const d = demi[longueur(i)] * epaisseur / 5;
+    el('line', { x1: xDe(i, n), x2: xDe(i, n), y1: y - d, y2: y + d, 'stroke-width': epaisseur * .7, class: 'graduation' }, g);
+  }
+}
+
+function longueurTrait(exo, i) {
+  if (i === 0 || i === exo.n) return 'grand';
+  if (exo.genre === 'fraction' && (exo.origine + i) % exo.den === 0) return 'grand';            // nombres entiers
+  if (exo.n === 10 && i === 5 && !exo.sansMilieu) return 'moyen';                                                  // le milieu
+  if (exo.genre === 'nombre' && exo.n > 10 && (exo.a + i * exo.s) % (10 * exo.s) === 0) return 'moyen';   // tous les 10
+  return 'petit';
+}
+
+/* Étiquettes sous la droite : les bornes toujours, les autres graduations sur demande.
+   Chaque étiquette va sur le premier rang où elle ne touche pas sa voisine (2 rangs) ;
+   si cela ne suffit pas, la police est réduite jusqu'à ce que tout tienne. */
+function dessinerEtiquettes(n, y, partiesDe, toutes, tailleBornes = 30, tailleAutres = 22, largeurBorne = 165) {
+  const marge = 8;
+  const bornes = [0, n].map(i => {
+    const parties = partiesDe(i);
+    const T = tailleBornes * Math.min(1, largeurBorne / largeurParties(parties, tailleBornes));   // ex. 645 000 000
+    return { i, parties, T, w: largeurParties(parties, T) };
+  });
+  // Rang de chaque étiquette intérieure pour une taille donnée (null si impossible)
+  const placer = T => {
+    const fin = [xDe(0, n) + bornes[0].w / 2, -Infinity], debutBorneDroite = xDe(n, n) - bornes[1].w / 2;
+    const rangs = [];
+    for (let i = 1; i < n; i++) {
+      const w = largeurParties(partiesDe(i), T), g = xDe(i, n) - w / 2, d = xDe(i, n) + w / 2;
+      // rang 0 : à côté des bornes, sans toucher la borne de droite ; rang 1 : plus bas, sous les bornes
+      const rang = [0, 1].find(r => g > fin[r] + marge && (r === 1 || d < debutBorneDroite - marge));
+      if (rang === undefined) return null;
+      fin[rang] = d; rangs[i] = rang;
+    }
+    return rangs;
+  };
+  let T = tailleAutres, rangs = toutes ? placer(T) : [];
+  while (toutes && !rangs && T > 10) rangs = placer(--T);
+  rangs = rangs || [];
+
+  const dessiner = (i, parties, taille, rang, couleur) => {
+    const fraction = aUneFraction(parties);
+    const cy = y + (fraction ? 50 : 46) + (rang ? (fraction ? 54 : 34) : 0);
+    return dessinerParties(svg, parties, xDe(i, n), cy, taille, couleur);
+  };
+  for (const b of bornes) dessiner(b.i, b.parties, b.T, 0, COULEURS.noir);
+  if (toutes) for (let i = 1; i < n; i++) dessiner(i, partiesDe(i), T, rangs[i] || 0, COULEURS.violet).classList.add('apparait');
+}
+
+// Flèche verticale qui pointe vers le bas (demi = demi-largeur de la pointe)
+function dessinerFleche(x, yHaut, yBas, couleur, demi = 13, epaisseur = 6) {
+  const g = el('g', {}, svg);
+  el('line', { x1: x, x2: x, y1: yHaut, y2: yBas - 16, stroke: couleur, 'stroke-width': epaisseur, 'stroke-linecap': 'round' }, g);
+  el('polygon', { points: `${x - demi},${yBas - 22} ${x + demi},${yBas - 22} ${x},${yBas}`, fill: couleur }, g);
+  return g;
+}
+
+// Cadre (vide ou rempli) en haut du dessin ; renvoie le bas du cadre
+function dessinerCadre(cxVoulu, parties, couleurBord) {
+  const T = 40, haut = 16;
+  const largeur = parties ? largeurParties(parties, T) + 48 : 150;
+  const hauteur = parties && aUneFraction(parties) ? 100 : 74;
+  const cx = borner(cxVoulu, largeur / 2 + 8, L - largeur / 2 - 8);
+  el('rect', { x: cx - largeur / 2, y: haut, width: largeur, height: hauteur, rx: 16,
+               fill: '#fff', stroke: couleurBord, 'stroke-width': 4 }, svg);
+  if (parties) dessinerParties(svg, parties, cx, haut + hauteur / 2, T, COULEURS.noir).classList.add('apparait');
+  return haut + hauteur;
+}
+
+// Chemin : sauts de graduation en graduation depuis la borne la plus proche
+function dessinerChemin(exo, y) {
+  const depuisGauche = exo.t <= exo.n - exo.t;
+  const debut = depuisGauche ? 0 : exo.n, sens = depuisGauche ? 1 : -1;
+  const nb = depuisGauche ? exo.t : exo.n - exo.t, signe = sens > 0 ? '+' : '−';
+  const parties = exo.genre === 'nombre' ? [{ txt: signe + ecrire(exo.s, exo.scale) }] : [{ txt: signe }, { num: 1, den: exo.den }];
+  for (let k = 0; k < nb; k++) {
+    const xa = xDe(debut + sens * k, exo.n), xb = xDe(debut + sens * (k + 1), exo.n), xm = (xa + xb) / 2;
+    const delai = `${k * .5}s`;
+    el('path', { d: `M${xa},${y - 10} Q${xm},${y - 72} ${xb},${y - 10}`, class: 'saut', style: `animation-delay:${delai}` }, svg);
+    const g = dessinerParties(svg, parties, xm, aUneFraction(parties) ? y - 66 : y - 54, 20, COULEURS.violet);
+    g.classList.add('etiquette-saut');
+    g.style.animationDelay = delai;
+  }
+  return { depuisGauche, nb };
+}
+
+/* « Placer » avec lettres (réponse sur l'ardoise) :
+   – jusqu'à 5 graduations intérieures : une lettre A, B, C… au-dessus de chacune ;
+   – au-delà : 4 flèches lettrées, dont une seule est la bonne ; les autres reprennent des
+     erreurs typiques (graduation de trop ou de moins, mauvaise valeur de graduation,
+     comptage depuis l'autre borne). À la vérification, la bonne lettre passe en vert. */
+const avecFlechesLettrees = exo => exo.n - 1 > 5;
+
+function graduationsLettrees(exo) {
+  if (!avecFlechesLettrees(exo)) return Array.from({ length: exo.n - 1 }, (_, k) => k + 1);
+  if (!exo.flechesLettrees) {             // tirées une fois, puis gardées pour cette droite
+    const choix = new Set([exo.t]);
+    const ajouter = i => { if (choix.size < 4 && Number.isInteger(i) && i > 0 && i < exo.n) choix.add(i); };
+    const pieges = [exo.t + 1, exo.t - 1, exo.n - exo.t];
+    if (exo.genre === 'nombre') {
+      pasErrones(exo).forEach(p => pieges.push(exo.t * exo.s / p));
+    }
+    melanger(pieges).slice(0, 6).forEach(ajouter);
+    while (choix.size < 4) ajouter(alea(1, exo.n - 1));
+    exo.flechesLettrees = [...choix].sort((a, b) => a - b);
+  }
+  return exo.flechesLettrees;
+}
+
+/* Lettres du mode « Placer ». Avant la vérification, la lettre choisie est entourée en orange.
+   Après : la bonne lettre est entourée en vert ; une mauvaise lettre choisie est grisée et barrée. */
+function dessinerLettres(exo, Y) {
+  const verifie = etat.voirReponse, yLettre = Y - 100;
+  graduationsLettrees(exo).forEach((i, k) => {
+    const x = xDe(i, exo.n);
+    const choisie = i === etat.placement, juste = verifie && i === exo.t, ratee = verifie && choisie && !juste;
+    const couleur = juste ? COULEURS.vert : ratee ? COULEURS.gris : choisie ? COULEURS.orange : COULEURS.violet;
+    // pointillé de la lettre jusqu'à sa graduation, terminé par une petite pointe
+    el('line', { x1: x, x2: x, y1: yLettre + 20, y2: Y - 18, stroke: couleur, 'stroke-width': 3, 'stroke-dasharray': '6 6', 'stroke-linecap': 'round' }, svg);
+    el('polygon', { points: `${x - 8},${Y - 20} ${x + 8},${Y - 20} ${x},${Y - 8}`, fill: couleur }, svg);
+    if (choisie || juste) el('circle', { cx: x, cy: yLettre, r: 22, fill: '#fff', stroke: couleur, 'stroke-width': 4 }, svg);
+    dessinerParties(svg, [{ txt: String.fromCharCode(65 + k) }], x, yLettre, juste || choisie ? 30 : 26, couleur);
+    if (ratee) dessinerCroix(x, yLettre, 20);
+  });
+}
+
+// Croix orange qui barre une réponse fausse
+function dessinerCroix(x, y, r) {
+  for (const d of [1, -1]) {
+    el('line', { x1: x - r, y1: y - d * r, x2: x + r, y2: y + d * r, stroke: COULEURS.orange,
+                 'stroke-width': 6, 'stroke-linecap': 'round' }, svg);
+  }
+}
+
+/* =====================================================================
+   6. DESSIN DES MODES
+   ===================================================================== */
+
+const zoneExplication = document.getElementById('explication');
+const zonePropositions = document.getElementById('propositions');
+
+function rendre() {
+  document.body.classList.toggle('couleurs', etat.couleurs);
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', `0 0 ${L} 330`);
+  zoneExplication.innerHTML = '';
+  zonePropositions.innerHTML = '';
+  svg.classList.toggle('cliquable', etat.mode === 'placer' && !etat.voirReponse);
+  if (etat.mode === 'explorer') rendreExplorer();
+  else rendreExercice();
+  majMenu();
+}
+
+// Modes « Trouver le nombre » et « Placer le nombre »
+function rendreExercice() {
+  const avecLettres = etat.mode === 'placer' && etat.lettres;
+  const exo = etat.exo, Y = avecLettres ? 240 : 205, xCible = xDe(exo.t, exo.n);
+  if (avecLettres) svg.setAttribute('viewBox', `0 0 ${L} 365`);   // place pour la rangée de lettres
+  dessinerDroite(exo.n, Y, i => longueurTrait(exo, i));
+  dessinerEtiquettes(exo.n, Y, i => etiquetteGraduation(exo, i), etat.voirGraduations);
+
+  if (etat.mode === 'trouver') {
+    const avecPropositions = etat.reponse === 'entourer', P = exo.propositions;
+    const trouve = etat.voirReponse || (avecPropositions && exo.choix === P.juste);
+    const bas = dessinerCadre(xCible, trouve ? partiesReponse(exo) : null, COULEURS.orange);
+    dessinerFleche(xCible, bas + 8, Y - 10, COULEURS.orange);
+    if (avecPropositions) {                // 6 propositions sous la droite, un clic choisit
+      P.liste.forEach((p, k) => {
+        const b = document.createElement('button');
+        b.innerHTML = propositionHTML(p);
+        if (k === P.juste && trouve) b.classList.add('juste');
+        if (k === exo.choix && k !== P.juste) b.classList.add('faux');
+        b.onclick = () => { exo.choix = k; rendre(); };
+        zonePropositions.appendChild(b);
+      });
+    }
+    // Grands nombres : propositions un peu plus petites pour tenir sur une ligne
+    zonePropositions.classList.toggle('longues', avecPropositions && P.liste.some(p => p.some(x => (x.txt || '').length > 7)));
+  } else {
+    const bas = dessinerCadre(L / 2, [{ txt:'Place ' }, ...partiesConsigne(exo)], COULEURS.vert);
+    if (etat.lettres && !graduationsLettrees(exo).includes(etat.placement)) etat.placement = null;
+    if (etat.lettres) dessinerLettres(exo, Y);
+    // Sans les lettres : flèche posée par l'élève, puis la bonne en vert (avec les lettres, c'est la lettre entourée qui répond)
+    const finFleche = Y - 10, juste = etat.placement === exo.t;
+    if (!etat.lettres) {
+      if (etat.placement !== null) {
+        const couleur = !etat.voirReponse ? COULEURS.orange : juste ? COULEURS.vert : COULEURS.gris;
+        dessinerFleche(xDe(etat.placement, exo.n), bas + 14, finFleche, couleur);
+        if (etat.voirReponse && !juste) dessinerCroix(xDe(etat.placement, exo.n), (bas + finFleche) / 2, 20);
+      }
+      if (etat.voirReponse && !juste) dessinerFleche(xCible, bas + 14, finFleche, COULEURS.vert).classList.add('apparait');
+    }
+    if (etat.voirReponse) zoneExplication.innerHTML = bilanPlacer(exo);
+  }
+
+  if (etat.voirChemin) {
+    const { depuisGauche, nb } = dessinerChemin(exo, Y);
+    const bilan = zoneExplication.innerHTML;
+    zoneExplication.innerHTML = (bilan ? bilan + '<br>' : '') + texteExplication(exo, depuisGauche, nb);
+  }
+}
+
+// Message après « Vérifier » en mode « Placer » : juste, faux ou pas de réponse
+function bilanPlacer(exo) {
+  const ok = t => `<span class="bilan ok">${t}</span>`, non = t => `<span class="bilan non">${t}</span>`;
+  if (etat.placement === exo.t) return ok('Bonne réponse.');
+  if (etat.lettres) return etat.placement === null ? non('Aucune lettre choisie.') : '';   // le dessin suffit
+  return etat.placement === null
+    ? non('Aucune flèche placée.') + ' La bonne graduation est montrée en <b class="vert">vert</b>.'
+    : non('La flèche n’est pas au bon endroit.') + ' La bonne graduation est montrée en <b class="vert">vert</b>.';
+}
+
+// Phrase d'aide affichée avec le chemin
+function texteExplication(exo, depuisGauche, nb) {
+  const ecrireBorne = i => {
+    const p = etiquetteGraduation(exo, i)[0];
+    return p.txt !== undefined ? `<b>${p.txt}</b>` : fracHTML(p.num, p.den);
+  };
+  const action = `On part de ${ecrireBorne(depuisGauche ? 0 : exo.n)} et on ${depuisGauche ? 'avance' : 'recule'} ` +
+                 `de <b>${nb}</b> graduation${nb > 1 ? 's' : ''}.`;
+  if (exo.genre === 'nombre') {
+    return `De ${ecrireBorne(0)} à ${ecrireBorne(exo.n)}, l’écart est de <b>${ecrire(exo.n * exo.s, exo.scale)}</b>, ` +
+           `partagé en <b>${exo.n}</b> intervalles égaux : 1 graduation = <b>${ecrire(exo.s, exo.scale)}</b>.<br>${action}`;
+  }
+  return `Chaque unité est partagée en <b>${exo.den}</b> parts égales : 1 graduation = ${fracHTML(1, exo.den)}.<br>${action}`;
+}
+
+/* Mode « Explorer » : droite de 10 intervalles, toutes les valeurs écrites ;
+   toucher un intervalle le grossit 10 fois (la droite précédente reste visible en haut). */
+function rendreExplorer() {
+  const ex = etat.explo, n = 10;
+  const valeur = (e, i) => [{ txt: ecrire(e.a + i * e.s, e.scale, e.scale >= 2) }];   // 4,40 en centièmes
+  const longueur = i => (i === 0 || i === n) ? 'grand' : (i === 5 ? 'moyen' : 'petit');
+  const parent = ex.historique.at(-1);
+  const Y = parent ? 215 : 165;
+
+  if (parent) {                            // droite précédente, avec la portion grossie surlignée
+    const yp = 62, xa = xDe(parent.i, n), xb = xDe(parent.i + 1, n);
+    dessinerDroite(n, yp, longueur, 3);
+    el('rect', { x: xa, y: yp - 16, width: xb - xa, height: 32, rx: 6, fill: COULEURS.violet, 'fill-opacity': .25 }, svg);
+    for (const [x1, x2] of [[xa, X0], [xb, X1]]) {
+      el('line', { x1, y1: yp + 16, x2, y2: Y - 30, stroke: COULEURS.violet, 'stroke-width': 2.5, 'stroke-dasharray': '7 6' }, svg);
+    }
+    for (let i = 0; i <= n; i++) {
+      const borne = i === 0 || i === n, dansLeZoom = i === parent.i || i === parent.i + 1;
+      dessinerParties(svg, valeur(parent, i), xDe(i, n), yp - 34, borne ? 19 : 16, dansLeZoom ? COULEURS.violet : COULEURS.gris);
+    }
+  }
+
+  dessinerDroite(n, Y, longueur);
+  dessinerEtiquettes(n, Y, i => valeur(ex, i), true, 26, 21);
+
+  const zoomMax = ZOOM_MAX[etat.classe];
+  const peutZoomer = ex.s % 10 === 0 || ex.scale < zoomMax;
+  if (peutZoomer) {
+    for (let i = 0; i < n; i++) {
+      el('rect', { x: xDe(i, n), y: Y - 40, width: (X1 - X0) / n, height: 70, rx: 8, class: 'zone' }, svg)
+        .addEventListener('click', () => zoomer(i));
+    }
+  }
+  const aide = peutZoomer ? 'Touche un intervalle pour le grossir 10 fois.' : `On est aux ${UNITE_MINI[zoomMax]}.`;
+  if (parent) {                            // ce que le zoom vient de faire, en une phrase
+    const bornes = [parent.i, parent.i + 1].map(i => `<b>${valeur(parent, i)[0].txt}</b>`);
+    zoneExplication.innerHTML = `<span class="zoom">L’intervalle entre ${bornes[0]} et ${bornes[1]} est maintenant ` +
+      `partagé en <b>10</b> parties égales. Chaque graduation vaut ${nomUnite(ex.s, ex.scale)}.</span>${aide}`;
+  } else {
+    zoneExplication.innerHTML = `1 graduation = <b>${ecrire(ex.s, ex.scale)}</b><span class="espace"></span>${aide}`;
+  }
+}
+
+// « un dixième (0,1) », « une dizaine (10) »… ; sinon simplement le nombre
+function nomUnite(s, scale) {
+  const NOMS = { '-3':'un millième', '-2':'un centième', '-1':'un dixième', 0:'une unité', 1:'une dizaine',
+                 2:'une centaine', 3:'un millier', 4:'une dizaine de milliers', 5:'une centaine de milliers',
+                 6:'un million', 7:'une dizaine de millions', 8:'une centaine de millions' };
+  const e = Math.log10(s);
+  const nom = Number.isInteger(e) ? NOMS[e - scale] : undefined;
+  return nom ? `${nom} (<b>${ecrire(s, scale)}</b>)` : `<b>${ecrire(s, scale)}</b>`;
+}
+
+function zoomer(i) {
+  const ex = etat.explo;
+  ex.historique.push({ scale: ex.scale, a: ex.a, s: ex.s, i });
+  ex.a += i * ex.s;
+  if (ex.s % 10 === 0) ex.s /= 10;          // ex. de 100 en 100 → de 10 en 10
+  else { ex.a *= 10; ex.scale++; }          // ex. de 1 en 1 → de 0,1 en 0,1
+  rendre();
+}
+
+function dezoomer() {
+  const p = etat.explo.historique.pop();
+  if (p) Object.assign(etat.explo, { scale: p.scale, a: p.a, s: p.s });
+  rendre();
+}
+
+function choisirDepart(k, dessiner = true) {
+  const d = DEPARTS[k];
+  Object.assign(etat.explo, { depart: k, scale: d.scale, a: d.a, s: d.s, historique: [] });
+  if (dessiner) rendre();
+}
+
+/* =====================================================================
+   7. MENU DE GAUCHE, BOUTONS, CLAVIER, MÉMORISATION
+   ===================================================================== */
+
+// En « Placer », toucher la droite pose la flèche sur la graduation la plus proche
+svg.addEventListener('click', e => {
+  if (etat.mode !== 'placer' || etat.voirReponse) return;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  const exo = etat.exo, position = (p.x - X0) / (X1 - X0) * exo.n;
+  etat.placement = etat.lettres      // avec les lettres : la graduation lettrée la plus proche
+    ? graduationsLettrees(exo).reduce((a, b) => Math.abs(b - position) < Math.abs(a - position) ? b : a)
+    : borner(Math.round(position), 0, exo.n);
+  rendre();
+});
+
+/* Après un changement de classe : si un type, un niveau ou un départ n'existe pas
+   pour cette classe, on prend le plus avancé de ceux qui restent. Renvoie les types visibles. */
+function ajusterALaClasse() {
+  const visibles = t => NIVEAUX[t].filter(nv => niveauVisible(nv.id));
+  const types = Object.keys(NIVEAUX).filter(t => visibles(t).length);
+  for (const t of types) if (!niveauVisible(etat.niveau[t])) etat.niveau[t] = visibles(t).at(-1).id;
+  if (!types.includes(etat.type)) etat.type = types.at(-1);
+  if (!MODES.includes(etat.mode)) etat.mode = 'trouver';
+  if (!departVisible(DEPARTS[etat.explo.depart]) || etat.explo.scale > ZOOM_MAX[etat.classe]) {
+    choisirDepart(departVisible(DEPARTS[1]) ? 1 : DEPARTS.findIndex(departVisible), false);   // 0 à 10 en CM
+  }
+  return types;
+}
+
+function choisirClasse(c) {
+  etat.classe = c;
+  etat.reponse = rangClasse(c) <= 1 ? 'entourer' : 'ecrire';   // propositions en CP–CE1, comme les évaluations
+  ajusterALaClasse();
+  sauver();
+  if (etat.mode === 'explorer') rendre(); else nouvelleSerie();
+}
+
+function basculer(cle) { etat[cle] = !etat[cle]; rendre(); }
+
+// Bouton de pastille (texte, actif, action), ajouté dans « parent »
+function pastille(parent, texte, actif, action) {
+  const b = document.createElement('button');
+  b.textContent = texte;
+  b.classList.toggle('actif', actif);
+  b.onclick = action;
+  parent.appendChild(b);
+  return b;
+}
+
+// Petit titre dans le sous-menu (« De 0 à… », « Propositions », « Repères »)
+function titreMenu(parent, texte, classe) {
+  const t = document.createElement('span');
+  t.className = classe;
+  t.textContent = texte;
+  parent.appendChild(t);
+}
+
+function majMenu() {
+  const types = ajusterALaClasse();
+  const explorer = etat.mode === 'explorer';
+
+  // Classes
+  const classes = document.getElementById('classes');
+  classes.innerHTML = '';
+  for (const c of CLASSES) pastille(classes, c, etat.classe === c, () => choisirClasse(c));
+
+  // Modes et types ; le sous-menu s'ouvre sous le mode choisi, les niveaux sous le type choisi
+  document.querySelectorAll('#modes > button').forEach(b => b.classList.toggle('actif', b.dataset.mode === etat.mode));
+  document.querySelectorAll('#types > button').forEach(b => {
+    b.style.display = types.includes(b.dataset.type) ? '' : 'none';
+    b.classList.toggle('actif', b.dataset.type === etat.type);
+  });
+  const modeActif = document.querySelector(`#modes > button[data-mode="${etat.mode}"]`);
+  const sousMenu = document.getElementById('sousMenu');
+  modeActif.after(sousMenu);
+  sousMenu.style.display = etat.menuOuvert ? '' : 'none';
+  sousMenu.style.setProperty('--c', modeActif.style.getPropertyValue('--c'));
+  document.getElementById('types').style.display = explorer ? 'none' : '';
+  document.getElementById('imprimer').style.display = explorer ? 'none' : '';
+
+  // Niveaux du type choisi
+  const niveaux = document.getElementById('niveaux');
+  niveaux.innerHTML = '';
+  if (!explorer) {
+    document.querySelector(`#types > button[data-type="${etat.type}"]`).after(niveaux);
+    for (const nv of NIVEAUX[etat.type].filter(nv => niveauVisible(nv.id))) {
+      pastille(niveaux, nv.nom, etat.niveau[etat.type] === nv.id, () => { etat.niveau[etat.type] = nv.id; sauver(); nouvelleSerie(); });
+    }
+  }
+
+  // Départs de l'exploration
+  const departs = document.getElementById('departs');
+  departs.innerHTML = '';
+  if (explorer) {
+    titreMenu(departs, 'De 0 à…', 'titre-departs');
+    DEPARTS.forEach((d, k) => {
+      if (departVisible(d)) pastille(departs, d.nom, etat.explo.depart === k && !etat.explo.historique.length, () => choisirDepart(k));
+    });
+  }
+
+  // Difficulté (Trouver, Placer) : palier fixe, ou progressive (le palier en cours est indiqué)
+  const difficulte = document.getElementById('difficulte');
+  difficulte.innerHTML = '';
+  if (!explorer) {
+    titreMenu(difficulte, 'Difficulté', 'titre-reponse');
+    for (const d of DIFFICULTES) {
+      const nom = d === 'prog' ? (etat.difficulte === 'prog' ? `progressive (${etat.exo.palier})` : 'progressive') : String(d);
+      pastille(difficulte, nom, etat.difficulte === d, () => { etat.difficulte = d; sauver(); nouvelleSerie(); });
+    }
+  }
+
+  // « Trouver » : propositions sans / avec ; « Placer » : repères sans / lettres
+  const format = document.getElementById('formatReponse');
+  format.innerHTML = '';
+  if (etat.mode === 'trouver') {
+    titreMenu(format, 'Propositions', 'titre-reponse');
+    for (const [v, nom] of [['ecrire', 'sans'], ['entourer', 'avec']]) {
+      pastille(format, nom, etat.reponse === v, () => { etat.reponse = v; etat.exo.choix = null; sauver(); rendre(); });
+    }
+  } else if (etat.mode === 'placer') {
+    titreMenu(format, 'Repères', 'titre-reponse');
+    for (const [v, nom] of [[false, 'sans'], [true, 'lettres']]) {
+      pastille(format, nom, etat.lettres === v, () => { etat.lettres = v; sauver(); rendre(); });
+    }
+  }
+
+  // Réglage d'affichage (bas de la colonne)
+  const affichage = document.getElementById('affichage');
+  affichage.innerHTML = '';
+  pastille(affichage, 'Intervalles en couleur', etat.couleurs, () => { etat.couleurs = !etat.couleurs; sauver(); rendre(); });
+
+  // Boutons du bas
+  const actions = document.getElementById('actions');
+  actions.innerHTML = '';
+  const bouton = (texte, action, classe, actif = false) => pastille(actions, texte, actif, action).classList.add(classe || 'aide');
+  if (explorer) {
+    if (etat.explo.historique.length) bouton('Dézoomer', dezoomer, 'nouveau');
+    return;
+  }
+  bouton('Écrire les graduations', () => basculer('voirGraduations'), '', etat.voirGraduations);
+  bouton('Montrer le chemin', () => basculer('voirChemin'), '', etat.voirChemin);
+  bouton(etat.mode === 'placer' ? 'Vérifier' : 'Voir la réponse', () => basculer('voirReponse'), 'principal');
+  bouton('Nouvelle droite', nouvelleDroite, 'nouveau');
+}
+
+document.querySelectorAll('#modes > button').forEach(b => b.onclick = () => {
+  if (etat.mode === b.dataset.mode) {      // même mode : on ouvre ou ferme ses choix
+    etat.menuOuvert = !etat.menuOuvert;
+    majMenu();
+    return;
+  }
+  etat.mode = b.dataset.mode; etat.menuOuvert = true; sauver();
+  if (etat.mode === 'explorer') rendre(); else nouvelleSerie();
+});
+document.querySelectorAll('#types > button').forEach(b => b.onclick = () => {
+  etat.type = b.dataset.type; sauver(); nouvelleSerie();
+});
+
+// Clavier : Espace = réponse, flèche droite = nouvelle droite (sauf en « Explorer » et fenêtre ouverte)
+document.addEventListener('keydown', e => {
+  if (etat.mode === 'explorer' || !fenetreFiche.hidden) return;
+  if (e.code === 'Space') { e.preventDefault(); basculer('voirReponse'); }
+  if (e.code === 'ArrowRight') nouvelleDroite();
+});
+
+// Plein écran (le picto Accueil est un simple lien vers le portail)
+document.getElementById('pleinEcran').onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.();
+};
+
+// Mémorisation des derniers réglages sur cet ordinateur
+const CLE_MEMOIRE = 'route-des-nombres';
+function sauver() {
+  const { classe, mode, type, niveau, reponse, lettres, couleurs, difficulte } = etat;
+  try { localStorage.setItem(CLE_MEMOIRE, JSON.stringify({ classe, mode, type, niveau, reponse, lettres, couleurs, difficulte })); } catch (e) {}
+}
+function charger() {
+  let r = null;
+  try { r = JSON.parse(localStorage.getItem(CLE_MEMOIRE) || 'null'); } catch (e) { r = null; }
+  if (!r || typeof r !== 'object') return;
+  const parmi = (valeur, possibles, defaut) => possibles.includes(valeur) ? valeur : defaut;
+  const D = REGLAGES_PAR_DEFAUT;
+  etat.classe = parmi(r.classe, CLASSES, D.classe);
+  etat.mode   = parmi(r.mode, MODES, D.mode);
+  etat.type   = parmi(r.type, Object.keys(NIVEAUX), D.type);
+  for (const t of Object.keys(NIVEAUX)) {                     // chaque niveau : un identifiant qui existe
+    etat.niveau[t] = parmi(r.niveau && r.niveau[t], NIVEAUX[t].map(nv => nv.id), D.niveau[t]);
+  }
+  etat.reponse  = parmi(r.reponse, ['ecrire', 'entourer'], D.reponse);
+  etat.lettres  = r.lettres === true;
+  etat.couleurs = r.couleurs === true;
+  etat.difficulte = parmi(r.difficulte, DIFFICULTES, D.difficulte);
+}
+
+// En dernier recours : réglages d'origine (et mémoire effacée) si quelque chose empêche de démarrer
+function reglagesParDefaut() {
+  try { localStorage.removeItem(CLE_MEMOIRE); } catch (e) {}
+  Object.assign(etat, structuredClone(REGLAGES_PAR_DEFAUT));
+}
+
+/* =====================================================================
+   8. FICHE WORD À IMPRIMER
+   La fiche reprend le mode, la classe, le niveau et les propositions de l'écran.
+   Les droites sont dessinées avec les mêmes outils, transformées en images,
+   puis rangées dans un vrai fichier .docx fabriqué ici (sans connexion).
+   ===================================================================== */
+
+const fenetreFiche = document.getElementById('fenetreFiche');
+const reglagesFiche = { nombre: 5, prenom: true, corrige: true };
+const NOM_MODE = { trouver: 'Trouver le nombre', placer: 'Placer le nombre' };
+
+const consigneFiche = mode => mode === 'placer'
+  ? 'Trace une flèche qui montre où se trouve le nombre sur la droite graduée.'
+  : etat.reponse === 'entourer' ? 'Entoure le nombre indiqué par la flèche.'
+  : 'Écris dans le cadre le nombre indiqué par la flèche.';
+
+function resumeFiche() {
+  const nv = NIVEAUX[etat.type].find(n => n.id === etat.niveau[etat.type]);
+  const propositions = etat.mode === 'trouver' ? (etat.reponse === 'entourer' ? ' · avec propositions' : ' · sans propositions') : '';
+  const difficulte = etat.difficulte === 'prog' ? ' · difficulté progressive' : ` · difficulté ${etat.difficulte}`;
+  return `${NOM_MODE[etat.mode]} · ${etat.classe} · ${NOM_TYPE[etat.type]} ${nv.nom}${difficulte}${propositions}`;
+}
+
+function majFenetreFiche() {
+  const choix = (id, valeurs, cle, nom = v => String(v)) => {
+    const zone = document.getElementById(id);
+    zone.innerHTML = '';
+    for (const v of valeurs) pastille(zone, nom(v), reglagesFiche[cle] === v, () => { reglagesFiche[cle] = v; majFenetreFiche(); });
+  };
+  choix('ficheNombre', [4, 5, 6], 'nombre');
+  choix('fichePrenom', [true, false], 'prenom', v => v ? 'Oui' : 'Non');
+  choix('ficheCorrige', [true, false], 'corrige', v => v ? 'Oui' : 'Non');
+  document.getElementById('ficheResume').textContent = resumeFiche();
+}
+
+// Droites toutes différentes
+function exercicesFiche(nombre) {
+  const liste = [], vues = new Set();
+  for (let essai = 0; liste.length < nombre && essai < 500; essai++) {
+    // En progressif, la fiche va du palier 1 au palier 3 ; sinon, le palier choisi
+    const exo = genererExercice(etat.difficulte === 'prog' ? 1 + Math.floor(liste.length * 3 / nombre) : etat.difficulte);
+    const signature = JSON.stringify([exo.a, exo.s, exo.n, exo.t, exo.den, exo.origine]);
+    if (!vues.has(signature)) { vues.add(signature); liste.push(exo); }
+  }
+  return liste;
+}
+
+// Dessin d'une droite de la fiche ; renvoie la hauteur utile du dessin
+function dessinerPourFiche(exo, mode, corrige) {
+  /* Dessin resserré pour le papier : la droite est placée juste sous le cadre le plus haut possible
+     (fraction ou non), la même pour l'exercice et le corrigé. */
+  const cadre = mode === 'placer' ? partiesConsigne(exo) : partiesReponse(exo);
+  const Y = 16 + (aUneFraction(cadre) ? 100 : 74) + 72, xCible = xDe(exo.t, exo.n);
+  const basEtiquettes = Y + (aUneFraction(etiquetteGraduation(exo, 0)) ? 100 : 76);   // virgule des décimaux comprise
+  dessinerDroite(exo.n, Y, i => longueurTrait(exo, i));
+  dessinerEtiquettes(exo.n, Y, i => etiquetteGraduation(exo, i), false, 40, 22, 215);   // sur papier : bornes plus grandes
+  if (mode === 'placer') {
+    const bas = dessinerCadre(L / 2, [{ txt: 'Place ' }, ...partiesConsigne(exo)], COULEURS.vert);
+    if (corrige) dessinerFleche(xCible, bas + 14, Y - 10, COULEURS.vert);
+    return basEtiquettes;
+  }
+  const bas = dessinerCadre(xCible, corrige ? partiesReponse(exo) : null, COULEURS.orange);
+  dessinerFleche(xCible, bas + 8, Y - 10, COULEURS.orange);
+  if (etat.reponse !== 'entourer') return basEtiquettes;
+  /* 6 propositions sous la droite (au corrigé, la bonne est entourée en vert).
+     Sur une ligne si elles tiennent en taille 30 au moins, sinon sur deux lignes de 3. */
+  const P = exo.propositions, ecart = 20, haut = P.liste.some(aUneFraction) ? 96 : 70;
+  const mesurer = (T, parLigne) => {
+    const largeurs = P.liste.map(p => Math.max(100, largeurParties(p, T) + 30));
+    const lignes = [largeurs.slice(0, parLigne), largeurs.slice(parLigne)].filter(l => l.length);
+    const tient = lignes.every(l => l.reduce((a, b) => a + b, 0) + ecart * (l.length - 1) <= L - 10);
+    return { T, parLigne, largeurs, tient };
+  };
+  const T0 = P.liste.some(aUneFraction) ? 44 : 36;   // fractions écrites plus grand : elles sont étroites
+  let m = mesurer(T0, 6);
+  while (!m.tient && m.T > 30) m = mesurer(m.T - 1, 6);
+  if (!m.tient) { m = mesurer(T0, 3); while (!m.tient && m.T > 16) m = mesurer(m.T - 1, 3); }
+  const nbLignes = Math.ceil(6 / m.parLigne);
+  for (let r = 0; r < nbLignes; r++) {
+    const ks = [...Array(m.parLigne).keys()].map(k => k + r * m.parLigne);
+    let x = (L - ks.reduce((a, k) => a + m.largeurs[k], 0) - ecart * (ks.length - 1)) / 2;
+    const y = basEtiquettes + 14 + r * (haut + 12);
+    for (const k of ks) {
+      const p = P.liste[k], w = m.largeurs[k], juste = corrige && k === P.juste;
+      el('rect', { x, y, width: w, height: haut, rx: 14, fill: '#fff',
+                   stroke: juste ? COULEURS.vert : COULEURS.noir, 'stroke-width': juste ? 7 : 3 }, svg);
+      dessinerParties(svg, p, x + w / 2, y + haut / 2, m.T, COULEURS.noir);
+      x += w + ecart;
+    }
+  }
+  return basEtiquettes + 14 + nbLignes * (haut + 12);
+}
+
+// Transforme une droite en image PNG ; renvoie { octets, rapport hauteur / largeur }
+const ESPACE_DROITES_CM = 0.25;   // espace sous chaque droite de la fiche
+
+async function imageDroite(exo, mode, corrige, numero) {
+  const image = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const ecran = svg;
+  svg = image;
+  let hauteur;
+  try { hauteur = dessinerPourFiche(exo, mode, corrige); } finally { svg = ecran; }
+
+  // Le CSS de la page ne suit pas l'image : on écrit les couleurs directement dans le dessin
+  image.querySelectorAll('.segment').forEach(r => {
+    if (etat.couleurs) r.setAttribute('fill', r.classList.contains('s0') ? '#ffd3bf' : '#bfe5df');
+    else r.remove();
+  });
+  if (etat.couleurs) {
+    image.querySelectorAll('.axe').forEach(a => a.setAttribute('stroke-width', 0));
+    image.querySelectorAll('.graduation').forEach(a => a.setAttribute('stroke-width', 5));
+  }
+  // Numéro de l'exercice dans une marge à gauche : il ne peut ni gêner le dessin ni se séparer de sa droite
+  const MARGE = 70, MARGE_DROITE = 40;   // la grande borne de droite peut déborder un peu
+  el('text', { x: -MARGE + 6, y: 50, 'font-size': 38, 'font-weight': 700, fill: COULEURS.noir }, image).textContent = numero + '.';
+  const largeurTotale = L + MARGE + MARGE_DROITE, largeurPx = 2400, hauteurPx = Math.round(largeurPx * hauteur / largeurTotale);
+  Object.entries({ viewBox: `${-MARGE} 0 ${largeurTotale} ${hauteur}`, width: largeurPx, height: hauteurPx, 'font-family': POLICE })
+    .forEach(([k, v]) => image.setAttribute(k, v));
+
+  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(image)], { type: 'image/svg+xml' }));
+  const img = new Image();
+  await new Promise((ok, erreur) => { img.onload = ok; img.onerror = erreur; img.src = url; });
+  const toile = document.createElement('canvas');
+  toile.width = largeurPx; toile.height = hauteurPx;
+  const ctx = toile.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, largeurPx, hauteurPx);
+  ctx.drawImage(img, 0, 0);
+  URL.revokeObjectURL(url);
+  const blob = await new Promise(ok => toile.toBlob(ok, 'image/png'));
+  return { octets: new Uint8Array(await blob.arrayBuffer()), rapport: hauteur / largeurTotale };
+}
+
+/* ---------- Fabrication du fichier .docx (archive zip sans compression) ---------- */
+
+const TABLE_CRC = Uint32Array.from({ length: 256 }, (_, n) => {
+  let c = n;
+  for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+  return c >>> 0;
+});
+function crc32(d) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < d.length; i++) c = TABLE_CRC[(c ^ d[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function creerZip(fichiers) {
+  const enc = new TextEncoder(), morceaux = [], central = [];
+  let position = 0;
+  for (const f of fichiers) {
+    const nom = enc.encode(f.nom), d = typeof f.donnees === 'string' ? enc.encode(f.donnees) : f.donnees, crc = crc32(d);
+    const local = new DataView(new ArrayBuffer(30));          // en-tête local
+    local.setUint32(0, 0x04034b50, true); local.setUint16(4, 20, true); local.setUint16(6, 0x0800, true);
+    local.setUint16(12, 0x21, true); local.setUint32(14, crc, true);
+    local.setUint32(18, d.length, true); local.setUint32(22, d.length, true); local.setUint16(26, nom.length, true);
+    morceaux.push(new Uint8Array(local.buffer), nom, d);
+    const entree = new DataView(new ArrayBuffer(46));         // entrée du répertoire central
+    entree.setUint32(0, 0x02014b50, true); entree.setUint16(4, 20, true); entree.setUint16(6, 20, true);
+    entree.setUint16(8, 0x0800, true); entree.setUint16(14, 0x21, true); entree.setUint32(16, crc, true);
+    entree.setUint32(20, d.length, true); entree.setUint32(24, d.length, true); entree.setUint16(28, nom.length, true);
+    entree.setUint32(42, position, true);
+    central.push(new Uint8Array(entree.buffer), nom);
+    position += 30 + nom.length + d.length;
+  }
+  const fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true); fin.setUint16(8, fichiers.length, true); fin.setUint16(10, fichiers.length, true);
+  fin.setUint32(12, central.reduce((t, m) => t + m.length, 0), true); fin.setUint32(16, position, true);
+  return new Blob([...morceaux, ...central, new Uint8Array(fin.buffer)],
+                  { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+const xml = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const POLICE_WORD = '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>';
+
+// Un paragraphe Word ; o = { taille (pt), gras, couleur, centre, apres (pt), sautDePage }
+function paragraphe(texte, o = {}) {
+  const pPr = (o.sautDePage ? '<w:pageBreakBefore/>' : '') +
+              `<w:spacing w:before="0" w:after="${(o.apres ?? 6) * 20}"/>` + (o.centre ? '<w:jc w:val="center"/>' : '');
+  const rPr = POLICE_WORD + (o.gras ? '<w:b/>' : '') + (o.couleur ? `<w:color w:val="${o.couleur}"/>` : '') +
+              `<w:sz w:val="${(o.taille || 12) * 2}"/>`;
+  return `<w:p><w:pPr>${pPr}</w:pPr><w:r><w:rPr>${rPr}</w:rPr><w:t xml:space="preserve">${xml(texte)}</w:t></w:r></w:p>`;
+}
+
+// Le numéro de la droite (gardé avec l'image), puis l'image centrée
+function paragrapheImage(id, rapport, largeurCm) {
+  const cx = Math.round(largeurCm * 360000), cy = Math.round(cx * rapport);   // 1 cm = 360 000 EMU
+  return `<w:p><w:pPr><w:spacing w:before="0" w:after="${ESPACE_DROITES_CM * 567 | 0}" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr>` +
+    `<w:r><w:drawing>` +
+    `<wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Droite ${id}"/>` +
+    `<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>` +
+    `<pic:nvPicPr><pic:cNvPr id="${id}" name="droite${id}.png"/><pic:cNvPicPr/></pic:nvPicPr>` +
+    `<pic:blipFill><a:blip r:embed="rIdImage${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>` +
+    `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>` +
+    `</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+}
+
+async function creerFicheWord() {
+  const bouton = document.getElementById('ficheCreer');
+  bouton.disabled = true; bouton.textContent = 'Création…';
+  try {
+    const { nombre, prenom, corrige } = reglagesFiche, mode = etat.mode;
+    const exercices = exercicesFiche(nombre);
+    const images = [];                     // { octets, rapport, id } : exercices puis corrigés
+    for (const passe of corrige ? [false, true] : [false]) {
+      for (const [k, exo] of exercices.entries()) images.push({ ...(await imageDroite(exo, mode, passe, k + 1)), id: images.length + 1 });
+    }
+
+    /* Une page pour les exercices, une page pour le corrigé : 26,7 cm utiles (A4, marges 1,5 cm).
+       On retire le plus haut des deux en-têtes (consigne et prénom / titre « Corrigé » et signature)
+       et une marge de sécurité, puis on partage entre les droites. */
+    const entetePage1 = 1.0 + (prenom ? 1.1 : 0), entetePage2 = corrige ? 1.1 + 0.45 : 0;
+    const hauteurUtile = 26.7 - Math.max(entetePage1, entetePage2) - 0.6;
+    const rapport = Math.max(...images.map(im => im.rapport));
+    const largeurCm = Math.min(18, (hauteurUtile / nombre - ESPACE_DROITES_CM) / rapport);
+
+    let corps = (prenom ? paragraphe('Prénom : ……………………………………………', { taille: 13, apres: 14 }) : '') +
+                paragraphe(consigneFiche(mode), { taille: 13, gras: true, apres: 10 });
+    images.forEach((im, k) => {
+      if (k === nombre) corps += paragraphe('Corrigé', { taille: 16, gras: true, couleur: 'FF6B35', apres: 10, sautDePage: true });
+      corps += paragrapheImage(im.id, im.rapport, largeurCm);
+    });
+    if (corrige) corps += paragraphe(SIGNATURE, { taille: 8, couleur: '888888', centre: true });
+
+    const entete = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const documentXml = entete +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+      'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" ' +
+      'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ' +
+      'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+      `<w:body>${corps}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>` +
+      '<w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    const fichiers = [
+      { nom: '[Content_Types].xml', donnees: entete +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/>' +
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
+      { nom: '_rels/.rels', donnees: entete +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+      { nom: 'word/document.xml', donnees: documentXml },
+      { nom: 'word/_rels/document.xml.rels', donnees: entete +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        images.map(im => `<Relationship Id="rIdImage${im.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/droite${im.id}.png"/>`).join('') +
+        '</Relationships>' },
+      ...images.map(im => ({ nom: `word/media/droite${im.id}.png`, donnees: im.octets }))
+    ];
+
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(creerZip(fichiers));
+    lien.download = `route-des-nombres-${mode}.docx`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    setTimeout(() => URL.revokeObjectURL(lien.href), 10000);
+    fenetreFiche.hidden = true;
+  } finally {
+    bouton.disabled = false; bouton.textContent = 'Créer la fiche Word';
+  }
+}
+
+document.getElementById('imprimer').onclick = () => { majFenetreFiche(); fenetreFiche.hidden = false; };
+document.getElementById('ficheAnnuler').onclick = () => { fenetreFiche.hidden = true; };
+document.getElementById('ficheCreer').onclick = creerFicheWord;
+fenetreFiche.addEventListener('click', e => { if (e.target === fenetreFiche) fenetreFiche.hidden = true; });
+
+/* =====================================================================
+   9. VÉRIFICATION AUTOMATIQUE
+   Ouvrir le fichier avec « #verifier » à la fin de l'adresse (ex. route-des-nombres.html#verifier) :
+   3 000 droites par niveau sont générées et contrôlées, et le bilan s'affiche.
+   Contrôles : bornes dans l'ordre et dans la limite du niveau ; nombre cherché strictement
+   entre les bornes ; étiquettes exactes et pas régulier ; réponse et consigne justes ;
+   6 propositions de valeurs différentes, une seule juste, jamais une borne, au plus une
+   « loin » de la droite ; lettres de « Placer » contenant la bonne graduation.
+   ===================================================================== */
+function verifier(nombre = 3000) {
+  const sauvegarde = { type: etat.type, niveau: { ...etat.niveau } };
+  const exacte = (e, i) => e.genre === 'nombre' ? (e.a + i * e.s) / 10 ** e.scale : (e.origine + i) / e.den;
+  const egal = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a));
+  const LIMITE = { c0:10, i0:1e2, i1:1e3, i2:1e4, i3:1e6, i4:1e9 };
+  const lignes = [];
+  for (const type of Object.keys(NIVEAUX)) for (const { id, nom } of NIVEAUX[type]) {
+    etat.type = type; etat.niveau[type] = id;
+    const pb = {}, note = m => pb[m] = (pb[m] || 0) + 1;
+    for (let k = 0; k < nombre; k++) {
+      const e = genererExercice(1 + k % 3), d = exacte(e, 0), f = exacte(e, e.n), vj = exacte(e, e.t);   // les 3 paliers
+      if (!(e.n >= 3)) note('droite trop courte');
+      // chaque écriture de la réponse (séparées par « = ») vaut le nombre cherché
+      const ecritures = [[]];
+      for (const x of partiesReponse(e)) {
+        if (x.txt !== undefined && x.txt.includes('=')) { const suite = x.txt.split('=')[1]; ecritures.push(suite.trim() ? [{ txt: suite }] : []); }
+        else ecritures.at(-1).push(x);
+      }
+      if (ecritures.some(ec => !egal(valeurParties(ec), vj))) note('écriture de la réponse fausse');
+      if (!(e.t >= 1 && e.t < e.n)) note('nombre cherché hors des bornes');
+      if (!(d >= 0 && d < f) || (LIMITE[id] && f > LIMITE[id])) note('bornes incohérentes');
+      for (let i = 0; i <= e.n; i++) {
+        if (!egal(valeurParties(partiesGraduation(e, i)), exacte(e, i)) || !egal(valeurParties(etiquetteGraduation(e, i)), exacte(e, i))) note('étiquette fausse');
+        if (i && !egal(exacte(e, i) - exacte(e, i - 1), (f - d) / e.n)) note('pas irrégulier');
+      }
+      if (!egal(valeurParties(partiesConsigne(e)), vj)) note('consigne fausse');
+      const vals = e.propositions.liste.map(valeurParties), m = Math.max((f - d) / 2, 3 * (f - d) / e.n);
+      if (vals.length !== 6 || new Set(vals.map(v => v.toFixed(9))).size !== 6) note('propositions pas toutes différentes');
+      if (vals.filter(v => egal(v, vj)).length !== 1) note('pas exactement une bonne réponse');
+      if (vals.some(v => egal(v, d) || egal(v, f))) note('borne proposée');
+      if (vals.filter(v => v < d - m || v > f + m).length > 1) note('propositions trop loin');
+      if (!graduationsLettrees(e).includes(e.t)) note('lettres sans la bonne graduation');
+    }
+    const bilan = Object.entries(pb).map(([m, n]) => `${m} (${n})`).join(', ');
+    lignes.push(`${bilan ? '✗' : '✓'} ${NOM_TYPE[type]} ${nom} (paliers 1 à 3) : ${bilan || 'tout est juste'}`);
+  }
+  Object.assign(etat, { type: sauvegarde.type, niveau: sauvegarde.niveau });
+  return lignes;
+}
+
+/* =====================================================================
+   10. DÉMARRAGE
+   ===================================================================== */
+function demarrer() {
+  choisirDepart(1, false);   // prépare l'exploration (ajustée à la classe ensuite)
+  ajusterALaClasse();
+  nouvelleDroite();
+}
+try {
+  charger();
+  demarrer();
+} catch (e) {                // un réglage enregistré pose problème : on repart des réglages d'origine
+  console.warn('Réglages enregistrés ignorés :', e);
+  reglagesParDefaut();
+  demarrer();
+}
+if (location.hash === '#verifier') {
+  const lignes = verifier();
+  zoneExplication.innerHTML = '<div style="text-align:left;font-size:.9rem;line-height:1.5">' +
+    `<b>Vérification automatique : 3 000 droites par niveau</b><br>${lignes.join('<br>')}</div>`;
+}
+</script>
+</body>
+</html>
