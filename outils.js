@@ -121,7 +121,7 @@ self.OUTILS = [
   },
   {
     dossier: 'route-des-nombres',
-    version: '1.36',
+    version: '1.0',
     nom: 'La route des nombres',
     niveau: 'du CP au CM2',
     texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '

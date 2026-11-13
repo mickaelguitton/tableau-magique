@@ -23,7 +23,7 @@
 <script src="../outils.js"></script>
 <script src="../portail.js"></script>
 <!--
-  La route des nombres – M. Guitton – licence CC BY-NC 4.0 – v1.36
+  La route des nombres – M. Guitton – licence CC BY-NC 4.0 – v1.0
   Intégré au portail « Le tableau magique » (bouton Accueil, version, hors ligne : voir ../portail.js).
   Mis au point avec l'aide de Claude AI.
 
@@ -124,15 +124,18 @@
   #dessin{width:100%; height:auto; min-height:0; flex-shrink:1; max-height:calc(100dvh - 250px); display:block; margin:0 auto; user-select:none}
   #dessin.cliquable{cursor:pointer}
 
-  /* Pictos en haut à droite : imprimer, accueil, plein écran */
+  /* En haut à droite : imprimer, Accueil (dans le portail), plein écran */
   .barre-outils{position:absolute; top:14px; right:16px; display:flex; gap:8px; z-index:2}
   .picto{
     width:42px; height:42px; border-radius:12px; background:var(--carte); padding:0; cursor:pointer;
     box-shadow:0 2px 6px rgba(0,0,0,.12); display:grid; place-items:center;
   }
-  .picto svg{width:24px; height:24px}
-  #accueil{display:none}                         /* l'accueil n'existe que dans le portail (classe posée par portail.js) */
-  html.dans-portail #accueil{display:grid}
+  .picto svg{width:26px; height:26px}
+  .picto{color:var(--violet)}
+  /* Bouton « Accueil » du portail, comme dans les autres outils (caché quand le fichier est ouvert seul) */
+  #accueil{display:none; height:42px; padding:0 16px; border-radius:12px; background:var(--violet); color:#fff;
+           font-size:1rem; box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  html.dans-portail #accueil{display:block}
 
   /* Phrase d'aide sous la droite */
   #explication{min-height:2.2em; text-align:center; font-size:1.25rem; line-height:1.9; padding:0 10px}
@@ -197,7 +200,7 @@
     main{padding:8px; min-height:70vh}
     .scene{border-radius:18px; padding:56px 6px 8px}
     #dessin{max-height:none}
-    .picto{width:36px; height:36px}
+    .picto, #accueil{height:36px} .picto{width:36px}
     #explication{font-size:1rem}
     #propositions{gap:8px}
     #propositions button{padding:4px 10px; border-radius:12px}
@@ -271,20 +274,12 @@
   <div class="scene">
     <div class="barre-outils">
       <button id="imprimer" class="picto" title="Fiche Word à imprimer" aria-label="Fiche Word à imprimer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
         </svg>
       </button>
-      <a id="accueil" class="picto" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>
-        </svg>
-      </a>
-      <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
-        </svg>
-      </button>
+      <button id="accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
+      <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran"></button>
     </div>
     <svg id="dessin" viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg"></svg>
     <div id="propositions"></div>
@@ -311,7 +306,7 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.36</span></footer>
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span></footer>
 
 <script>
 'use strict';
@@ -321,7 +316,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'route-des-nombres') || { version: '1.36' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'route-des-nombres') || { version: '1.0' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -1246,11 +1241,21 @@ document.addEventListener('keydown', e => {
   if (e.code === 'ArrowRight') nouvelleDroite();
 });
 
-// Plein écran (le picto Accueil est un simple lien vers le portail)
-document.getElementById('pleinEcran').onclick = () => {
+// Plein écran : même picto que dans les autres outils du portail (4 coins vers l'extérieur ou vers l'intérieur)
+const btnPleinEcran = document.getElementById('pleinEcran');
+const PICTO_ENTRER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
+const PICTO_SORTIR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+function majPleinEcran() {
+  const plein = !!document.fullscreenElement;
+  btnPleinEcran.innerHTML = plein ? PICTO_SORTIR : PICTO_ENTRER;
+  btnPleinEcran.title = btnPleinEcran.ariaLabel = plein ? 'Quitter le plein écran' : 'Plein écran';
+}
+btnPleinEcran.onclick = () => {
   if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen?.();
+  else document.documentElement.requestFullscreen?.().catch(() => {});
 };
+document.addEventListener('fullscreenchange', majPleinEcran);
+majPleinEcran();
 
 // Mémorisation des derniers réglages sur cet ordinateur
 const CLE_MEMOIRE = 'route-des-nombres';
