@@ -447,7 +447,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.4</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.5</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -1098,7 +1098,7 @@ class InteractiveClock {
         const cands = [t12, t12 + 720];
         const dist = c => { const d = Math.abs(c - this.total) % 1440; return d > 720 ? 1440 - d : d; };
         this.total = cands.reduce((b, c) => dist(c) < dist(b) ? c : b);
-      } else this.freeHour = mod(Math.round(ang / 2.5) * 2.5, 360);   // crans de 2,5° (5 minutes)
+      } else this.freeHour = mod(Math.round(ang / 7.5) * 7.5, 360);   // 4 places par heure : pile, et quart, et demie, moins le quart
     }
     if (S.linked) this.syncFree();
     this.update();
@@ -1366,6 +1366,7 @@ function checkPlacer(){
   if (P.checked === false) P.history.push(ok);
   P.checked = true;
   if (ok) P.revealed = true;
+  if (ok && !S.linked) { clockPlace.freeHour = th * 30 + tm * .5; clockPlace.update(); }   // calage sur la place exacte
 
   const tx = T();
   if (ok){
@@ -1393,14 +1394,12 @@ function checkPlacer(){
 }
 
 // Petite aiguille placée à la main (aiguilles indépendantes) :
-//   l'aiguille avance par crans de 2,5° (5 minutes) ; on accepte un cran d'écart au plus
-//   (tolérance 3°, soit 5 minutes), et l'aiguille doit rester entre les deux bons nombres.
+//   elle n'a que 4 places par heure (pile, et quart, et demie, moins le quart, soit des crans de 7,5°).
+//   On accepte les deux places qui encadrent la position exacte : pour 3 h 05, sur le 3 ou au quart après le 3 ;
+//   pour 3 h 00 ou 3 h 15, seulement la bonne place. Seule une vraie erreur est signalée.
 function hourHandOk(angle, th, tm){
   const expected = th * 30 + tm * .5;
-  if (InteractiveClock.gap(angle, expected) > 3) return false;
-  if (tm === 0) return true;
-  const past = mod(angle - th * 30, 360);
-  return past > 0 && past < 30;
+  return InteractiveClock.gap(angle, expected) < 7.5 - 1e-6;
 }
 
 // Où doit se trouver la petite aiguille (pour les corrections)
