@@ -54,11 +54,12 @@ self.OUTILS = [
   {
     dossier: 'lire-l-heure',
     version: '1.0',
-    nom: 'Les aiguilles du temps',
-    niveau: 'lire l’heure · du CP au CM2',
-    texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure. Rituel sur ardoise avec '
-         + '1, 4 ou 6 horloges, placer les aiguilles avec correction, matin et après-midi, secondes. '
-         + 'Fiches à imprimer avec corrigé, et la même horloge en anglais.',
+    nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
+    niveau: 'lire l’heure · français et anglais',
+    texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure en français et en anglais, '
+         + 'du CP au CM2. Un clic sur le drapeau, et tout passe en anglais : o’clock, half past, quarter to… '
+         + 'Rituel sur ardoise avec 1, 4 ou 6 horloges, placer les aiguilles avec correction, heures dites à l’oral. '
+         + 'Fiches à imprimer avec corrigé.',
     donnees: ['aiguilles-du-temps'],
     couleur: '#2B4C8C', ombre: '#C3D2F0'
   },
