@@ -251,8 +251,9 @@ button{font:inherit;color:inherit}
 @keyframes wrongPulse{50%{stroke-width:3}}
 .ghost .hand-h,.ghost .hand-m,.ghost .hand-s{opacity:.38;filter:none;stroke-dasharray:6 5;stroke:var(--ink)}
 .ghost .hub,.ghost .hub-dot{display:none}
-svg.interactive{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-svg.interactive.dragging{cursor:grabbing}
+/* Main bleue bordée de blanc : toujours visible, sur le cadran blanc comme sur le bord bleu */
+svg.interactive{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='%232b4c8c' stroke='%23fff' stroke-width='1.6' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='4' height='15' rx='2'/%3E%3Crect x='13' y='2' width='4' height='16' rx='2'/%3E%3Crect x='17' y='3' width='4' height='15' rx='2'/%3E%3Crect x='21' y='6' width='4' height='13' rx='2'/%3E%3Cpath d='M9 15 L5 11.5 Q3 10 2.5 12 L8 22 Q10 29 17 29 L19 29 Q25 29 25 22 L25 16 L9 16 Z'/%3E%3C/g%3E%3C/svg%3E") 15 12,grab;touch-action:none;user-select:none;-webkit-user-select:none}
+svg.interactive.dragging{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='%232b4c8c' stroke='%23fff' stroke-width='1.6' stroke-linejoin='round'%3E%3Crect x='9' y='8' width='4' height='10' rx='2'/%3E%3Crect x='13' y='7' width='4' height='11' rx='2'/%3E%3Crect x='17' y='8' width='4' height='10' rx='2'/%3E%3Crect x='21' y='11' width='4' height='8' rx='2'/%3E%3Cpath d='M9 15 L5 11.5 Q3 10 2.5 12 L8 22 Q10 29 17 29 L19 29 Q25 29 25 22 L25 16 L9 16 Z'/%3E%3C/g%3E%3C/svg%3E") 15 12,grabbing}
 svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
 
 /* ---------- Barre du haut plus compacte sur les écrans moyens (projecteurs 1280, 1366) ---------- */
@@ -433,7 +434,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.1</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.2</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -1056,7 +1057,9 @@ class InteractiveClock {
 
   move(e){
     if (!this.drag) return;
-    const ang = InteractiveClock.angleOf(this.point(e)), st = dragStep();
+    // Pendant le glissement, les aiguilles suivent le doigt à la minute près (ou à la seconde) ;
+    // elles se calent sur la précision du niveau (heure pile, demi-heure, quart d'heure…) quand on lâche
+    const ang = InteractiveClock.angleOf(this.point(e)), st = 1;
     // Écart le plus court sur un tour de 60 (passage par 12 dans un sens ou dans l'autre)
     const wrap = d => d < -30 ? d + 60 : d > 30 ? d - 60 : d;
     if (this.drag.hand === 's'){
@@ -1087,9 +1090,19 @@ class InteractiveClock {
 
   up(){
     if (!this.drag) return;
+    const hand = this.drag.hand;
     this.drag = null;
     this.svg.classList.remove('dragging');
+    // Calage sur la précision du niveau
+    const st = dragStep();
+    if (st > 1 && hand !== 's'){
+      if (S.linked){
+        const t = Math.round(this.total / st) * st;
+        if (t !== this.total) { this.animateTo(t, 180); return; }
+      } else if (hand === 'm') this.freeMin = mod(Math.round(this.freeMin / st) * st, 60);
+    }
     this.update();
+    if (this.onChange) this.onChange();
   }
 }
 
