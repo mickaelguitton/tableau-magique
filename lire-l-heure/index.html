@@ -170,6 +170,9 @@ button{font:inherit;color:inherit}
 .feedback.ko{background:var(--warn-soft);color:#9a4314}
 .feedback.info{background:var(--primary-soft);color:var(--primary)}
 .score{display:flex;gap:6px;flex-wrap:wrap}
+.mine input{flex:1;min-width:0;font:inherit;font-weight:650;border:2px solid var(--primary-soft);border-radius:12px;padding:9px 12px;color:var(--ink)}
+.mine input:focus{outline:none;border-color:var(--primary)}
+.mine input.bad{border-color:var(--warn);background:var(--warn-soft)}
 .score i{width:16px;height:16px;border-radius:50%;background:var(--line);display:block}
 .score i.ok{background:var(--ok)} .score i.ko{background:var(--warn)}
 
@@ -388,6 +391,11 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
             <button class="btn" id="pListen" data-ui="listen">Écouter</button>
           </div>
           <button class="btn next" id="pNext" data-ui="next">Heure suivante</button>
+          <!-- L'enseignant choisit lui-même l'heure à placer (ex. 8 h 45, 8:45, 20 h 05) -->
+          <form class="row mine" id="pMine" autocomplete="off">
+            <input type="text" id="pMineIn" inputmode="numeric" placeholder="Mon heure : 8 h 45" aria-label="Heure à placer">
+            <button class="btn" type="submit">Proposer</button>
+          </form>
           <div class="feedback info" id="pFeedback"></div>
           <div class="score" id="pScore"></div>
         </div>
@@ -1257,7 +1265,7 @@ function renderLire(){
 $('lGrid').addEventListener('click', e => {
   const c = e.target.closest('.qcard'); if (!c) return;
   const i = +c.dataset.i; L.shown[i] = !L.shown[i];
-  if (L.shown[i] && S.lCount === 1) speak(expr(L.times[i]).say);
+  if (L.shown[i] && S.lCount === 1 && S.lang === 'en') speak(expr(L.times[i]).say);   // voix seulement en anglais
   renderLire();
 });
 // Choisit le nombre de colonnes qui donne les plus grandes horloges pour l'écran utilisé
@@ -1394,6 +1402,33 @@ function hourWhere(th, tm){
   if (tm === 30) return en ? `It must be halfway between ${n} and ${next}.` : `Elle doit être au milieu, entre le ${n} et le ${next}.`;
   return en ? `It must be almost at ${next}.` : `Elle doit être presque sur le ${next}.`;
 }
+
+// Heure choisie par l'enseignant : « 8 h 45 », « 8h45 », « 8:45 », « 20 h 05 », « 8 h 45 min 30 s »
+function lireHeureSaisie(txt){
+  const n = (txt.match(/\d+/g) || []).map(Number);
+  if (!n.length) return null;
+  const [h, m = 0, sec = 0] = n;
+  if (h > 24 || m > 59 || sec > 59) return null;
+  let t = (h % 24) * 60 + m + (useSec() ? sec / 60 : 0);
+  if (!S.h24) t = t % 720;            // sans matin / après-midi : 20 h 05 se place comme 8 h 05
+  return t;
+}
+$('pMine').addEventListener('submit', e => {
+  e.preventDefault();
+  const t = lireHeureSaisie($('pMineIn').value);
+  $('pMineIn').classList.toggle('bad', t === null);
+  if (t === null) return;
+  P.target = t;
+  P.fmt = S.pFormat === 'hasard' ? (Math.random() < .5 ? 'chiffres' : 'lettres') : S.pFormat;
+  P.checked = false; P.revealed = false;
+  clockPlace.ghostT = null; clockPlace.wrong = null;
+  clockPlace.setTotal(0, true);
+  $('pMineIn').value = ''; $('pMineIn').blur();
+  renderPlacer();
+  feedback('info', T().start);
+  if (P.fmt === 'oral') setTimeout(() => speak(expr(P.target).say), 250);
+});
+$('pMineIn').addEventListener('input', () => $('pMineIn').classList.remove('bad'));
 
 $('pCheck').onclick = checkPlacer;
 $('pNext').onclick = newPlacer;
