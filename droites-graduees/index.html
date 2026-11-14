@@ -128,16 +128,14 @@
   .scene.explorer #defile{display:block; flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin}
   .scene.explorer #dessin{max-height:none}
 
-  /* Pictos : imprimer en haut à droite de la droite ; Accueil et plein écran au-dessus du titre */
-  .barre-outils{position:absolute; top:14px; right:16px; display:flex; gap:8px; z-index:2}
+  /* Pictos au-dessus du titre : Accueil (dans le portail) à gauche ; fiche à imprimer et plein écran à droite */
+  .haut-colonne{display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-bottom:4px}
+  .haut-colonne #accueil{margin-right:auto}
   .picto{
-    width:42px; height:42px; border-radius:12px; background:var(--carte); color:var(--violet); padding:0; cursor:pointer;
-    box-shadow:0 2px 6px rgba(0,0,0,.12); display:grid; place-items:center;
+    width:32px; height:32px; border-radius:9px; background:var(--violet); color:#fff; padding:0; cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,.12); display:grid; place-items:center;
   }
-  .picto svg{width:26px; height:26px}
-  .picto.violet{background:var(--violet); color:#fff}
-  .haut-colonne{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
-  .haut-colonne #pleinEcran{margin-left:auto}
+  .picto svg{width:20px; height:20px}
   #accueil{display:none}                         /* l'accueil n'existe que dans le portail (classe posée par portail.js) */
   html.dans-portail #accueil{display:grid}
 
@@ -202,9 +200,9 @@
     main{order:1} #reglages{order:2} footer{order:3}
     header{overflow:visible}
     main{padding:8px; min-height:70vh}
-    .scene{border-radius:18px; padding:56px 6px 8px}
+    .scene{border-radius:18px; padding:8px 6px}
     #dessin{max-height:none}
-    .picto{width:36px; height:36px}
+    .picto{width:30px; height:30px}
     #explication{font-size:1rem}
     #propositions{gap:8px}
     #propositions button{padding:4px 10px; border-radius:12px}
@@ -247,12 +245,17 @@
 
 <header>
   <div class="haut-colonne">
-    <a id="accueil" class="picto violet" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
+    <a id="accueil" class="picto" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>
       </svg>
     </a>
-    <button id="pleinEcran" class="picto violet" title="Plein écran" aria-label="Plein écran"></button>
+    <button id="imprimer" class="picto" title="Fiche Word à imprimer" aria-label="Fiche Word à imprimer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
+      </svg>
+    </button>
+    <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran"></button>
   </div>
   <div class="titre">
     <h1>La route<br>des nombres</h1>
@@ -284,13 +287,6 @@
 
 <main>
   <div class="scene">
-    <div class="barre-outils">
-      <button id="imprimer" class="picto" title="Fiche Word à imprimer" aria-label="Fiche Word à imprimer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
-        </svg>
-      </button>
-    </div>
     <div id="defile"><svg id="dessin" viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div id="propositions"></div>
     <div id="explication"></div>
