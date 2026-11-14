@@ -1194,7 +1194,8 @@ function rendreExplorer() {
   });
 
   dessinerDroite(n, Y, longueur);
-  dessinerEtiquettes(n, Y, i => valeur(ex, i), true, 26, 21);
+  // Après un zoom, seules les bornes sont écrites (on peut faire chercher un nombre) ; « Écrire les graduations » les montre
+  dessinerEtiquettes(n, Y, i => valeur(ex, i), !anciennes.length || etat.voirGraduations, 26, 21);
 
   const zoomMax = ZOOM_MAX[etat.classe];
   const peutZoomer = ex.s % 10 === 0 || ex.scale < zoomMax;
@@ -1230,6 +1231,7 @@ function nomUnite(s, scale) {
 function zoomer(i) {
   const ex = etat.explo;
   ex.historique.push({ scale: ex.scale, a: ex.a, s: ex.s, i });
+  etat.voirGraduations = false;             // la nouvelle droite arrive sans ses graduations écrites
   ex.a += i * ex.s;
   if (ex.s % 10 === 0) ex.s /= 10;          // ex. de 100 en 100 → de 10 en 10
   else { ex.a *= 10; ex.scale++; }          // ex. de 1 en 1 → de 0,1 en 0,1
@@ -1239,6 +1241,7 @@ function zoomer(i) {
 function dezoomer() {
   const p = etat.explo.historique.pop();
   if (p) Object.assign(etat.explo, { scale: p.scale, a: p.a, s: p.s });
+  etat.voirGraduations = false;
   rendre();
 }
 
@@ -1393,7 +1396,10 @@ function majMenu() {
   actions.innerHTML = '';
   const bouton = (texte, action, classe, actif = false) => pastille(actions, texte, actif, action).classList.add(classe || 'aide');
   if (explorer) {
-    if (etat.explo.historique.length) bouton('Dézoomer', dezoomer, 'nouveau');
+    if (etat.explo.historique.length) {
+      bouton('Écrire les graduations', () => basculer('voirGraduations'), '', etat.voirGraduations);
+      bouton('Dézoomer', dezoomer, 'nouveau');
+    }
     return;
   }
   bouton('Écrire les graduations', () => basculer('voirGraduations'), '', etat.voirGraduations);
@@ -1409,7 +1415,7 @@ document.querySelectorAll('#modes > button').forEach(b => b.onclick = () => {
     return;
   }
   etat.mode = b.dataset.mode; etat.menuOuvert = true; sauver();
-  if (etat.mode === 'explorer') rendre(); else nouvelleSerie();
+  if (etat.mode === 'explorer') { etat.voirGraduations = false; rendre(); } else nouvelleSerie();
 });
 document.querySelectorAll('#types > button').forEach(b => b.onclick = () => {
   etat.type = b.dataset.type; sauver(); nouvelleSerie();
