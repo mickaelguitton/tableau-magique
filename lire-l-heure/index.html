@@ -113,6 +113,8 @@ button{font:inherit;color:inherit}
 #hAnswer{height:250px}   /* hauteur fixe (ajustée en JS) : les boutons dessous ne bougent pas */
 .cover{position:absolute;inset:0;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border-radius:20px;cursor:pointer;transition:opacity .25s}
 .cover.off{opacity:0;pointer-events:none}
+/* Question du rituel « Lire l'heure », même présentation que le cache du mode Horloge */
+.question{background:var(--primary);color:#fff;font-weight:800;font-size:1.35rem;padding:8px 20px;border-radius:14px}
 .steppers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .steppers .btn{font-size:1.1rem}
 
@@ -368,6 +370,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
           <div class="seg" id="lCount"></div>
           <button class="btn primary" id="lNew" data-ui="newClocks">Nouvelles horloges</button>
           <button class="btn" id="lReveal">Voir les réponses</button>
+          <div class="question" id="lQuestion"></div>
         </div>
         <div class="quiz-grid" id="lGrid"></div>
       </div>
@@ -393,8 +396,8 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
           <button class="btn next" id="pNext" data-ui="next">Heure suivante</button>
           <!-- L'enseignant choisit lui-même l'heure à placer (ex. 8 h 45, 8:45, 20 h 05) -->
           <form class="row mine" id="pMine" autocomplete="off">
-            <input type="text" id="pMineIn" inputmode="numeric" placeholder="Mon heure : 8 h 45" aria-label="Heure à placer">
-            <button class="btn" type="submit">Proposer</button>
+            <input type="text" id="pMineIn" inputmode="numeric" placeholder="Écris l'heure que tu souhaites" aria-label="Heure à placer">
+            <button class="btn" type="submit" data-ui="propose">Proposer</button>
           </form>
           <div class="feedback info" id="pFeedback"></div>
           <div class="score" id="pScore"></div>
@@ -442,7 +445,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.3</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.4</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -667,11 +670,13 @@ const UI = {
   fr:{ hide:"Masquer l'heure", show:"Montrer l'heure", listen:'Écouter', random:'Heure au hasard', now:'Maintenant',
        clocks:'Horloges', newClocks:'Nouvelles horloges', reveal:'Voir les réponses', unreveal:'Masquer les réponses',
        consigne:'Consigne', check:'Vérifier', solution:'Solution', next:'Heure suivante',
+       propose:'Proposer', mine:"Écris l'heure que tu souhaites",
        hour:'1 h',
        fmt:{ chiffres:'En chiffres', lettres:'En lettres', oral:"À l'oral", hasard:'Au hasard' } },
   en:{ hide:'Hide the time', show:'Show the time', listen:'Listen', random:'Random time', now:'Now',
        clocks:'Clocks', newClocks:'New clocks', reveal:'Show answers', unreveal:'Hide answers',
        consigne:'Task', check:'Check', solution:'Answer', next:'Next time',
+       propose:'Set', mine:'Type the time you want',
        hour:'1 hr',
        fmt:{ chiffres:'In numbers', lettres:'In words', oral:'Listening', hasard:'Mixed' } }
 };
@@ -679,6 +684,8 @@ const U = () => UI[S.lang];
 function applyUI(){
   document.querySelectorAll('[data-ui]').forEach(el => el.textContent = U()[el.dataset.ui]);
   $('pFormat').querySelectorAll('button').forEach(b => b.textContent = U().fmt[b.dataset.v]);
+  $('pMineIn').placeholder = U().mine;
+  $('lQuestion').textContent = T().question;
 }
 
 
