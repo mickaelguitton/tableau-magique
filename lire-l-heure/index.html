@@ -114,7 +114,7 @@ button{font:inherit;color:inherit}
 .cover{position:absolute;inset:0;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border-radius:20px;cursor:pointer;transition:opacity .25s}
 .cover.off{opacity:0;pointer-events:none}
 /* Question du rituel « Lire l'heure », même présentation que le cache du mode Horloge */
-.question{background:var(--primary);color:#fff;font-weight:800;font-size:1.35rem;padding:8px 20px;border-radius:14px}
+.question{background:var(--primary);color:#fff;font-weight:800;font-size:1.6rem;padding:8px 22px;border-radius:14px;cursor:default;user-select:none}
 .steppers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .steppers .btn{font-size:1.1rem}
 
@@ -365,12 +365,14 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
 
       <!-- Mode Lire l'heure -->
       <div class="mode" id="mode-lire">
+        <!-- La question (pour les élèves) à gauche ; les réglages de l'enseignant regroupés à droite -->
         <div class="toolbar">
+          <div class="question" id="lQuestion"></div>
+          <div class="spacer"></div>
           <span class="small-label" data-ui="clocks">Horloges</span>
           <div class="seg" id="lCount"></div>
-          <button class="btn primary" id="lNew" data-ui="newClocks">Nouvelles horloges</button>
+          <button class="btn next" id="lNew" data-ui="newClocks">Nouvelles horloges</button>
           <button class="btn" id="lReveal">Voir les réponses</button>
-          <div class="question" id="lQuestion"></div>
         </div>
         <div class="quiz-grid" id="lGrid"></div>
       </div>
