@@ -265,7 +265,7 @@ body{background:linear-gradient(rgba(20,10,4,.55),rgba(20,10,4,.55)),var(--bois)
   <div id="confetti-layer"></div>
 
   <div id="credits">
-    <span id="signature">À la poursuite des diamants – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></span>
+    <span id="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · À la poursuite des diamants – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></span>
     Inspiré du jeu « la course au trésor » sur monecole.fr
     · Illustrations générées avec Canva (IA)
     · Sons : <a href="https://pixabay.com" target="_blank" rel="noopener noreferrer">Pixabay</a>
@@ -1275,5 +1275,36 @@ function closeRules(){
   majQuestion();
 })();
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">À la poursuite des diamants</h2>
+    <p class="chapeau">Un jeu de révision en équipes à projeter au TBI, tous niveaux : les équipages de pirates répondent aux questions pour s’emparer des diamants.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>À la poursuite des diamants transforme une révision en course de bateaux autour d’une île. Trois ou quatre équipages répondent aux questions de l’enseignant : une bonne réponse fait avancer d’une case, une mauvaise fait reculer. En rattrapant un rival, on prend ses diamants. Le premier équipage à tous les réunir gagne. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Les questions</h3>
+    <ul>
+      <li>L’enseignant prépare la liste, sur le thème de son choix : tables, conjugaison, vocabulaire, histoire, anglais…</li>
+      <li>Une question par case, collée depuis Word ou un document, avec sa réponse après « R : ».</li>
+      <li>Les questions peuvent s’afficher au tableau, et leur réponse d’un clic.</li>
+    </ul>
+
+    <h3>Les réglages</h3>
+    <ul>
+      <li>Trois ou quatre équipes, et une île de 16 à 28 cases selon la durée voulue.</li>
+      <li>Les abordages et la prise des diamants se règlent d’un clic, avec des sons.</li>
+      <li>Un bouton pour annuler une erreur, et un autre pour rejouer.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <p>Pour réviser avant une évaluation, en fin de séquence ou en fin de période, dans toutes les matières et à tous les niveaux. Chaque élève répond à son tour pour son équipe, sans aide de ses équipiers : tout le monde participe.</p>
+
+    <p>Le jeu est inspiré du jeu « la course au trésor » publié sur monecole.fr.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

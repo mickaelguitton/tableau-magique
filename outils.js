@@ -20,7 +20,7 @@
 self.OUTILS = [
   {
     dossier: 'calcul-mental',
-    version: '1.2',                             // numéro de CET outil : à changer quand on le modifie
+    version: '1.3',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calculs en tête',
     niveau: 'calcul mental · du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
@@ -30,7 +30,7 @@ self.OUTILS = [
   },
   {
     dossier: 'geometrie',
-    version: '2.2',
+    version: '2.3',
     nom: 'La fabrique à figures',
     niveau: 'cycle 3',
     texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
@@ -42,7 +42,7 @@ self.OUTILS = [
   },
   {
     dossier: 'droites-graduees',
-    version: '1.6',
+    version: '1.7',
     nom: 'La route des nombres',
     niveau: 'droites graduées · du CP au CM2',
     texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
@@ -53,7 +53,7 @@ self.OUTILS = [
   },
   {
     dossier: 'cartes-a-la-carte',
-    version: '1.0',
+    version: '1.1',
     nom: 'Cartes à la carte',
     niveau: 'du CP à la 6e',
     texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
@@ -64,7 +64,7 @@ self.OUTILS = [
   },
   {
     dossier: 'tirage-au-sort',
-    version: '1.0',
+    version: '1.1',
     nom: 'À qui le tour ?',
     niveau: 'tous niveaux',
     texte: 'Une roue colorée tire au sort un élève de la liste de la classe, avec l’historique des tirages.',
@@ -73,7 +73,7 @@ self.OUTILS = [
   },
   {
     dossier: 'nature-des-mots',
-    version: '1.2',
+    version: '1.3',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil du Blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
@@ -85,7 +85,7 @@ self.OUTILS = [
   },
   {
     dossier: 'machine-conjugaison',
-    version: '1.0',
+    version: '1.1',
     nom: 'Machine à conjuguer',
     niveau: 'cycles 2 et 3',
     texte: 'La machine tire au sort un sujet, un verbe et un temps. Les élèves conjuguent sur l’ardoise puis on affiche '
@@ -95,7 +95,7 @@ self.OUTILS = [
   },
   {
     dossier: 'copie-guidee',
-    version: '1.1',
+    version: '1.2',
     nom: 'La copie guidée',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil Copilote de Mathilde Lollier, pour faciliter la copie d’un texte. '
@@ -108,7 +108,7 @@ self.OUTILS = [
   },
   {
     dossier: 'syllabes-en-couleur',
-    version: '1.0',
+    version: '1.1',
     nom: 'Syllabes en couleur',
     niveau: 'adapter un texte · dys',
     texte: 'Pour préparer des textes adaptés à la lecture des élèves avec des troubles d’apprentissage / dys. '
@@ -120,7 +120,7 @@ self.OUTILS = [
   },
   {
     dossier: 'jeu-de-revision',
-    version: '1.1',
+    version: '1.2',
     nom: 'À la poursuite des diamants',
     niveau: 'jeu de révision · tous niveaux',
     texte: 'Jeu de révision en équipes. Trois ou quatre équipages de pirates tournent autour de l’île : une bonne réponse '

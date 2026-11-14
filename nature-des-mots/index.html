@@ -342,7 +342,7 @@ h1,h2,p{margin:0}
       <button class="btn small" type="button" id="sndTest">Écouter</button></div>
   </section>
   </div>
-  <div class="signature" style="margin-top:auto">La gym des mots – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span><br>Inspiré de l’outil du Blog Charivari à l’école</div>
+  <div class="signature" style="margin-top:auto"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · La gym des mots – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span><br>Inspiré de l’outil du Blog Charivari à l’école</div>
 </main>
 
 <!-- ======================= JEU ======================= -->
@@ -1344,5 +1344,36 @@ const ICONE_SON = on => on ? '<svg class="ico-son" viewBox="0 0 24 24" aria-hidd
 buildNat();
 buildSrc('rand');
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">La gym des mots</h2>
+    <p class="chapeau">Un rituel de grammaire à projeter, où les élèves miment par un geste la nature de chaque mot, cycles 2 et 3.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>La gym des mots projette une phrase au tableau et met un mot en valeur. Les élèves identifient sa nature et la miment par une posture, puis la bonne réponse s’affiche. Le corps aide à mémoriser les classes de mots, et toute la classe répond en même temps. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Ce qu’on révise</h3>
+    <ul>
+      <li>Les natures choisies par l’enseignant : nom, déterminant, adjectif, verbe, pronom, adverbe, préposition… Les natures non révisées reçoivent la posture « on ne sait pas ».</li>
+      <li>Une phrase entière, ou des mots isolés, sans contexte.</li>
+      <li>Des phrases proposées par l’outil, ou les vôtres : les mots outils sont reconnus automatiquement, et l’on vérifie la nature de chaque mot.</li>
+    </ul>
+
+    <h3>Trois déroulements</h3>
+    <ul>
+      <li><b>Je mène le jeu :</b> on passe d’un mot à l’autre, dans l’ordre de la phrase, avec la réponse quand on le décide.</li>
+      <li><b>Je choisis le mot :</b> on clique sur un mot et les élèves font la posture.</li>
+      <li><b>Automatique :</b> la phrase est refaite plusieurs fois, de plus en plus vite, avec des petits sons.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <p>En rituel de grammaire de quelques minutes, pour revoir les classes de mots au programme du cycle 2 et du cycle 3, en bougeant. Les phrases peuvent être collées depuis Word, exportées et importées pour les partager entre collègues.</p>
+
+    <p>L’outil est inspiré de la gym des mots du blog Charivari à l’école.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

@@ -228,7 +228,7 @@ body.gate .screen{display:none!important}
   </header>
   <div id="levels" class="levels"></div>
   <div id="skills"></div>
-  <div id="ver">Calculs en tête – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span id="vnum"> – v1.0</span></div>
+  <div id="ver"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · Calculs en tête – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span id="vnum"> – v1.0</span></div>
 </section>
 
 <section id="play" class="screen">
@@ -1752,5 +1752,39 @@ const DOCX=(function(){
 <script>
 /* Version, hors ligne et mise à jour : gérés par le portail (../portail.js). */
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Calculs en tête</h2>
+    <p class="chapeau">Un rituel de calcul mental à projeter au tableau, du CP au CM2, construit à partir des programmes de mathématiques.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Calculs en tête affiche au TBI ou au vidéoprojecteur une série de calculs. Les élèves répondent sur l’ardoise ou sur leur cahier, puis on affiche les réponses pour corriger ensemble. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Les compétences du programme</h3>
+    <ul>
+      <li><b>Une compétence par pastille,</b> classée par niveau du CP au CM2 : tables d’addition et de multiplication, doubles et moitiés, compléments à la dizaine, à 100 et à 1 000, ajouter ou soustraire 9, 19, 29…, multiplier par 10, 100 ou 1 000, fractions d’une quantité, calculs sur les décimaux…</li>
+      <li><b>Les faits numériques et les procédures</b> des programmes 2024 de mathématiques du cycle 2 et des repères du cycle 3.</li>
+      <li><b>En CP,</b> un réglage « nombres connus » (19, 49, 69 ou 100) pour ne proposer que les nombres déjà étudiés en début d’année.</li>
+    </ul>
+
+    <h3>Un rituel facile à mener</h3>
+    <ul>
+      <li>Un chronomètre réglable, avec compte à rebours et sonnerie.</li>
+      <li>Des calculs du plus simple au plus difficile, des calculs à trous, une colonne par opération.</li>
+      <li>Un mode « un calcul à la fois », où le suivant apparaît après la correction.</li>
+      <li>Les réponses s’affichent une par une ou toutes ensemble pour la correction collective.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>En rituel quotidien de cinq à dix minutes, sur ardoise.</li>
+      <li>En différenciation : chaque groupe a sa compétence et son niveau.</li>
+      <li>Avec des fiches Word personnalisées à imprimer, de 6 à 30 calculs, une série par compétence ou tout mélangé, avec prénom, date et corrigé.</li>
+    </ul>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

@@ -473,7 +473,7 @@ body.fs-active .history-panel { max-width:760px; padding:10px 16px; }
   </select>
 
   <button class="btn btn-reset" id="resetBtn">🔄 Remettre à zéro</button>
-  <div class="signature" style="margin-top:auto;padding-top:.6rem">À qui le tour ? – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
+  <div class="signature" style="margin-top:auto;padding-top:.6rem"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · À qui le tour ? – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
 </aside>
 
 <main class="container">
@@ -2112,5 +2112,35 @@ async function init() {
 
 init();
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">À qui le tour ?</h2>
+    <p class="chapeau">Une roue colorée à projeter en classe pour tirer au sort un élève, tous niveaux.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>À qui le tour ? fait tourner une roue avec les prénoms des élèves et désigne celui qui répond, passe au tableau ou distribue le matériel. Le hasard est visible par toute la classe, ce qui rend le tirage juste et attendu. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Ce qu’on peut régler</h3>
+    <ul>
+      <li><b>La liste de la classe,</b> enregistrée sur l’ordinateur (plusieurs listes possibles).</li>
+      <li><b>Les absences :</b> un clic sur un prénom, et l’élève ne participe pas au tirage.</li>
+      <li><b>Les groupes A, B, C et D,</b> pour tirer au sort dans un seul groupe.</li>
+      <li><b>« Chacun son tour » :</b> un élève déjà tiré ne revient pas avant que tous soient passés. Ou le tirage libre.</li>
+      <li><b>La vitesse de la roue</b> et ses sons, ou aucun son.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>Pour interroger à l’oral, désigner un rapporteur ou répartir les rôles.</li>
+      <li>Avec l’historique des tirages, pour savoir qui est déjà passé.</li>
+      <li>Avec n’importe quel outil du tableau magique : calcul mental, conjugaison, jeu de révision…</li>
+    </ul>
+
+    <p>Les prénoms restent sur l’ordinateur de l’enseignant : rien n’est envoyé sur internet.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

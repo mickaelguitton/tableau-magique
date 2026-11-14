@@ -764,7 +764,7 @@ body.printing .lwarn { display: none; }
 
     <footer class="foot">
       <button class="linkish" id="btn-sources">Sources, dates et choix pédagogiques</button>
-      <p class="sign">Cartes à la carte – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span></p>
+      <p class="sign"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · Cartes à la carte – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span></p>
     </footer>
   </aside>
 
@@ -4422,5 +4422,38 @@ let resizeTimer;
 new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { render(); placeLegend(); }, 120); }).observe(stage);
 </script>
 
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Cartes à la carte</h2>
+    <p class="chapeau">Des cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie, du CP à la 6e.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Cartes à la carte affiche au TBI ou au vidéoprojecteur des cartes interactives, préparées pour les séances de géographie. On choisit ce qu’on montre, on zoome, on situe l’école, puis on imprime ou on copie la carte pour une fiche. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Les thèmes du programme</h3>
+    <ul>
+      <li><b>CP :</b> des clés pour se repérer.</li>
+      <li><b>CE1 :</b> où vivent les êtres humains ?</li>
+      <li><b>CE2 :</b> vivre en France.</li>
+      <li><b>CM1 :</b> la diversité des modes de vie dans le monde.</li>
+      <li><b>CM2 :</b> la France et l’Union européenne.</li>
+      <li><b>6e :</b> habiter le monde (métropoles, espaces à fortes contraintes, littoraux…).</li>
+    </ul>
+    <p>Pour chaque thème, la carte s’ouvre avec les bons repères : régions, départements, pays, capitales, fleuves, relief, population, climats…</p>
+
+    <h3>Préparer et mener la séance</h3>
+    <ul>
+      <li><b>Fond de carte élève :</b> les noms et les informations sont masqués, puis révélés un à un pour observer et corriger ensemble.</li>
+      <li><b>Séances enregistrées :</b> plusieurs étapes de carte préparées à l’avance, à reprendre en classe.</li>
+      <li><b>Évaluations :</b> chaque nom devient un numéro, avec une légende à compléter. La carte projetée sert ensuite de correction.</li>
+    </ul>
+
+    <h3>Imprimer et partager</h3>
+    <p>La carte s’imprime telle qu’elle est affichée, seule ou avec sa légende, en A4 paysage ou portrait, avec une ligne « nom, prénom, date ». Elle peut aussi être copiée dans Word ou enregistrée en PDF. Les sources et les dates des données sont indiquées dans l’outil.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

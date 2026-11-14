@@ -408,7 +408,7 @@ body.fs .topbar:hover{opacity:1}
 <aside id="drawer" aria-label="Options">
   <div class="d-head"><h2>⚙️ Options</h2><button class="btn-icon" id="closeOpts">✕</button></div>
   <div class="d-body" id="opts"></div>
-  <div class="signature" style="padding:.4rem 1rem .7rem">Machine à conjuguer – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
+  <div class="signature" style="padding:.4rem 1rem .7rem"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · Machine à conjuguer – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
 </aside>
 
 <div id="pp" class="pop" role="dialog" aria-label="Imprimer des exercices">
@@ -1700,5 +1700,34 @@ document.getElementById('ppgo').onclick = ()=>{
   closePP();
 };
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Machine à conjuguer</h2>
+    <p class="chapeau">Un rituel de conjugaison à projeter : la machine à sous tire un sujet, un verbe et un temps, cycles 2 et 3.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>La machine à conjuguer fait tourner trois rouleaux, comme une machine à sous : un sujet, un verbe et un temps. Les élèves conjuguent sur l’ardoise, puis on affiche la correction. Le tirage au sort donne envie de jouer, et chaque tour est différent. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Ce qu’on peut choisir</h3>
+    <ul>
+      <li><b>Les temps :</b> présent, imparfait, futur, passé composé, passé simple, plus-que-parfait.</li>
+      <li><b>Les verbes :</b> 1er groupe (dont les verbes à particularité : manger, commencer, nettoyer, appeler, acheter…), 2e groupe, et 3e groupe (être, avoir, aller, faire, dire, venir, prendre, pouvoir, vouloir, voir…).</li>
+      <li><b>Les sujets :</b> pronoms personnels, groupes nominaux et sujets multiples. Pour un groupe nominal, le pronom correspondant est rappelé dans la correction.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>En rituel de conjugaison quotidien, sur ardoise.</li>
+      <li>Pour revoir un temps précis, ou mélanger tous les temps étudiés.</li>
+      <li>Avec des fiches Word personnalisées à imprimer, de 5 à 20 verbes, une série par temps ou tout mélangé, avec prénom, date et corrigé.</li>
+    </ul>
+
+    <h3>Les programmes</h3>
+    <p>La machine accompagne l’apprentissage de la conjugaison du cycle 2 au cycle 3 : les temps simples et composés de l’indicatif, avec les verbes les plus fréquents.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

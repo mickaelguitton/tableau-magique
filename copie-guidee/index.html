@@ -485,7 +485,7 @@ body.edit-mode #text{ margin-top:96px; }
     </aside>
   </div>
 
-  <footer id="appCredit">La copie guidée – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span><br><span class="credit-src">Inspiré de l'outil Copilote de Mathilde Lollier</span></footer>
+  <footer id="appCredit"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · La copie guidée – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span><br><span class="credit-src">Inspiré de l'outil Copilote de Mathilde Lollier</span></footer>
 
 </div>
 
@@ -2097,5 +2097,37 @@ new MutationObserver(() => { clearTimeout(autoLoadTimer); autoLoadTimer = setTim
 let resizeTimer = null;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(refreshDisplay, 200); });
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">La copie guidée</h2>
+    <p class="chapeau">Un outil pour faciliter la copie d’un texte en classe : le texte s’affiche par groupes de sens, au rythme choisi, cycles 2 et 3.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>La copie guidée projette au tableau le texte à copier (une leçon, un résumé, une poésie) et le découpe en groupes de sens qui s’affichent un par un. Les élèves gardent les yeux sur un petit morceau, l’écrivent, puis passent au suivant : la copie devient plus régulière et plus juste. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Des repères pour bien copier</h3>
+    <ul>
+      <li>Les majuscules et la ponctuation en rouge.</li>
+      <li>Les repères « à la ligne » et « saute une ligne », qui respectent la mise en page du cahier.</li>
+      <li>Le texte déjà copié en gris, et un fond en bandes de couleur pour ne pas perdre la ligne.</li>
+      <li>Les polices Arial, Belle Allure (cursive) ou OpenDyslexic.</li>
+    </ul>
+
+    <h3>Le rythme</h3>
+    <ul>
+      <li>Découpage automatique en groupes de sens ou mot par mot, que l’on peut corriger d’un clic.</li>
+      <li>Vitesse réglable (en signes par minute), avec une pause à chaque fin de phrase.</li>
+      <li>Lecture à voix haute de chaque groupe, avec la ponctuation si on le souhaite.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <p>Pour la copie des leçons et des devoirs, pour les élèves qui copient lentement ou avec beaucoup d’erreurs, et pour les élèves dys ou à besoins particuliers. Une séance peut être exportée et reprise plus tard.</p>
+
+    <p>L’outil est inspiré de l’outil Copilote de Mathilde Lollier.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

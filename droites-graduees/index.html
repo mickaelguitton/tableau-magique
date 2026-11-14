@@ -257,19 +257,6 @@
   #fenetreFiche .boutons{display:flex; justify-content:flex-end; gap:10px; margin-top:22px}
   #fenetreFiche .boutons button.creer{background:var(--vert); color:#fff; padding:10px 18px}
 
-  /* « À propos de l'outil » : présentation pour les collègues (et pour les moteurs de recherche) */
-  footer .lien{background:none; padding:0; font:inherit; font-weight:700; color:var(--violet); text-decoration:underline; cursor:pointer}
-  #aPropos{border:none; border-radius:22px; padding:0; width:min(760px,94vw); max-height:88vh; box-shadow:0 10px 40px rgba(0,0,0,.25); color:var(--noir)}
-  #aPropos::backdrop{background:rgba(0,0,0,.35)}
-  #aPropos article{padding:24px 30px 8px; overflow-y:auto; max-height:calc(88vh - 70px); line-height:1.5}
-  #aPropos h2{margin:0 0 4px; color:var(--orange); font-size:1.5rem}
-  #aPropos .chapeau{margin:0 0 10px; font-weight:600; color:var(--vert)}
-  #aPropos h3{margin:18px 0 4px; color:var(--violet); font-size:1.08rem}
-  #aPropos p, #aPropos li{font-size:.98rem}
-  #aPropos ul{margin:4px 0; padding-left:1.3em}
-  #aPropos li{margin:3px 0}
-  #aPropos .bas{display:flex; justify-content:flex-end; padding:10px 22px 16px; border-top:2px solid var(--gris-clair)}
-  #aPropos .bas button{border-radius:999px; padding:9px 20px; background:var(--violet); color:#fff}
 </style>
 </head>
 <body>
@@ -340,9 +327,10 @@
   </div>
 </div>
 
-<footer><button id="ouvrirAPropos" class="lien">À propos de l’outil</button> · La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.6</span></footer>
+<footer><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.7</span></footer>
 
-<!-- Présentation de l'outil : lisible par les collègues (bouton « À propos » du pied de page) et par les moteurs de recherche -->
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
 <dialog id="aPropos" aria-labelledby="titreAPropos">
   <article>
     <h2 id="titreAPropos">La route des nombres</h2>
@@ -381,7 +369,7 @@
     <h3>Les programmes</h3>
     <p>Placer et repérer des nombres sur une demi-droite graduée fait partie des programmes de mathématiques du cycle 2 (2024) et du cycle 3. La compréhension de la droite numérique est un très bon appui pour les fractions et les décimaux.</p>
   </article>
-  <div class="bas"><button id="fermerAPropos">Fermer</button></div>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
 </dialog>
 
 <script>
@@ -392,7 +380,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.6' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.7' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -1484,16 +1472,10 @@ document.querySelectorAll('#types > button').forEach(b => b.onclick = () => {
 
 // Clavier : Espace = réponse, flèche droite = nouvelle droite (sauf en « Explorer » et fenêtre ouverte)
 document.addEventListener('keydown', e => {
-  if (etat.mode === 'explorer' || !fenetreFiche.hidden || aPropos.open) return;
+  if (etat.mode === 'explorer' || !fenetreFiche.hidden) return;
   if (e.code === 'Space') { e.preventDefault(); basculer('voirReponse'); }
   if (e.code === 'ArrowRight') nouvelleDroite();
 });
-
-// « À propos de l'outil » : s'ouvre depuis le pied de page, se ferme avec le bouton, Échap ou un clic à côté
-const aPropos = document.getElementById('aPropos');
-document.getElementById('ouvrirAPropos').onclick = () => aPropos.showModal();
-document.getElementById('fermerAPropos').onclick = () => aPropos.close();
-aPropos.addEventListener('click', e => { if (e.target === aPropos) aPropos.close(); });
 
 // Plein écran : même picto que dans les autres outils du portail (4 coins vers l'extérieur ou vers l'intérieur)
 const btnPleinEcran = document.getElementById('pleinEcran');

@@ -119,6 +119,45 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', afficherVersion);
   else afficherVersion();
 
+  /* 3 bis. « À propos de l'outil » : chaque outil a, en fin de page, une présentation pour les collègues
+     (<dialog id="aPropos">, lisible aussi par les moteurs de recherche) et un lien dans sa signature
+     (bouton data-a-propos). Ici : la mise en forme commune, aux couleurs de l'outil, et l'ouverture / fermeture. */
+  function brancherAPropos() {
+    const fenetre = document.getElementById('aPropos');
+    if (!fenetre) return;
+    const dossier = location.pathname.replace(racine.pathname, '').split('/')[0];
+    const outil = (self.OUTILS || []).find(o => o.dossier === dossier) || {};
+    const c = outil.couleur || '#6A4BD1';
+    const style = document.createElement('style');
+    style.textContent = `
+      .lien-a-propos{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;color:${c}}
+      .lien-a-propos:focus-visible{outline:2px solid ${c};outline-offset:2px}
+      #aPropos{position:fixed!important;inset:0!important;margin:auto!important;height:fit-content;border:none!important;border-radius:22px;padding:0!important;width:min(760px,94vw)!important;max-width:none!important;max-height:88vh;color:#222!important;background:#fff!important;
+        box-shadow:0 10px 40px rgba(0,0,0,.25);font:16px/1.5 "Segoe UI","Helvetica Neue",Arial,sans-serif;text-align:left}
+      #aPropos article:focus,#aPropos:focus{outline:none}
+      #aPropos::backdrop{background:rgba(0,0,0,.4)}
+      #aPropos article{margin:0;border:none;background:none;box-shadow:none;padding:24px 30px 8px;overflow-y:auto;max-height:calc(88vh - 70px);box-sizing:border-box}
+      #aPropos h2{margin:0 0 4px;color:${c};font-weight:700;font-size:1.5rem;line-height:1.25;font-family:inherit;text-shadow:none;letter-spacing:0}
+      #aPropos .chapeau{margin:0 0 10px;font-weight:600;color:#444}
+      #aPropos h3{margin:18px 0 4px;color:${c};font-weight:700;font-size:1.08rem;line-height:1.3;font-family:inherit;text-shadow:none;letter-spacing:0}
+      #aPropos p,#aPropos li{font-size:.98rem;color:#222;margin:4px 0}
+      #aPropos ul{margin:4px 0;padding-left:1.3em;list-style:disc}
+      #aPropos b{color:#111}
+      #aPropos .bas{display:flex;justify-content:flex-end;padding:10px 22px 16px;border-top:2px solid #eee}
+      #aPropos .bas button{all:unset;cursor:pointer;border-radius:999px;padding:9px 20px;background:${c};color:#fff;font-weight:700}`;
+    document.head.appendChild(style);
+    document.querySelectorAll('[data-a-propos]').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      fenetre.showModal();
+    }));
+    fenetre.querySelector('[data-fermer-a-propos]').addEventListener('click', () => fenetre.close());
+    fenetre.addEventListener('click', e => { if (e.target === fenetre) fenetre.close(); });   // clic à côté
+    // Les touches tapées dans la fenêtre ne pilotent pas l'outil (Espace, flèches…) ; Échap la ferme
+    fenetre.addEventListener('keydown', e => e.stopPropagation());
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', brancherAPropos);
+  else brancherAPropos();
+
   /* 4. Statistiques anonymes (GoatCounter, tableau de bord : https://cartable-magique.goatcounter.com)
      Rien n'est affiché dans l'appli. Aucune donnée personnelle, aucun cookie, aucun identifiant :
      - « Installation »        : quelqu'un vient d'installer l'appli ;

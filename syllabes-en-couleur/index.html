@@ -195,7 +195,7 @@
 </main>
 
 <footer>
-  Syllabes en couleur – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span><br>
+  <button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · Syllabes en couleur – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span><br>
   <small>Inspiré par LireCouleur · listes de mots : Lexique 3.83 (lexique.org), CC BY-SA 4.0 · police OpenDyslexic © Abelardo Gonzalez, CC BY 3.0</small>
 </footer>
 
@@ -1153,5 +1153,35 @@ chargerPolices();
 chargerReglages();
 miseAJour();
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Syllabes en couleur</h2>
+    <p class="chapeau">Un outil pour adapter un texte à la lecture des élèves avec des troubles d’apprentissage ou dys : syllabes en couleur, lettres muettes grisées.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Syllabes en couleur prépare des textes adaptés en quelques secondes. On colle un texte : les syllabes s’alternent en bleu et en rouge, les lettres muettes sont grisées, et la mise en page est entièrement conservée. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Les réglages</h3>
+    <ul>
+      <li>La police Arial ou OpenDyslexic, la taille et l’interligne.</li>
+      <li>Les titres, les paragraphes et les retours à la ligne du texte d’origine sont gardés.</li>
+    </ul>
+
+    <h3>Pour qui ?</h3>
+    <ul>
+      <li>Les élèves dyslexiques ou en difficulté de lecture, en lien avec leur PAP ou leur PPS.</li>
+      <li>Les apprentis lecteurs du cycle 2, pour repérer les syllabes.</li>
+      <li>Les enseignants, AESH et parents qui adaptent des textes, des consignes ou des leçons.</li>
+    </ul>
+
+    <h3>Utiliser le texte adapté</h3>
+    <p>Le résultat se copie dans Word en gardant les couleurs, s’imprime directement, ou s’affiche en plein écran au tableau.</p>
+
+    <p>L’outil est inspiré par LireCouleur. Il utilise les listes de mots de Lexique 3.83 (lexique.org) et la police OpenDyslexic.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>

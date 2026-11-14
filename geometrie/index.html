@@ -353,7 +353,7 @@
         </div>
       </div>
       <div id="info" hidden></div>
-      <div id="signature">La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v2.2</span></div>
+      <div id="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · La fabrique à figures – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v2.2</span></div>
     </div>
   </div>
 
@@ -3722,5 +3722,42 @@ choisirOutil('segment');
 majOptions();
 redimensionner();
 </script>
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">La fabrique à figures</h2>
+    <p class="chapeau">Un outil de géométrie simple pour le tableau interactif, pensé pour le cycle 3 : plus facile à prendre en main que GeoGebra.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>La fabrique à figures permet de construire des figures géométriques au TBI devant les élèves, en quelques clics. Les instruments s’animent : la règle, l’équerre et le compas tracent sous les yeux de la classe, comme sur le cahier. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Les tracés</h3>
+    <ul>
+      <li>Points, segments, droites, cercles et arcs de cercle.</li>
+      <li>Perpendiculaires et parallèles, avec l’équerre et la règle.</li>
+      <li>Report de longueur au compas, milieu d’un segment, symétrique d’un point.</li>
+      <li>Nommer les points, déplacer et prolonger, gommer, annuler et rétablir.</li>
+    </ul>
+
+    <h3>L’affichage</h3>
+    <ul>
+      <li>Feuille blanche, quadrillage ou papier pointé.</li>
+      <li>Longueurs, noms des points et codages (angles droits, longueurs égales) affichés ou cachés.</li>
+      <li>Couleurs pour distinguer les étapes d’une construction.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>Pour montrer une construction pas à pas avant que les élèves la reproduisent sur leur cahier.</li>
+      <li>Pour corriger un programme de construction ou une reproduction de figure.</li>
+      <li>Pour enregistrer une figure et la reprendre plus tard, ou la copier dans Word ou un diaporama.</li>
+    </ul>
+
+    <h3>Les programmes</h3>
+    <p>L’outil accompagne le travail du cycle 3 en géométrie : reconnaître et tracer des figures, utiliser la règle, l’équerre et le compas, les notions de perpendicularité, de parallélisme, de milieu et de symétrie axiale.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 </body>
 </html>
