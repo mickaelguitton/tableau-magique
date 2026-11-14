@@ -113,6 +113,7 @@
   /* Bas de la colonne : réglage d'affichage */
   #reglages{grid-column:1; grid-row:2; display:flex; flex-direction:column; justify-content:flex-end; background:#fff; padding:8px 14px 12px}
   #affichage{padding-top:12px; border-top:2px solid var(--gris-clair)}
+  #reglages .puces + .puces{margin-top:6px}
   #affichage button.actif{background:var(--violet); color:#fff}
 
   /* ===== Zone de la droite ===== */
@@ -128,7 +129,7 @@
   .scene.explorer #defile{display:block; flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin}
   .scene.explorer #dessin{max-height:none}
 
-  /* Pictos au-dessus du titre : Accueil (dans le portail) à gauche ; fiche à imprimer et plein écran à droite */
+  /* Pictos au-dessus du titre : Accueil (dans le portail) à gauche, plein écran à droite */
   .haut-colonne{display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-bottom:4px}
   .haut-colonne #accueil{margin-right:auto}
   .picto{
@@ -189,7 +190,7 @@
     #types > button, #sousMenu .puces button{padding:3px 10px; font-size:.9rem}
     #reglages{padding:4px 12px 8px}
     #affichage{padding-top:6px}
-    #affichage button{padding:5px 12px}
+    #affichage button, #imprimer{padding:5px 12px}
     main{padding:10px}
     #actions{padding-top:6px}
     #actions button{padding:9px 16px}
@@ -250,11 +251,6 @@
         <path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>
       </svg>
     </a>
-    <button id="imprimer" class="picto" title="Fiche Word à imprimer" aria-label="Fiche Word à imprimer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
-      </svg>
-    </button>
     <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran"></button>
   </div>
   <div class="titre">
@@ -282,7 +278,9 @@
 </header>
 
 <section id="reglages">
+  <!-- préparation de l'enseignant : réglage d'affichage, puis fiche Word -->
   <div id="affichage" class="puces"></div>
+  <div class="puces"><button id="imprimer" title="Créer une fiche Word à imprimer, avec son corrigé">Fiche à imprimer</button></div>
 </section>
 
 <main>
