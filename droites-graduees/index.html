@@ -23,7 +23,7 @@
 <script src="../outils.js"></script>
 <script src="../portail.js"></script>
 <!--
-  La route des nombres – M. Guitton – licence CC BY-NC 4.0 – v1.0
+  La route des nombres – M. Guitton – licence CC BY-NC 4.0 – v1.1
   Intégré au portail « Le tableau magique » (bouton Accueil, version, hors ligne : voir ../portail.js).
   Mis au point avec l'aide de Claude AI.
 
@@ -123,19 +123,23 @@
   }
   #dessin{width:100%; height:auto; min-height:0; flex-shrink:1; max-height:calc(100dvh - 250px); display:block; margin:0 auto; user-select:none}
   #dessin.cliquable{cursor:pointer}
+  /* « Explorer » : toutes les droites restent empilées ; la zone défile (molette, doigt) */
+  #defile{display:contents}
+  .scene.explorer #defile{display:block; flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin}
+  .scene.explorer #dessin{max-height:none}
 
-  /* En haut à droite : imprimer, Accueil (dans le portail), plein écran */
+  /* Pictos : imprimer en haut à droite de la droite ; Accueil et plein écran au-dessus du titre */
   .barre-outils{position:absolute; top:14px; right:16px; display:flex; gap:8px; z-index:2}
   .picto{
-    width:42px; height:42px; border-radius:12px; background:var(--carte); padding:0; cursor:pointer;
+    width:42px; height:42px; border-radius:12px; background:var(--carte); color:var(--violet); padding:0; cursor:pointer;
     box-shadow:0 2px 6px rgba(0,0,0,.12); display:grid; place-items:center;
   }
   .picto svg{width:26px; height:26px}
-  .picto{color:var(--violet)}
-  /* Bouton « Accueil » du portail, comme dans les autres outils (caché quand le fichier est ouvert seul) */
-  #accueil{display:none; height:42px; padding:0 16px; border-radius:12px; background:var(--violet); color:#fff;
-           font-size:1rem; box-shadow:0 2px 6px rgba(0,0,0,.12)}
-  html.dans-portail #accueil{display:block}
+  .picto.violet{background:var(--violet); color:#fff}
+  .haut-colonne{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+  .haut-colonne #pleinEcran{margin-left:auto}
+  #accueil{display:none}                         /* l'accueil n'existe que dans le portail (classe posée par portail.js) */
+  html.dans-portail #accueil{display:grid}
 
   /* Phrase d'aide sous la droite */
   #explication{min-height:2.2em; text-align:center; font-size:1.25rem; line-height:1.9; padding:0 10px}
@@ -200,7 +204,7 @@
     main{padding:8px; min-height:70vh}
     .scene{border-radius:18px; padding:56px 6px 8px}
     #dessin{max-height:none}
-    .picto, #accueil{height:36px} .picto{width:36px}
+    .picto{width:36px; height:36px}
     #explication{font-size:1rem}
     #propositions{gap:8px}
     #propositions button{padding:4px 10px; border-radius:12px}
@@ -242,6 +246,14 @@
 <body>
 
 <header>
+  <div class="haut-colonne">
+    <a id="accueil" class="picto violet" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>
+      </svg>
+    </a>
+    <button id="pleinEcran" class="picto violet" title="Plein écran" aria-label="Plein écran"></button>
+  </div>
   <div class="titre">
     <h1>La route<br>des nombres</h1>
     <p class="sous-titre">Droites graduées interactives<br>du CP au CM2</p>
@@ -278,10 +290,8 @@
           <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>
         </svg>
       </button>
-      <button id="accueil" onclick="location.href='../'" title="Revenir à l'accueil du tableau magique">Accueil</button>
-      <button id="pleinEcran" class="picto" title="Plein écran" aria-label="Plein écran"></button>
     </div>
-    <svg id="dessin" viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="defile"><svg id="dessin" viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div id="propositions"></div>
     <div id="explication"></div>
   </div>
@@ -306,7 +316,7 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.0</span></footer>
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></footer>
 
 <script>
 'use strict';
@@ -316,7 +326,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.0' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.1' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -921,6 +931,7 @@ function rendre() {
   zoneExplication.innerHTML = '';
   zonePropositions.innerHTML = '';
   svg.classList.toggle('cliquable', etat.mode === 'placer' && !etat.voirReponse);
+  document.querySelector('.scene').classList.toggle('explorer', etat.mode === 'explorer');
   if (etat.mode === 'explorer') rendreExplorer();
   else rendreExercice();
   majMenu();
@@ -1001,26 +1012,37 @@ function texteExplication(exo, depuisGauche, nb) {
 }
 
 /* Mode « Explorer » : droite de 10 intervalles, toutes les valeurs écrites ;
-   toucher un intervalle le grossit 10 fois (la droite précédente reste visible en haut). */
+   toucher un intervalle le grossit 10 fois. Toutes les droites précédentes restent empilées au-dessus,
+   avec la portion grossie surlignée : on remonte le chemin en faisant défiler la zone. Toucher un
+   intervalle d'une droite précédente y revient et grossit cet intervalle (on change de chemin). */
 function rendreExplorer() {
-  const ex = etat.explo, n = 10;
+  const ex = etat.explo, n = 10, anciennes = ex.historique;
   const valeur = (e, i) => [{ txt: ecrire(e.a + i * e.s, e.scale, e.scale >= 2) }];   // 4,40 en centièmes
   const longueur = i => (i === 0 || i === n) ? 'grand' : (i === 5 ? 'moyen' : 'petit');
-  const parent = ex.historique.at(-1);
-  const Y = parent ? 215 : 165;
+  const HAUT = 56, PAS = 118;                        // première droite précédente, puis écart entre deux droites
+  const Y = anciennes.length ? HAUT + anciennes.length * PAS + 40 : 165;
+  svg.setAttribute('viewBox', `0 0 ${L} ${Math.max(330, Y + 130)}`);
 
-  if (parent) {                            // droite précédente, avec la portion grossie surlignée
-    const yp = 62, xa = xDe(parent.i, n), xb = xDe(parent.i + 1, n);
+  anciennes.forEach((p, k) => {
+    const yp = HAUT + k * PAS, xa = xDe(p.i, n), xb = xDe(p.i + 1, n);
+    const ySuivante = k + 1 < anciennes.length ? yp + PAS - 40 : Y - 30;   // haut des nombres de la droite suivante
     dessinerDroite(n, yp, longueur, 3);
-    el('rect', { x: xa, y: yp - 16, width: xb - xa, height: 32, rx: 6, fill: COULEURS.violet, 'fill-opacity': .25 }, svg);
+    el('rect', { x: xa, y: yp - 14, width: xb - xa, height: 28, rx: 6, fill: COULEURS.violet, 'fill-opacity': .25 }, svg);
     for (const [x1, x2] of [[xa, X0], [xb, X1]]) {
-      el('line', { x1, y1: yp + 16, x2, y2: Y - 30, stroke: COULEURS.violet, 'stroke-width': 2.5, 'stroke-dasharray': '7 6' }, svg);
+      el('line', { x1, y1: yp + 14, x2, y2: ySuivante, stroke: COULEURS.violet, 'stroke-width': 2.2, 'stroke-dasharray': '7 6' }, svg);
     }
     for (let i = 0; i <= n; i++) {
-      const borne = i === 0 || i === n, dansLeZoom = i === parent.i || i === parent.i + 1;
-      dessinerParties(svg, valeur(parent, i), xDe(i, n), yp - 34, borne ? 19 : 16, dansLeZoom ? COULEURS.violet : COULEURS.gris);
+      const borne = i === 0 || i === n, dansLeZoom = i === p.i || i === p.i + 1;
+      dessinerParties(svg, valeur(p, i), xDe(i, n), yp - 32, borne ? 18 : 15, dansLeZoom ? COULEURS.violet : COULEURS.gris);
     }
-  }
+    for (let i = 0; i < n; i++) {
+      el('rect', { x: xDe(i, n), y: yp - 22, width: (X1 - X0) / n, height: 40, rx: 6, class: 'zone' }, svg)
+        .addEventListener('click', () => {
+          Object.assign(ex, { scale: p.scale, a: p.a, s: p.s, historique: anciennes.slice(0, k) });
+          zoomer(i);
+        });
+    }
+  });
 
   dessinerDroite(n, Y, longueur);
   dessinerEtiquettes(n, Y, i => valeur(ex, i), true, 26, 21);
@@ -1033,6 +1055,7 @@ function rendreExplorer() {
         .addEventListener('click', () => zoomer(i));
     }
   }
+  const parent = anciennes.at(-1);
   const aide = peutZoomer ? 'Touche un intervalle pour le grossir 10 fois.' : `On est aux ${UNITE_MINI[zoomMax]}.`;
   if (parent) {                            // ce que le zoom vient de faire, en une phrase
     const bornes = [parent.i, parent.i + 1].map(i => `<b>${valeur(parent, i)[0].txt}</b>`);
@@ -1041,6 +1064,8 @@ function rendreExplorer() {
   } else {
     zoneExplication.innerHTML = `1 graduation = <b>${ecrire(ex.s, ex.scale)}</b><span class="espace"></span>${aide}`;
   }
+  const cadre = document.getElementById('defile');
+  requestAnimationFrame(() => { cadre.scrollTop = cadre.scrollHeight; });   // on montre la droite la plus récente
 }
 
 // « un dixième (0,1) », « une dizaine (10) »… ; sinon simplement le nombre
