@@ -230,7 +230,7 @@
   body.couleurs .axe{stroke-width:0}
   body.couleurs .graduation{stroke-width:5}
   .saut{fill:none; stroke:var(--violet); stroke-width:4; stroke-linecap:round;
-        stroke-dasharray:300; stroke-dashoffset:300; animation:trace .45s ease-out forwards}
+        stroke-dasharray:300; stroke-dashoffset:300; animation:trace .3s ease-out forwards}
   .etiquette-saut{opacity:0; animation:apparait .3s ease-out forwards}
   .apparait{animation:apparait .35s ease-out}
   .part-bande{opacity:0; animation:apparait .3s ease-out forwards}   /* bande des fractions : une part après l'autre */
@@ -922,6 +922,8 @@ function dessinerIntervalleSurligne(exo, y) {
 // Écart entre les bornes d'une droite de fractions, écrit en fraction (ex. 10/10)
 const partiesEcart = exo => [{ num: exo.n, den: exo.den }];
 
+const RYTHME_BONDS = .3;                  // secondes entre deux bonds (et deux parts de la bande)
+
 // Chemin : sauts de graduation en graduation depuis la borne la plus proche
 // (avec la bande des fractions : toujours depuis la gauche, pour compter les parts avec elle)
 function dessinerChemin(exo, y) {
@@ -931,7 +933,7 @@ function dessinerChemin(exo, y) {
   const parties = exo.genre === 'nombre' ? [{ txt: signe + ecrire(exo.s, exo.scale) }] : [{ txt: signe }, { num: 1, den: exo.den }];
   for (let k = 0; k < nb; k++) {
     const xa = xDe(debut + sens * k, exo.n), xb = xDe(debut + sens * (k + 1), exo.n), xm = (xa + xb) / 2;
-    const delai = `${k * .5}s`;
+    const delai = `${k * RYTHME_BONDS}s`;
     el('path', { d: `M${xa},${y - 10} Q${xm},${y - 72} ${xb},${y - 10}`, class: 'saut', style: `animation-delay:${delai}` }, svg);
     const g = dessinerParties(svg, parties, xm, aUneFraction(parties) ? y - 66 : y - 54, 20, COULEURS.violet);
     g.classList.add('etiquette-saut');
@@ -962,7 +964,7 @@ function dessinerBande(exo, yHaut) {
       const T = Math.min(20, 20 * (largeur - 8) / largeurParties(parties, 20));
       if (T >= 11) dessinerParties(g, parties, x + largeur / 2, yHaut + HAUTEUR_BANDE / 2, T, COULEURS.noir);
       g.classList.add('part-bande');
-      g.style.animationDelay = `${k * .5}s`;          // même rythme que les sauts du chemin
+      g.style.animationDelay = `${k * RYTHME_BONDS}s`;   // même rythme que les bonds
     }
   }
 }
