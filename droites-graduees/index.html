@@ -401,6 +401,7 @@ const COULEURS = {
 const MODES = ['trouver', 'placer', 'explorer'];
 const DIFFICULTES = [1, 2, 3, 'prog'];   // paliers fixes, ou « progressive » (montée toutes les 3 droites)
 const DROITES_PAR_PALIER = 3;
+const ETAPES = 4;                        // « Pas à pas » : intervalles, écart, valeur d'un intervalle, comptage
 
 // Réglages mémorisés (et leurs valeurs d'origine)
 const REGLAGES_PAR_DEFAUT = {
@@ -421,7 +422,7 @@ const etat = {
   menuOuvert: false,                     // sous-menu du mode visible ou non (fermé au départ)
   exo: null,                             // la droite en cours (voir partie 3)
   voirReponse: false, voirGraduations: false,
-  etape: 0,                              // « Pas à pas » : 0 (rien), puis étapes 1, 2, 3
+  etape: 0,                              // « Pas à pas » : 0 (rien), puis étapes 1 à ETAPES
   placement: null,                       // graduation touchée en mode « Placer »
   explo: { depart:1, scale:0, a:0, s:1, historique:[] }
 };
@@ -898,9 +899,8 @@ function dessinerNumerosIntervalles(exo, y) {
   }
 }
 
-// Étape 2 : crochet sous les étiquettes (à la place de la future bande), avec l'écart ;
-// et le premier intervalle du segment surligné, avec sa valeur au-dessus
-function dessinerValeurIntervalle(exo, y, yc) {
+// Étape 2 (et 3) : crochet sous les étiquettes (à la place de la future bande), avec l'écart
+function dessinerEcart(exo, yc) {
   const { g0, g1, unite } = segmentConnu(exo), x0 = xDe(g0, exo.n), x1 = xDe(g1, exo.n);
   el('path', { d: `M${x0},${yc - 14} L${x0},${yc} L${x1},${yc} L${x1},${yc - 14}`, fill: 'none', stroke: COULEURS.violet,
                'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'apparait' }, svg);
@@ -909,8 +909,11 @@ function dessinerValeurIntervalle(exo, y, yc) {
   const T = 22, w = largeurParties(ecart, T) + 20, cx = (x0 + x1) / 2, cy = yc + (aUneFraction(ecart) ? 28 : 20);
   el('rect', { x: cx - w / 2, y: cy - 20, width: w, height: 40, fill: '#fff' }, svg);
   dessinerParties(svg, ecart, cx, cy, T, COULEURS.violet).classList.add('apparait');
-  // l'intervalle surligné : le premier du segment
-  const xa = xDe(g0, exo.n), xb = xDe(g0 + 1, exo.n);
+}
+
+// Étape 3 : le premier intervalle du segment connu surligné, avec sa valeur au-dessus
+function dessinerIntervalleSurligne(exo, y) {
+  const { g0 } = segmentConnu(exo), xa = xDe(g0, exo.n), xb = xDe(g0 + 1, exo.n);
   el('rect', { x: xa, y: y - 9, width: xb - xa, height: 18, rx: 6, fill: COULEURS.violet, opacity: .35, class: 'apparait' }, svg);
   const valeur = exo.genre === 'nombre' ? [{ txt: ecrire(exo.s, exo.scale) }] : [{ num: 1, den: exo.den }];
   dessinerParties(svg, valeur, (xa + xb) / 2, y - (exo.genre === 'nombre' ? 30 : 38), 20, COULEURS.violet).classList.add('apparait');
@@ -1080,8 +1083,9 @@ function rendreExercice() {
     const yBas = Y + (etat.voirGraduations ? 140 : 92);    // sous les étiquettes (plus bas si toutes sont écrites)
     const agrandir = h => svg.setAttribute('viewBox', `0 0 ${L} ${Math.max(Number(svg.getAttribute('viewBox').split(' ')[3]), h)}`);
     if (etat.etape === 1) dessinerNumerosIntervalles(exo, Y);
-    if (etat.etape === 2) { agrandir(yBas + 60); dessinerValeurIntervalle(exo, Y, yBas); }
-    if (etat.etape === 3) {
+    if (etat.etape === 2 || etat.etape === 3) { agrandir(yBas + 60); dessinerEcart(exo, yBas); }
+    if (etat.etape === 3) dessinerIntervalleSurligne(exo, Y);
+    if (etat.etape === 4) {
       chemin = dessinerChemin(exo, Y);
       if (avecBande(exo)) { agrandir(yBas + HAUTEUR_BANDE + 12); dessinerBande(exo, yBas); }
     }
@@ -1101,8 +1105,8 @@ function bilanPlacer(exo) {
 }
 
 /* Phrases du « Pas à pas », de l'étape 1 jusqu'à l'étape en cours (les précédentes en gris) :
-   1. compter les intervalles entre deux nombres connus ; 2. trouver la valeur d'un intervalle ;
-   3. compter les intervalles jusqu'à la flèche (ou jusqu'au nombre à placer). */
+   1. compter les intervalles entre deux nombres connus ; 2. calculer l'écart entre ces nombres ;
+   3. trouver la valeur d'un intervalle ; 4. compter jusqu'à la flèche (ou jusqu'au nombre à placer). */
 function textesEtapes(exo, etape, chemin) {
   const nombre = i => {
     const p = etiquetteGraduation(exo, i);
@@ -1110,20 +1114,21 @@ function textesEtapes(exo, etape, chemin) {
   };
   const { g0, g1, unite } = segmentConnu(exo), k = g1 - g0;
   const valeur = exo.genre === 'nombre' ? `<b>${ecrire(exo.s, exo.scale)}</b>` : fracHTML(1, exo.den);
+  const ecart = exo.genre === 'nombre' ? `<b>${ecrire(exo.n * exo.s, exo.scale)}</b>` : fracHTML(exo.n, exo.den);
   const lignes = [
     `Je compte les intervalles : de ${nombre(g0)} à ${nombre(g1)}, il y a <b>${k}</b> intervalles.`,
+    unite ? `Je calcule l’écart : ${nombre(g1)} − ${nombre(g0)} = <b>1</b>, c’est 1 unité.`
+          : `Je calcule l’écart : ${nombre(g1)} − ${nombre(g0)} = ${ecart}.`,
     unite ? `Je trouve la valeur d’un intervalle : 1 unité partagée en <b>${k}</b> parts égales, 1 intervalle = ${valeur}.`
-          : exo.genre === 'nombre'
-            ? `Je trouve la valeur d’un intervalle : l’écart est de <b>${ecrire(exo.n * exo.s, exo.scale)}</b>, partagé en <b>${k}</b>, 1 intervalle = ${valeur}.`
-            : `Je trouve la valeur d’un intervalle : l’écart est de ${fracHTML(exo.n, exo.den)}, partagé en <b>${k}</b>, 1 intervalle = ${valeur}.`,
+          : `Je trouve la valeur d’un intervalle : ${ecart} partagé en <b>${k}</b> intervalles égaux, 1 intervalle = ${valeur}.`,
     ''
   ];
-  if (etape === 3) {
+  if (etape === 4) {
     const { depuisGauche, nb } = chemin, cible = etat.mode === 'placer' ? 'jusqu’au nombre' : 'jusqu’à la flèche';
-    lignes[2] = `Je compte ${cible} : je pars de ${nombre(depuisGauche ? 0 : exo.n)} et ` +
+    lignes[3] = `Je compte ${cible} : je pars de ${nombre(depuisGauche ? 0 : exo.n)} et ` +
                 `j’${depuisGauche ? 'avance' : 'recule'} de <b>${nb}</b> intervalle${nb > 1 ? 's' : ''}.`;
     if (avecBande(exo) && exo.origine === 0) {
-      lignes[2] += ` <b>${exo.t}</b> part${exo.t > 1 ? 's' : ''} de ${fracHTML(1, exo.den)}, c’est ${fracHTML(exo.t, exo.den)}.`;
+      lignes[3] += ` <b>${exo.t}</b> part${exo.t > 1 ? 's' : ''} de ${fracHTML(1, exo.den)}, c’est ${fracHTML(exo.t, exo.den)}.`;
     }
   }
   return lignes.slice(0, etape)
@@ -1367,7 +1372,7 @@ function majMenu() {
     return;
   }
   bouton('Écrire les graduations', () => basculer('voirGraduations'), '', etat.voirGraduations);
-  bouton(etat.etape ? `Pas à pas ${etat.etape}/3` : 'Pas à pas', () => { etat.etape = (etat.etape + 1) % 4; rendre(); }, '', etat.etape > 0);
+  bouton(etat.etape ? `Pas à pas ${etat.etape}/${ETAPES}` : 'Pas à pas', () => { etat.etape = (etat.etape + 1) % (ETAPES + 1); rendre(); }, '', etat.etape > 0);
   bouton(etat.mode === 'placer' ? 'Vérifier' : 'Voir la réponse', () => basculer('voirReponse'), 'principal');
   bouton('Nouvelle droite', nouvelleDroite, 'nouveau');
 }
