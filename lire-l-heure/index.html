@@ -434,7 +434,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.2</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.3</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -1211,6 +1211,8 @@ function setHidden(v){
   $('hToggle').textContent = v ? U().show : U().hide;
 }
 $('hToggle').onclick = () => setHidden(!H.hidden);
+// Dès qu'on saisit une aiguille, l'heure se cache : la classe cherche, puis on la montre
+$('clockMain').addEventListener('pointerdown', () => { if (clockMain.drag && !H.hidden) setHidden(true); });
 $('hCover').onclick = () => setHidden(false);
 $('hSpeak').onclick = () => speak(expr(clockMain.total).say);
 $('hRandom').onclick = () => clockMain.setTotal(randomTime([clockMain.total]));
