@@ -52,6 +52,17 @@ self.OUTILS = [
     couleur: '#F2662E', ombre: '#FFD0BC'
   },
   {
+    dossier: 'lire-l-heure',
+    version: '1.0',
+    nom: 'Les aiguilles du temps',
+    niveau: 'lire l’heure · du CP au CM2',
+    texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure. Rituel sur ardoise avec '
+         + '1, 4 ou 6 horloges, placer les aiguilles avec correction, matin et après-midi, secondes. '
+         + 'Fiches à imprimer avec corrigé, et la même horloge en anglais.',
+    donnees: ['aiguilles-du-temps'],
+    couleur: '#2B4C8C', ombre: '#C3D2F0'
+  },
+  {
     dossier: 'cartes-a-la-carte',
     version: '1.1',
     nom: 'Cartes à la carte',

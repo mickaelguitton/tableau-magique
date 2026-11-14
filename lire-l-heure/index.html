@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-court="Les aiguilles du temps">Les aiguilles du temps : apprendre à lire l’heure du CP au CM2, horloge à projeter au TBI – Le tableau magique</title>
+<meta name="author" content="Mickaël Guitton">
+<meta name="license" content="CC BY-NC 4.0">
+<meta name="description" content="Horloge à aiguilles gratuite pour apprendre à lire l’heure, du CP au CM2, à projeter au TBI : manipuler les aiguilles, rituel sur ardoise avec 1, 4 ou 6 horloges, placer les aiguilles avec correction, matin et après-midi, secondes, fiches à imprimer avec corrigé. Aussi en anglais (telling the time).">
+<!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
+<link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/lire-l-heure/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Le tableau magique">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Les aiguilles du temps : apprendre à lire l’heure du CP au CM2, horloge à projeter au TBI – Le tableau magique">
+<meta property="og:description" content="Horloge à aiguilles gratuite pour apprendre à lire l’heure, du CP au CM2, à projeter au TBI : manipuler les aiguilles, rituel sur ardoise avec 1, 4 ou 6 horloges, placer les aiguilles avec correction, matin et après-midi, secondes, fiches à imprimer avec corrigé. Aussi en anglais (telling the time).">
+<meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/lire-l-heure/">
+<meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-lire-l-heure.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Portail « Le tableau magique » : version, bouton Accueil, hors ligne et mise à jour (voir ../portail.js) -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icone-tbi-favicon.png">
+<link rel="apple-touch-icon" href="../icone-tbi-apple.png">
+<script src="../version.js"></script>
+<script src="../outils.js"></script>
+<script src="../portail.js"></script>
+<style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important;align-items:center;justify-content:center}</style>
+<!--
+  Les aiguilles du temps (Tic-Tac Time en anglais)  v3.8 (v1.0 dans le portail « Le tableau magique »)
+  Horloge à aiguilles à manipuler pour apprendre à lire l'heure (CP au CM2, français et anglais).
+  Auteur : Mickaël Guitton  licence CC BY-NC 4.0
+  Mis au point avec l'aide de Claude AI.
+
+  Organisation du code (partie <script>) :
+    1. Catégories d'heures, préréglages par niveau, état (sauvegarde locale), petits outils
+    2. Textes élève et boutons en français et en anglais
+    3. Mots de l'heure (français, anglais), tirage des heures, synthèse vocale
+    4. Dessin de l'horloge (SVG)
+    5. Horloge manipulable (glisser les aiguilles)
+    6. Mode « Horloge » (démonstration)
+    7. Mode « Lire l'heure » (rituel ardoise)
+    8. Mode « Placer les aiguilles » (défi au tableau)
+    9. Mode « Imprimer » (fiches et corrigé)
+   10. Réglages, barre du haut, raccourcis clavier, démarrage
+-->
+<style>
+:root{
+  --bg:#fcf1f2; --ink:#1f2a44; --muted:#69728a; --line:#f0dfe2; --card:#fff;
+  --primary:#2b4c8c; --primary-soft:#e6edf9;
+  --hour:#e0483b; --min:#2f6fdb; --accent:#f2b134; --r24:#c4601f;
+  --ok:#2e9e5b; --ok-soft:#e1f4e8; --warn:#d9682a; --warn-soft:#fdebdc;
+  --past:#e3f4e8; --to:#fdebd8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI","Trebuchet MS",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;color:inherit}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* ---------- Barre du haut ---------- */
+.topbar{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.4rem;color:var(--primary);white-space:nowrap;letter-spacing:.2px}
+.brand span{color:var(--hour)}
+.pillbar{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:14px}
+.pillbar button{border:0;background:transparent;padding:7px 13px;border-radius:10px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap}
+.pillbar button:hover{color:var(--ink)}
+.pillbar button.on{background:var(--primary);color:#fff}
+.levels button.on{background:var(--accent);color:var(--ink)}
+.flags{display:flex;gap:8px}
+.flags button{border:0;background:none;padding:3px;border-radius:9px;cursor:pointer;line-height:0;opacity:.4;filter:saturate(.5);transition:opacity .2s,transform .2s}
+.flags button:hover{opacity:.8}
+.flags button.on{opacity:1;filter:none;box-shadow:0 0 0 3px var(--accent);transform:scale(1.08)}
+.flags svg{width:46px;height:31px;display:block;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.spacer{flex:1}
+.icon-btn{border:0;background:var(--bg);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{background:var(--primary-soft)}
+.icon-btn svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Zone principale ---------- */
+.main{flex:1;display:flex;min-height:0;position:relative;overflow:hidden}
+.stage{flex:1;min-width:0;padding:16px 22px;overflow:auto;position:relative}
+.mode{display:none;height:100%}
+.mode.on{display:flex}
+.duo{gap:28px;align-items:center;justify-content:center}
+.clock-wrap{height:100%;aspect-ratio:1/1;max-width:62%;display:flex;align-items:center;justify-content:center}
+.clock-host{width:100%;height:100%}
+.clock-host svg{width:100%;height:100%;display:block}
+.side{flex:1;min-width:270px;max-width:460px;display:flex;flex-direction:column;gap:14px}
+
+.card{background:var(--card);border-radius:20px;padding:16px 18px;box-shadow:0 2px 0 var(--line),0 6px 18px rgba(31,42,68,.06)}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;background:#fff;color:var(--primary);box-shadow:inset 0 0 0 2px var(--primary-soft)}
+@media (hover:hover){ .btn:hover{box-shadow:inset 0 0 0 2px var(--primary)} }
+.btn.primary{background:var(--primary);color:#fff;box-shadow:none}
+@media (hover:hover){ .btn.primary:hover{background:#223d73} }
+.btn.next{background:var(--accent);color:var(--ink);box-shadow:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.fill > .btn{flex:1}
+.small-label{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.seg{display:inline-flex;gap:3px;background:var(--bg);padding:3px;border-radius:12px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:9px;font-weight:650;color:var(--muted);cursor:pointer}
+.seg button.on{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(31,42,68,.18)}
+
+/* ---------- Affichage de l'heure (mode Horloge) ---------- */
+.answer{position:relative;text-align:center;overflow:hidden;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.lcd{align-self:center;font-variant-numeric:tabular-nums;font-weight:800;font-size:3.4rem;line-height:1;padding:10px 22px;border-radius:14px;background:#1f2a44;color:#ffd36b;letter-spacing:2px}
+.written{font-size:3.6rem;font-weight:800;color:var(--primary);line-height:1.05;font-variant-numeric:tabular-nums}
+.words{font-size:1.9rem;font-weight:700;line-height:1.2}
+.words2{font-size:1.05rem;color:var(--muted)}
+.lcd.off{display:none}
+.words small,.words2 small{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:4px}
+#hAnswer{height:250px}   /* hauteur fixe (ajustée en JS) : les boutons dessous ne bougent pas */
+.cover{position:absolute;inset:0;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border-radius:20px;cursor:pointer;transition:opacity .25s}
+.cover.off{opacity:0;pointer-events:none}
+.steppers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.steppers .btn{font-size:1.1rem}
+
+/* Frise de la journée */
+.daybar{position:relative;height:56px;margin:2px 4px 0}
+.daybar .track{position:absolute;left:0;right:0;top:4px;height:24px;border-radius:12px;overflow:hidden;display:flex}
+.daybar .seg-d{height:100%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+.daybar .marker{position:absolute;top:-2px;width:4px;height:36px;margin-left:-2px;background:var(--hour);border-radius:2px;box-shadow:0 0 0 2px #fff;transition:left .15s}
+.daybar .ticks{position:absolute;left:0;right:0;top:32px;font-size:.75rem;color:var(--muted);font-weight:700}
+.daybar .ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+
+/* ---------- Mode Lire l'heure ---------- */
+#mode-lire{flex-direction:column;gap:14px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.quiz-grid{flex:1;display:grid;gap:12px;min-height:0}
+.qcard{background:#fff;border-radius:20px;padding:6px;display:flex;align-items:center;position:relative;cursor:pointer;min-height:0;min-width:0;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.qcard svg{display:block;min-height:0;min-width:0}
+.qnum{position:absolute;left:12px;top:10px;width:44px;height:44px;border-radius:50%;background:var(--accent);font-weight:800;font-size:1.4rem;display:grid;place-items:center;z-index:1}
+.qtag{position:absolute;right:14px;top:12px;font-weight:800;color:var(--r24);font-size:1.3rem;z-index:1}
+/* La réponse a sa propre place (jamais par-dessus l'horloge) ; cachée, elle garde sa place */
+.qans{display:flex;flex-direction:column;justify-content:center;line-height:1.2}
+.qans.hide{visibility:hidden}
+.qans b{color:var(--primary)}
+.qans span{color:var(--muted)}
+
+/* 1 horloge : horloge à gauche, réponse à côté */
+.quiz-grid.n1 .qcard{flex-direction:row;justify-content:center;gap:90px}
+.quiz-grid.n1 .qcard svg{height:100%;width:auto;aspect-ratio:1/1;max-width:calc(100% - 460px)}
+.quiz-grid.n1 .qans{width:360px;text-align:center}
+.quiz-grid.n1 .qans b{font-size:3rem}
+.quiz-grid.n1 .qans span{font-size:1.6rem}
+
+/* 4 horloges : horloge en haut, réponse dessous */
+.quiz-grid.n4 .qcard{flex-direction:column;justify-content:flex-start;padding-top:10px}
+.quiz-grid.n4 .qcard svg{flex:0 0 auto;width:100%;height:auto;aspect-ratio:1/1;max-height:calc(100% - 100px)}
+.quiz-grid.n4 .qans{flex:0 0 92px;text-align:center}
+.quiz-grid.n4 .qans b{font-size:2.1rem}
+.quiz-grid.n4 .qans span{font-size:1.2rem}
+
+/* 6 horloges : horloge calée à gauche près du numéro, réponse à droite */
+.quiz-grid.n6 .qcard{flex-direction:row;justify-content:flex-start;gap:20px;padding-left:34px}
+.quiz-grid.n6 .qcard svg{height:100%;width:auto;aspect-ratio:1/1;max-width:calc(100% - 170px);flex:0 0 auto}
+.quiz-grid.n6 .qans{flex:1;min-width:150px;text-align:center;padding-right:8px}
+.quiz-grid.n6 .qans b{font-size:1.7rem}
+.quiz-grid.n6 .qans span{font-size:1.05rem}
+
+/* ---------- Mode Placer ---------- */
+.target{text-align:center}
+.target-text{font-size:2.6rem;font-weight:800;color:var(--primary);margin:6px 0 2px;line-height:1.15}
+.target-text.words-t{font-size:1.8rem}
+.target-sub{color:var(--muted);font-weight:650;min-height:1.3em}
+.feedback{border-radius:16px;padding:12px 16px;font-weight:700;font-size:1.15rem;min-height:56px;display:flex;align-items:center;gap:10px}
+.fb-detail{font-weight:600;font-size:1rem;margin-top:3px}
+.feedback.ok{background:var(--ok-soft);color:#1d6e3e}
+.feedback.ko{background:var(--warn-soft);color:#9a4314}
+.feedback.info{background:var(--primary-soft);color:var(--primary)}
+.score{display:flex;gap:6px;flex-wrap:wrap}
+.score i{width:16px;height:16px;border-radius:50%;background:var(--line);display:block}
+.score i.ok{background:var(--ok)} .score i.ko{background:var(--warn)}
+
+/* ---------- Mode Imprimer ---------- */
+#mode-imprimer{flex-direction:column;gap:14px}
+.print-opts{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+.print-opts > div{display:flex;flex-direction:column;gap:6px}
+.check{display:flex;align-items:center;gap:8px;font-weight:650;cursor:pointer}
+.preview{flex:1;overflow:auto;display:flex;flex-wrap:wrap;gap:20px;justify-content:center;align-content:flex-start;padding-bottom:20px}
+
+/* Feuille A4 (aperçu et impression) */
+.sheet{width:210mm;height:297mm;background:#fff;padding:12mm 13mm 10mm;display:flex;flex-direction:column;position:relative;box-shadow:0 4px 20px rgba(31,42,68,.15);color:#1f2a44;font-family:"Segoe UI","Trebuchet MS",sans-serif}
+.sh-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1f2a44;padding-bottom:3mm}
+.sh-title{font-size:22pt;font-weight:800;color:var(--primary)}
+.sh-name{font-size:12pt}
+.sh-name span{display:inline-block;width:42mm;border-bottom:1px dotted #1f2a44;margin-right:6mm}
+.sh-consigne{font-size:12.5pt;font-weight:650;margin:4mm 0 3mm}
+.sh-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);align-content:space-evenly;row-gap:3mm}
+.sh-cell{display:flex;flex-direction:column;align-items:center;gap:1.5mm;position:relative}
+.sh-cell svg{width:var(--clk);height:var(--clk)}
+.sh-num{position:absolute;left:3mm;top:0;width:7mm;height:7mm;border-radius:50%;border:1.5px solid #1f2a44;font-size:10pt;font-weight:800;display:grid;place-items:center}
+.sh-txt{font-size:12.5pt;font-weight:700;text-align:center;min-height:6mm}
+.sh-txt.words-t{font-size:11pt;max-width:58mm}
+.sh-tag{font-size:10.5pt;color:var(--r24);font-weight:800}
+.sh-line{font-size:12pt;white-space:nowrap}
+.sh-line .blank{display:inline-block;width:12mm;border-bottom:1.5px solid #1f2a44;margin:0 1mm}
+.sh-line .blank.l{width:44mm}
+.sh-key{font-size:11pt;text-align:center;line-height:1.25}
+.sh-key b{color:var(--primary);font-size:12.5pt}
+.sh-sign{position:absolute;right:13mm;bottom:6mm;font-size:8pt;color:#8a90a0}
+
+/* ---------- Panneau des réglages ---------- */
+.panel{position:absolute;right:0;top:0;bottom:0;z-index:6;width:290px;background:#fff;border-left:3px solid var(--line);box-shadow:-8px 0 24px rgba(31,42,68,.14);padding:14px 16px 40px;overflow:auto;transition:transform .3s ease;display:flex;flex-direction:column;gap:10px}
+.panel.hidden{transform:translateX(110%);box-shadow:none}
+.panel h3{margin:14px 0 2px;padding:14px 0 0;border-top:2px solid var(--line);font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);display:flex;align-items:center;gap:8px}
+.panel h3::before{content:"";width:6px;height:18px;border-radius:3px;background:var(--accent)}
+.panel h3:first-of-type{margin-top:4px;padding-top:0;border-top:0}
+.choice{display:flex;flex-direction:column;gap:4px}
+.choice button{border:0;text-align:left;background:var(--bg);padding:8px 12px;border-radius:10px;font-weight:650;cursor:pointer;color:var(--muted)}
+.choice button.on{background:var(--primary-soft);color:var(--primary)}
+.choice button i{display:inline-block;width:16px;height:16px;border-radius:5px;border:2px solid #b9c0cf;margin-right:9px;vertical-align:-3px;background:#fff}
+.choice button.on i{background:var(--primary);border-color:var(--primary);box-shadow:inset 0 0 0 2px #fff}
+.day-seg{display:grid;grid-template-columns:1fr 1fr}
+.day-seg button{padding:7px 6px;font-size:.88rem}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px;cursor:pointer;font-weight:600}
+.toggle input{display:none}
+.toggle .sw{flex:0 0 42px;height:24px;border-radius:12px;background:#d5d9e2;position:relative;transition:background .2s}
+.toggle .sw::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle input:checked + .sw{background:var(--ok)}
+.toggle input:checked + .sw::after{left:21px}
+.toggle.dim{opacity:.4;pointer-events:none}
+.settings-btn{border:0;background:var(--bg);color:var(--primary);font-weight:700;padding:9px 14px;border-radius:12px;cursor:pointer}
+@media (hover:hover){ .settings-btn:hover{background:var(--primary-soft)} }
+.settings-btn.on{background:var(--primary);color:#fff}
+
+.signature{position:fixed;right:10px;bottom:4px;font-size:.72rem;color:#9aa0ae;z-index:10}
+
+/* ---------- Dessin de l'horloge ---------- */
+.rim{fill:var(--primary)}
+.face{fill:#fff}
+.tick{stroke:#a3abbc;stroke-width:2;stroke-linecap:round}
+.tick.h{stroke:var(--ink);stroke-width:4.5}
+.hnum{font-size:34px;font-weight:800;fill:var(--ink);text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI","Trebuchet MS",sans-serif}
+.n24{font-size:16px;font-weight:700;fill:var(--r24);text-anchor:middle;dominant-baseline:central;font-family:inherit}
+.mnum-bg{fill:#e8f0fd}
+.mnum{font-size:15px;font-weight:800;fill:var(--min);text-anchor:middle;dominant-baseline:central;font-family:inherit}
+.q-past{fill:var(--past)} .q-to{fill:var(--to)}
+.q-line{stroke:#b4bccd;stroke-width:2;stroke-dasharray:5 6}
+.q-pill{fill:#fff;stroke-width:2}
+.q-pill.p{stroke:#7cc596} .q-pill.t{stroke:#f0a96a} .q-pill.z{stroke:#b4bccd}
+.q-lab{font-size:12.5px;font-weight:800;text-anchor:middle;dominant-baseline:central;fill:var(--ink);font-family:inherit}
+.elapsed{fill:rgba(47,111,219,.15);stroke:rgba(47,111,219,.45);stroke-width:1.5}
+.hand-h{fill:var(--hour);stroke:var(--hour);stroke-width:3;stroke-linejoin:round;filter:url(#ombre)}
+.hand-m{fill:var(--min);stroke:var(--min);stroke-width:3;stroke-linejoin:round;filter:url(#ombre)}
+.hand-s{fill:var(--ok);stroke:var(--ok);stroke-width:1;filter:url(#ombre)}
+.hub{fill:var(--ink)} .hub-dot{fill:var(--accent)}
+.hand-h.grabbed,.hand-m.grabbed,.hand-s.grabbed{filter:drop-shadow(0 0 7px rgba(242,177,52,.95))}
+.hand-h.wrong,.hand-m.wrong,.hand-s.wrong{stroke:#ffc21a;stroke-width:10;paint-order:stroke;animation:wrongPulse .9s ease-in-out 4}
+@keyframes wrongPulse{50%{stroke-width:3}}
+.ghost .hand-h,.ghost .hand-m,.ghost .hand-s{opacity:.38;filter:none;stroke-dasharray:6 5;stroke:var(--ink)}
+.ghost .hub,.ghost .hub-dot{display:none}
+svg.interactive{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+svg.interactive.dragging{cursor:grabbing}
+svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
+
+/* ---------- Barre du haut plus compacte sur les écrans moyens (projecteurs 1280, 1366) ---------- */
+@media (max-width:1440px) and (min-width:981px){
+  .topbar{gap:8px;flex-wrap:nowrap;padding:8px 10px}
+  .brand{font-size:1.15rem}
+  .pillbar button{padding:6px 9px;font-size:.92rem}
+  .flags{gap:5px}
+  .flags svg{width:38px;height:26px}
+  .settings-btn{padding:8px 10px;font-size:.92rem}
+}
+@media (max-width:1180px) and (min-width:981px){
+  .brand{font-size:1rem;white-space:normal;line-height:1.05;max-width:110px}
+  .pillbar button{padding:6px 7px;font-size:.85rem}
+}
+
+/* ---------- Écrans étroits (tablette, téléphone) ---------- */
+@media (max-width:980px){
+  .duo{flex-direction:column;height:auto}
+  .clock-wrap{width:100%;max-width:520px;height:auto}
+  .side{max-width:none;width:100%}
+}
+
+/* ---------- Impression ---------- */
+#printOnly{display:none}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff;height:auto}
+  .app{display:none!important}
+  #printOnly{display:block}
+  #printOnly .sheet{box-shadow:none;break-after:page;page-break-after:always}
+  #printOnly .sheet:last-child{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- Ombre des aiguilles, partagée par toutes les horloges -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><filter id="ombre" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#1f2a44" flood-opacity=".28"/></filter></defs>
+</svg>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand" id="brand"></div>
+    <div class="flags" id="lang">
+      <button data-lang="fr" title="Heure en français" aria-label="Français">
+        <svg viewBox="0 0 30 20"><rect width="10" height="20" fill="#0055a4"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ef4135"/></svg>
+      </button>
+      <button data-lang="en" title="Heure en anglais" aria-label="English">
+        <svg viewBox="0 0 60 40"><clipPath id="ukc"><rect width="60" height="40"/></clipPath><g clip-path="url(#ukc)">
+          <rect width="60" height="40" fill="#012169"/>
+          <path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="8"/>
+          <path d="M0,0 L60,40 M60,0 L0,40" stroke="#c8102e" stroke-width="3"/>
+          <path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="12"/>
+          <path d="M30,0 V40 M0,20 H60" stroke="#c8102e" stroke-width="7"/></g></svg>
+      </button>
+    </div>
+    <div class="pillbar levels" id="levels"></div>
+    <nav class="pillbar" id="tabs">
+      <button data-mode="horloge">Horloge</button>
+      <button data-mode="lire">Lire l'heure</button>
+      <button data-mode="placer">Placer les aiguilles</button>
+    </nav>
+    <button class="settings-btn" id="panelTab">Réglages</button>
+    <div class="spacer"></div>
+    <button class="settings-btn" id="printTab" data-mode="imprimer">Imprimer</button>
+    <!-- Bouton « Accueil » : visible seulement dans le portail « Le tableau magique » -->
+    <a class="icon-btn portail-accueil" id="homeBtn" href="../" title="Revenir à l'accueil du tableau magique" aria-label="Accueil">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10"/></svg>
+    </a>
+    <button class="icon-btn" id="fsBtn" title="Plein écran" aria-label="Plein écran">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </header>
+
+  <main class="main">
+    <section class="stage" id="stage">
+
+      <!-- Mode Horloge -->
+      <div class="mode duo" id="mode-horloge">
+        <div class="clock-wrap"><div class="clock-host" id="clockMain"></div></div>
+        <div class="side">
+          <div class="card answer" id="hAnswer">
+            <div class="lcd" id="hLcd"></div>
+            <div class="written" id="hWritten"></div>
+            <div class="words" id="hWords"></div>
+            <div class="words2" id="hWords2"></div>
+            <div class="cover off" id="hCover"></div>
+          </div>
+          <div class="row fill">
+            <button class="btn" id="hToggle">Masquer l'heure</button>
+            <button class="btn" id="hSpeak" data-ui="listen">Écouter</button>
+          </div>
+          <div class="daybar" id="dayBar"></div>
+          <div class="steppers" id="steppers"></div>
+          <div class="row fill">
+            <button class="btn primary" id="hRandom" data-ui="random">Heure au hasard</button>
+            <button class="btn" id="hNow" data-ui="now">Maintenant</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Lire l'heure -->
+      <div class="mode" id="mode-lire">
+        <div class="toolbar">
+          <span class="small-label" data-ui="clocks">Horloges</span>
+          <div class="seg" id="lCount"></div>
+          <button class="btn primary" id="lNew" data-ui="newClocks">Nouvelles horloges</button>
+          <button class="btn" id="lReveal">Voir les réponses</button>
+        </div>
+        <div class="quiz-grid" id="lGrid"></div>
+      </div>
+
+      <!-- Mode Placer les aiguilles -->
+      <div class="mode duo" id="mode-placer">
+        <div class="clock-wrap"><div class="clock-host" id="clockPlace"></div></div>
+        <div class="side">
+          <div class="card target">
+            <div class="small-label" id="pLabel"></div>
+            <div class="target-text" id="pTarget"></div>
+            <div class="target-sub" id="pSub"></div>
+          </div>
+          <div class="row">
+            <span class="small-label" data-ui="consigne">Consigne</span>
+            <div class="seg" id="pFormat"></div>
+          </div>
+          <div class="row fill">
+            <button class="btn primary" id="pCheck" data-ui="check">Vérifier</button>
+            <button class="btn" id="pSolution" data-ui="solution">Solution</button>
+            <button class="btn" id="pListen" data-ui="listen">Écouter</button>
+          </div>
+          <button class="btn next" id="pNext" data-ui="next">Heure suivante</button>
+          <div class="feedback info" id="pFeedback"></div>
+          <div class="score" id="pScore"></div>
+        </div>
+      </div>
+
+      <!-- Mode Imprimer -->
+      <div class="mode" id="mode-imprimer">
+        <div class="card print-opts">
+          <div><span class="small-label">Fiche</span><div class="seg" id="prType"></div></div>
+          <div><span class="small-label">Horloges</span><div class="seg" id="prCount"></div></div>
+          <label class="check"><input type="checkbox" id="prKey"> Ajouter le corrigé</label>
+          <div class="row">
+            <button class="btn" id="prNew">Nouvelles heures</button>
+            <button class="btn primary" id="prPrint">Imprimer</button>
+          </div>
+        </div>
+        <div class="preview" id="preview"></div>
+      </div>
+    </section>
+
+    <!-- Réglages -->
+    <aside class="panel" id="panel">
+      <!-- Rangés par catégorie, du plus utile au moins utile -->
+      <h3>Heures proposées</h3>
+      <div class="choice" id="stepChoice"></div>
+      <label class="toggle" id="tSec"><span>Avec les secondes (CM2)</span><input type="checkbox" data-opt="sec"><span class="sw"></span></label>
+
+      <h3>Manipulation</h3>
+      <label class="toggle"><span>Aiguilles liées</span><input type="checkbox" data-opt="linked"><span class="sw"></span></label>
+
+      <h3>Aides sur le cadran</h3>
+      <label class="toggle"><span>Chiffres des minutes</span><input type="checkbox" data-opt="minNums"><span class="sw"></span></label>
+      <label class="toggle"><span>Petits traits des minutes</span><input type="checkbox" data-opt="ticks"><span class="sw"></span></label>
+      <label class="toggle"><span>Quarts d'heure</span><input type="checkbox" data-opt="quarters"><span class="sw"></span></label>
+      <label class="toggle"><span>Minutes parcourues</span><input type="checkbox" data-opt="elapsed"><span class="sw"></span></label>
+      <label class="toggle"><span>Écran type réveil (Horloge)</span><input type="checkbox" data-opt="lcd"><span class="sw"></span></label>
+
+      <h3>Matin, après-midi, soir</h3>
+      <div class="seg day-seg" id="daySeg"></div>
+      <label class="toggle" id="tRing24"><span>Heures 13 à 24 sur le cadran</span><input type="checkbox" data-opt="ring24"><span class="sw"></span></label>
+      <label class="toggle" id="tDayBar"><span>Frise de la journée (Horloge)</span><input type="checkbox" data-opt="dayBar"><span class="sw"></span></label>
+
+      <div class="spacer"></div>
+      <button class="btn" id="hidePanel">Masquer les réglages</button>
+    </aside>
+  </main>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
+</div>
+
+<div id="printOnly"></div>
+
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Les aiguilles du temps</h2>
+    <p class="chapeau">Une horloge à aiguilles à projeter au tableau pour apprendre à lire l’heure, du CP au CM2, en français et en anglais.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Les aiguilles du temps affiche au TBI ou au vidéoprojecteur une grande horloge dont on fait glisser les aiguilles, au doigt ou à la souris. L’heure s’écrit en chiffres et en lettres pendant qu’on tourne les aiguilles. On peut la cacher pour faire chercher les élèves, qui répondent sur l’ardoise. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Quatre façons de travailler</h3>
+    <ul>
+      <li><b>Horloge :</b> l’enseignant montre et fait varier l’heure (boutons + et −, heure au hasard, heure actuelle). L’heure s’affiche en chiffres, avec la façon de la dire (« trois heures moins le quart ») et l’autre écriture possible (« deux heures quarante-cinq »).</li>
+      <li><b>Lire l’heure :</b> une, quatre ou six horloges pour un rituel sur ardoise. Les réponses s’affichent une par une, d’un clic ou avec la barre d’espace.</li>
+      <li><b>Placer les aiguilles :</b> un élève place les aiguilles au tableau sur une heure donnée en chiffres, en lettres ou à l’oral. L’outil vérifie et explique ce qui ne va pas : « La petite aiguille doit avoir juste dépassé le 3. »</li>
+      <li><b>Imprimer :</b> des fiches A4 de 6, 9 ou 12 horloges (lire l’heure, dessiner les aiguilles ou les deux), avec leur corrigé.</li>
+    </ul>
+
+    <h3>Une progression du CP au CM2</h3>
+    <ul>
+      <li><b>CP :</b> les heures pile.</li>
+      <li><b>CE1 :</b> les demi-heures et les quarts d’heure.</li>
+      <li><b>CE2 :</b> de 5 minutes en 5 minutes.</li>
+      <li><b>CM1 et CM2 :</b> à la minute près, avec les secondes en option.</li>
+    </ul>
+    <p>Chaque niveau se règle ensuite à la main : heures pile, et demie, et quart, moins le quart, par 5 minutes, minutes quelconques.</p>
+
+    <h3>Des aides à afficher ou à retirer</h3>
+    <ul>
+      <li>Les chiffres des minutes autour du cadran, les petits traits des minutes, les quarts d’heure en couleur, les minutes parcourues.</li>
+      <li>Le matin, l’après-midi et le soir, avec les heures de 13 à 24 sur le cadran et une frise de la journée.</li>
+      <li>Les aiguilles liées, comme sur une vraie horloge, ou indépendantes pour faire réfléchir à la place de la petite aiguille.</li>
+      <li>Un écran de réveil pour faire le lien avec l’affichage digital.</li>
+    </ul>
+
+    <h3>En anglais : Tic-Tac Time</h3>
+    <p>Un clic sur le drapeau anglais passe tout l’affichage des élèves en anglais (o’clock, half past, quarter to…), avec sa propre progression et une voix qui lit l’heure. Pratique pour la séance « telling the time » du cycle 3.</p>
+
+    <h3>Les programmes</h3>
+    <p>Lire l’heure sur une horloge à aiguilles et connaître les relations entre heures, minutes et secondes fait partie des programmes de mathématiques du cycle 2 (2024) et du cycle 3 (2025), dans le domaine des grandeurs et mesures.</p>
+    <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
+
+
+<script>
+'use strict';
+
+/* =========================================================
+   1. ÉTAT ET RÉGLAGES
+   ========================================================= */
+const STORE_KEY = 'aiguilles-du-temps';
+
+// Catégories d'heures (cases à cocher du panneau). Chaque minute appartient à une seule catégorie.
+const CATS = {
+  fr: [
+    ['pile',  'Heures pile'],
+    ['demie', 'Et demie'],
+    ['quart', 'Et quart, moins le quart'],
+    ['cinq',  'Par 5 minutes (et cinq, moins dix…)'],
+    ['min',   'Minutes quelconques']
+  ],
+  en: [
+    ['oclock', "o'clock"],
+    ['half',   'half past'],
+    ['quarter','quarter past, quarter to'],
+    ['past5',  'five past, ten past'],
+    ['past20', 'twenty past, twenty-five past'],
+    ['to5',    'ten to, five to'],
+    ['to20',   'twenty-five to, twenty to'],
+    ['min',    'other minutes (seven past…)']
+  ]
+};
+function catOf(m, lang){
+  if (m % 5) return 'min';
+  if (lang === 'en'){
+    if (m === 0) return 'oclock';
+    if (m === 30) return 'half';
+    if (m === 15 || m === 45) return 'quarter';
+    if (m === 5 || m === 10) return 'past5';
+    if (m === 20 || m === 25) return 'past20';
+    if (m === 50 || m === 55) return 'to5';
+    return 'to20';                       // 35, 40
+  }
+  if (m === 0) return 'pile';
+  if (m === 30) return 'demie';
+  if (m === 15 || m === 45) return 'quart';
+  return 'cinq';
+}
+const activeCats = () => S.lang === 'en' ? S.catsEn : S.catsFr;
+// Minutes possibles selon les catégories cochées
+const allowedMinutes = () => { const c = activeCats(); return [...Array(60).keys()].filter(m => c.includes(catOf(m, S.lang))); };
+// Pas le plus fin parmi les catégories cochées (60, 30, 15, 5 ou 1 minute)
+function gran(){
+  const c = activeCats();
+  if (c.includes('min')) return 1;
+  if (c.some(k => ['cinq','past5','past20','to5','to20'].includes(k))) return 5;
+  if (c.includes('quart') || c.includes('quarter')) return 15;
+  if (c.includes('demie') || c.includes('half')) return 30;
+  return 60;
+}
+
+// Préréglages par niveau (modifiables ensuite dans le panneau), d'après les programmes de
+// mathématiques 2024 (cycle 2) et 2025 (cycle 3) : CP heures entières ; CE1 demi-heures et quarts
+// d'heure ; CE2 par 5 minutes ; CM1 et CM2 à la minute (secondes en option dans le panneau).
+const LEVELS = {
+  CP:  { catsFr:['pile'], ticks:false, h24:false, minNums:false, ring24:false, quarters:false, elapsed:false, sec:false },
+  CE1: { catsFr:['pile','demie','quart'], ticks:true, h24:false, minNums:true, ring24:false, quarters:false, elapsed:false, sec:false },
+  CE2: { catsFr:['pile','demie','quart','cinq'], ticks:true, h24:false, minNums:true, ring24:false, quarters:false, elapsed:false, sec:false },
+  CM1: { catsFr:['pile','demie','quart','cinq','min'], ticks:true, h24:false, minNums:true, ring24:false, quarters:false, elapsed:false, sec:false },
+  CM2: { catsFr:['pile','demie','quart','cinq','min'], ticks:true, h24:false, minNums:false, ring24:false, quarters:false, elapsed:false, sec:false }
+};
+
+// Anglais : même progression qu'en maths, un cran plus simple
+//   CP o'clock ; CE1 + half past ; CE2 + quarter past / to ; CM1 + five / ten past et to ;
+//   CM2 + twenty / twenty-five past et to
+const LEVELS_EN = {
+  CP:  { catsEn:['oclock'], ticks:false, h24:false, minNums:false, ring24:false, quarters:false, elapsed:false },
+  CE1: { catsEn:['oclock','half'], ticks:true, h24:false, minNums:false, ring24:false, quarters:false, elapsed:false },
+  CE2: { catsEn:['oclock','half','quarter'], ticks:true, h24:false, minNums:false, ring24:false, quarters:false, elapsed:false },
+  CM1: { catsEn:['oclock','half','quarter','past5','to5'], ticks:true, h24:false, minNums:true, ring24:false, quarters:false, elapsed:false },
+  CM2: { catsEn:['oclock','half','quarter','past5','to5','past20','to20'], ticks:true, h24:false, minNums:true, ring24:false, quarters:false, elapsed:false }
+};
+const LEVEL_TIPS_EN = { CP:"o'clock", CE1:"o'clock, half past", CE2:'+ quarter past, quarter to',
+  CM1:'+ five past, ten past, ten to, five to', CM2:'+ twenty past, twenty-five past, twenty-five to, twenty to' };
+const presetFor = (lang, level) => (lang === 'en' ? LEVELS_EN : LEVELS)[level];
+
+const DEFAULTS = Object.assign({
+  mode:'horloge', lang:'fr', level:'CE1',
+  dayBar:true, linked:true, sec:false, dayPart:'both', lcd:false,
+  lCount:6, pFormat:'chiffres',
+  prType:'lire', prCount:9, prKey:true
+}, LEVELS.CE1, { catsEn: LEVELS_EN.CE1.catsEn });
+
+const S = Object.assign({}, DEFAULTS, loadSettings());
+delete S.step;   // ancien réglage (versions précédentes)
+
+function loadSettings(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e){ return {}; }
+}
+function saveSettings(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e){}
+}
+
+// Pas des aiguilles quand on les fait glisser (en minutes)
+function dragStep(){ return useSec() ? 1 : gran() >= 60 ? 30 : gran(); }
+
+// Secondes : seulement en français (option du panneau, utile en CM2)
+function useSec(){ return !!S.sec && S.lang === 'fr'; }
+// Arrondi d'une heure (en minutes) à la minute ou à la seconde selon l'option
+function roundT(t){ return useSec() ? Math.round(t * 60) / 60 : Math.round(t); }
+// Découpe une heure en minutes depuis minuit et secondes
+function splitTime(t){ const ts = Math.floor(t * 60 + 1e-6); return { mins: Math.floor(ts / 60), s: ts % 60 }; }
+
+const $ = id => document.getElementById(id);
+const TITRE_PAGE = document.title;   // titre complet de la page (référencement), gardé en français
+const pad = n => String(n).padStart(2,'0');
+const mod = (a,n) => ((a % n) + n) % n;
+
+
+/* =========================================================
+   2. TEXTES ÉLÈVE (français / anglais)
+   ========================================================= */
+const TXT = {
+  fr:{
+    question:'Quelle heure est-il ?', placeOn:'Place les aiguilles sur', listenPlace:'Écoute et place les aiguilles', listen:'?',
+    quarters:['pile','et quart','et demie','moins le quart'],
+    day:['nuit','matin','après-midi','soir','nuit'],
+    allOk:'Les deux aiguilles sont bien placées. Bravo !', allOk3:'Les trois aiguilles sont bien placées. Bravo !',
+    minGood:'La grande aiguille est bien placée.', minForward:'La grande aiguille doit encore avancer.',
+    minBack:'La grande aiguille est allée trop loin.',
+    hourGood:'La petite aiguille est bien placée.', hourForward:'La petite aiguille doit avancer.',
+    hourBack:'La petite aiguille doit reculer.', hourTooFar:'La petite aiguille est trop avancée.',
+    hourNotEnough:"La petite aiguille n'a pas assez avancé.",
+    secWrong:'Les heures et les minutes sont justes. Regarde l\'aiguille des secondes.',
+    start:'Fais glisser les aiguilles, puis clique sur Vérifier.',
+    solution:'Voici la bonne position :',
+    sheetRead:"Lire l'heure", sheetDraw:'Dessiner les aiguilles', sheetMix:"L'heure",
+    cRead:"Écris l'heure indiquée par chaque horloge.",
+    cRead24:' Attention au moment de la journée.',
+    cDraw:'Dessine les aiguilles : la petite aiguille pour les heures, la grande aiguille pour les minutes.',
+    cMix:"Écris l'heure sous les horloges qui ont des aiguilles. Dessine les aiguilles sur les autres.",
+    name:'Prénom', date:'Date', key:'Corrigé', itIs:'Il est'
+  },
+  en:{
+    question:'What time is it?', placeOn:'Set the clock to', listenPlace:'Listen and set the clock', listen:'?',
+    quarters:["o'clock",'quarter past','half past','quarter to'],
+    day:['night','morning','afternoon','evening','night'],
+    allOk:'Both hands are right. Well done!', allOk3:'All three hands are right. Well done!',
+    minGood:'The long hand is right.', minForward:'The long hand must go further.',
+    minBack:'The long hand has gone too far.',
+    hourGood:'The short hand is right.', hourForward:'The short hand must go forward.',
+    hourBack:'The short hand must go back.', hourTooFar:'The short hand has gone too far.',
+    hourNotEnough:"The short hand hasn't gone far enough.",
+    secWrong:'Look at the second hand.',
+    start:'Move the hands, then click Check.',
+    solution:'Here is the right answer:',
+    sheetRead:'Telling the time', sheetDraw:'Draw the hands', sheetMix:'Telling the time',
+    cRead:'What time is it? Write the time under each clock.',
+    cRead24:' Say when: in the morning, in the afternoon or in the evening.',
+    cDraw:'Draw the hands: the short hand for the hours, the long hand for the minutes.',
+    cMix:'Write the time under the clocks with hands. Draw the hands on the other clocks.',
+    name:'Name', date:'Date', key:'Answers', itIs:"It's"
+  }
+};
+const T = () => TXT[S.lang];
+
+// Boutons et étiquettes vus par les élèves (la barre du haut et les réglages restent en français)
+const UI = {
+  fr:{ hide:"Masquer l'heure", show:"Montrer l'heure", listen:'Écouter', random:'Heure au hasard', now:'Maintenant',
+       clocks:'Horloges', newClocks:'Nouvelles horloges', reveal:'Voir les réponses', unreveal:'Masquer les réponses',
+       consigne:'Consigne', check:'Vérifier', solution:'Solution', next:'Heure suivante',
+       free:'Aiguilles indépendantes', hour:'1 h',
+       fmt:{ chiffres:'En chiffres', lettres:'En lettres', oral:"À l'oral", hasard:'Au hasard' } },
+  en:{ hide:'Hide the time', show:'Show the time', listen:'Listen', random:'Random time', now:'Now',
+       clocks:'Clocks', newClocks:'New clocks', reveal:'Show answers', unreveal:'Hide answers',
+       consigne:'Task', check:'Check', solution:'Answer', next:'Next time',
+       free:'Hands not linked', hour:'1 hr',
+       fmt:{ chiffres:'In numbers', lettres:'In words', oral:'Listening', hasard:'Mixed' } }
+};
+const U = () => UI[S.lang];
+function applyUI(){
+  document.querySelectorAll('[data-ui]').forEach(el => el.textContent = U()[el.dataset.ui]);
+  $('pFormat').querySelectorAll('button').forEach(b => b.textContent = U().fmt[b.dataset.v]);
+}
+
+
+/* =========================================================
+   3. MOTS DE L'HEURE ET TIRAGE D'HEURES
+   ========================================================= */
+const FR_U = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze',
+              'treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+const FR_T = ['','','vingt','trente','quarante','cinquante'];
+
+// Nombre en lettres (0 à 59), au féminin pour « une heure », « vingt et une minutes »
+function frNum(n, fem){
+  let s;
+  if (n < 20) s = FR_U[n];
+  else {
+    const t = Math.floor(n/10), u = n % 10;
+    s = FR_T[t] + (u === 0 ? '' : u === 1 ? ' et un' : '-' + FR_U[u]);
+  }
+  return fem ? s.replace(/un$/, 'une') : s;
+}
+
+// « une heure », « quatorze heures », « zéro heure »
+const frHours = n => n === 0 ? 'zéro heure' : frNum(n, true) + (n === 1 ? ' heure' : ' heures');
+
+// Nom de l'heure pour la formulation courante (midi, minuit, trois heures…) ;
+// sans les moments de la journée, 0 h et 12 h s'appellent « midi » (le « ou minuit » est ajouté plus loin)
+function frHourName(h, h24){
+  if (h24 && h === 0) return 'minuit';
+  return h % 12 === 0 ? 'midi' : frHours(h % 12);
+}
+
+// Moment de la journée (mêmes limites que la frise) : nuit avant 5 h, matin, après-midi, soir
+function frPeriod(h){ return h < 5 ? 'la nuit' : h < 12 ? 'le matin' : h < 18 ? "l'après-midi" : 'le soir'; }
+
+// Toutes les écritures d'une heure en français
+function frExpr(t, h24){
+  const sp = splitTime(t); t = sp.mins;
+  const h = Math.floor(t/60) % 24, m = t % 60;
+  const dh = h24 ? h : (h % 12 || 12);
+
+  const digital = `${dh} h ${pad(m)}`;
+  const lcd = `${dh}:${pad(m)}`;
+  const formal = frHours(dh) + (m ? ' ' + frNum(m, true) : '');
+
+  // Formulation courante : et quart, et demie, moins le quart, moins dix…
+  let hb = h, suf;
+  if (m === 0) suf = '';
+  else if (m === 15) suf = ' et quart';
+  else if (m === 30) suf = ' et demie';
+  else if (m > 30 && m % 5 === 0){
+    hb = (h + 1) % 24;
+    suf = m === 45 ? ' moins le quart' : ' moins ' + frNum(60 - m, true);
+  }
+  else suf = ' ' + frNum(m, true);
+  const name = frHourName(hb, h24);
+  if (m === 30 && (name === 'midi' || name === 'minuit')) suf = ' et demi';
+  let usual = name + suf;
+  if (h24 && name !== 'midi' && name !== 'minuit')
+    usual += hb < 12 ? ' du matin' : hb < 18 ? " de l'après-midi" : ' du soir';
+  // Sans les moments de la journée, « 12 h » peut être midi ou minuit : on donne les deux
+  if (!h24 && name === 'midi') usual = 'midi' + suf + ' ou minuit' + suf;
+
+  const res = { digital, lcd, formal, usual, period: frPeriod(h), say: 'Il est ' + usual };
+
+  // Avec les secondes : « 14 h 25 min 40 s », « quatorze heures vingt-cinq minutes et quarante secondes »
+  if (useSec()){
+    const s = sp.s;
+    res.digital = `${dh} h ${pad(m)} min ${pad(s)} s`;
+    res.lcd = `${dh}:${pad(m)}:${pad(s)}`;
+    res.formal = usual;
+    res.usual = frHours(dh)
+      + (m ? ' ' + frNum(m, true) + (m === 1 ? ' minute' : ' minutes') : '')
+      + (s ? ' et ' + frNum(s, true) + (s === 1 ? ' seconde' : ' secondes') : '');
+    res.say = 'Il est ' + res.usual;
+  }
+  return res;
+}
+
+const EN_U = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
+              'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const EN_T = ['','','twenty','thirty','forty','fifty'];
+function enNum(n){
+  if (n < 20) return EN_U[n];
+  const t = Math.floor(n/10), u = n % 10;
+  return EN_T[t] + (u ? '-' + EN_U[u] : '');
+}
+function enMinutes(n){ return n % 5 ? enNum(n) + (n === 1 ? ' minute' : ' minutes') : enNum(n); }
+
+// Toutes les écritures d'une heure en anglais
+function enExpr(t, h24){
+  t = splitTime(t).mins;
+  const h = Math.floor(t/60) % 24, m = t % 60;
+  const h12 = h % 12 || 12, next = (h + 1) % 12 || 12;
+  const moment = (h < 5 || h >= 21) ? 'at night' : h < 12 ? 'in the morning' : h < 18 ? 'in the afternoon' : 'in the evening';
+
+  let usual;
+  if (m === 0) usual = `${enNum(h12)} o'clock`;
+  else if (m <= 30) usual = (m === 15 ? 'quarter' : m === 30 ? 'half' : enMinutes(m)) + ' past ' + enNum(h12);
+  else { const r = 60 - m; usual = (r === 15 ? 'quarter' : enMinutes(r)) + ' to ' + enNum(next); }
+
+  if (h24){
+    if (t === 720) usual = "twelve o'clock, noon";
+    else if (t === 0) usual = "twelve o'clock, midnight";
+    else usual += ' ' + moment;
+  }
+  const digital = `${h12}:${pad(m)}`;
+  const spoken = enNum(h12) + ' ' + (m === 0 ? "o'clock" : m < 10 ? 'oh ' + enNum(m) : enNum(m));
+  return { digital, lcd: digital, usual, spoken, period: moment, say: "It's " + usual + '.' };
+}
+
+const expr = t => S.lang === 'en' ? enExpr(t, S.h24) : frExpr(t, S.h24);
+
+// Tirage des heures selon la précision choisie (de 5 h à minuit en mode 24 h)
+// Toutes les heures possibles, en minutes depuis minuit
+function timePool(){
+  // En mode 24 h : matin de 5 h à midi, après-midi et soir de midi à minuit
+  const range = !S.h24 ? [0, 12] : S.dayPart === 'am' ? [5, 12] : S.dayPart === 'pm' ? [12, 24] : [5, 24];
+  const [lo, hi] = range, mins = allowedMinutes(), pool = [];
+  for (let h = lo; h < hi; h++) for (const m of mins) pool.push(h * 60 + m);
+  return pool.length ? pool : [lo * 60];
+}
+function withSeconds(t){ return useSec() ? t + Math.floor(Math.random() * 60) / 60 : t; }
+
+// Une heure différente de celles de la liste (si c'est possible)
+function randomTime(exclude = []){
+  const ex = new Set(exclude.map(x => Math.floor(x)));
+  const pool = timePool(), free = pool.filter(t => !ex.has(t));
+  const src = free.length ? free : pool;
+  return withSeconds(src[Math.floor(Math.random() * src.length)]);
+}
+
+// Plusieurs heures toutes différentes (mélange de toutes les heures possibles) ;
+// des doublons seulement s'il y a plus d'horloges que d'heures possibles
+function randomTimes(count){
+  const pool = timePool();
+  for (let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return Array.from({ length: count }, (_, i) => withSeconds(pool[i % pool.length]));
+}
+
+// Synthèse vocale (voix française ou anglaise de l'ordinateur)
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = S.lang === 'en' ? 'en-GB' : 'fr-FR';
+  const voices = speechSynthesis.getVoices();
+  const v = voices.find(v => v.lang.replace('_','-') === u.lang)
+         || voices.find(v => v.lang.slice(0,2) === u.lang.slice(0,2));
+  if (v) u.voice = v;
+  u.rate = .88;
+  speechSynthesis.speak(u);
+}
+if ('speechSynthesis' in window) speechSynthesis.getVoices();
+
+
+/* =========================================================
+   4. DESSIN DE L'HORLOGE (SVG)
+   ========================================================= */
+const R = 170;                       // rayon du cadran
+const HOUR_HAND = 'M-7.5,16 L-6,-72 L0,-92 L6,-72 L7.5,16 Z';
+const MIN_HAND  = 'M-4.5,22 L-4,-132 L0,-152 L4,-132 L4.5,22 Z';
+const SEC_HAND  = 'M-1.8,34 L-1.3,-160 L1.3,-160 L1.8,34 Z';
+
+// Point à partir d'un angle (0° = 12 h, sens des aiguilles d'une montre)
+function polar(deg, r){
+  const a = (deg - 90) * Math.PI / 180;
+  return [ +(r * Math.cos(a)).toFixed(2), +(r * Math.sin(a)).toFixed(2) ];
+}
+
+function viewBoxFor(o){ return o.minNums ? '-226 -226 452 452' : '-186 -186 372 372'; }
+
+// Fond du cadran : graduations, nombres et aides choisies
+function faceMarkup(o){
+  let s = `<circle r="${R + 9}" class="rim"/><circle r="${R}" class="face"/>`;
+
+  if (o.quarters){
+    s += `<path class="q-past" d="M0,${-R} A${R},${R} 0 0 1 0,${R} Z"/>`;
+    s += `<path class="q-to" d="M0,${R} A${R},${R} 0 0 1 0,${-R} Z"/>`;
+    for (const a of [0,90,180,270]){ const [x,y] = polar(a, R - 2); s += `<line class="q-line" x1="0" y1="0" x2="${x}" y2="${y}"/>`; }
+  }
+
+  for (let i = 0; i < 60; i++){
+    const major = i % 5 === 0;
+    if (!major && o.ticks === false) continue;
+    const [x1,y1] = polar(i*6, major ? 147 : 157), [x2,y2] = polar(i*6, 166);
+    s += `<line class="tick${major ? ' h' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  }
+  for (let n = 1; n <= 12; n++){
+    const [x,y] = polar(n*30, 128);
+    s += `<text class="hnum" x="${x}" y="${y}">${n}</text>`;
+  }
+  if (o.ring24){
+    for (let n = 1; n <= 12; n++){
+      const [x,y] = polar(n*30, 94);
+      s += `<text class="n24" x="${x}" y="${y}">${n + 12}</text>`;
+    }
+  }
+  if (o.minNums){
+    for (let i = 0; i < 12; i++){
+      const [x,y] = polar(i*30, 203);
+      s += `<circle class="mnum-bg" cx="${x}" cy="${y}" r="15"/><text class="mnum" x="${x}" y="${y}">${i*5}</text>`;
+    }
+  }
+  if (o.quarters && !o.paper){
+    // Étiquettes des quarts ; les plus longues sur deux lignes pour ne pas toucher les nombres
+    const labels = TXT[o.lang || S.lang].quarters;
+    const pos = [[0,-60,'z'],[62,0,'p'],[0,60,'p'],[-62,0,'t']];
+    labels.forEach((lab,i) => {
+      const [x,y,c] = pos[i];
+      const sp = lab.indexOf(' ');
+      const lines = lab.length > 9 && sp > 0 ? [lab.slice(0, sp), lab.slice(sp + 1)] : [lab];
+      const w = Math.max(...lines.map(l => l.length)) * 7.4 + 16, hh = lines.length * 16 + 8;
+      s += `<rect class="q-pill ${c}" x="${x - w/2}" y="${y - hh/2}" width="${w}" height="${hh}" rx="11"/>`;
+      lines.forEach((l, k) => { s += `<text class="q-lab" x="${x}" y="${y + (k - (lines.length - 1)/2) * 16}">${l}</text>`; });
+    });
+  }
+  return s;
+}
+
+// Secteur des minutes parcourues depuis 12
+function elapsedMarkup(minAngle){
+  const a = mod(minAngle, 360);
+  if (a < .5) return '';
+  const r = R - 3;
+  if (a > 359.5) return `<circle class="elapsed" r="${r}"/>`;
+  const [x,y] = polar(a, r);
+  return `<path class="elapsed" d="M0,0 L0,${-r} A${r},${r} 0 ${a > 180 ? 1 : 0} 1 ${x},${y} Z"/>`;
+}
+
+// secAngle = null : pas d'aiguille des secondes
+function handsMarkup(hourAngle, minAngle, cls = '', secAngle = null){
+  return `<g class="${cls}"><path class="hand-h" d="${HOUR_HAND}" transform="rotate(${hourAngle.toFixed(2)})"/>`
+       + `<path class="hand-m" d="${MIN_HAND}" transform="rotate(${minAngle.toFixed(2)})"/>`
+       + (secAngle === null ? '' : `<path class="hand-s" d="${SEC_HAND}" transform="rotate(${secAngle.toFixed(2)})"/>`)
+       + `<circle class="hub" r="12"/><circle class="hub-dot" r="4"/></g>`;
+}
+
+const anglesOf = t => ({ m: (t % 60) * 6, h: ((t / 60) % 12) * 30, s: mod(Math.round(t * 60 * 1000) / 1000, 60) * 6 });
+
+// Horloge fixe (grilles, fiches) ; t = null pour un cadran sans aiguilles
+function staticClock(t, o){
+  const a = t === null ? null : anglesOf(t);
+  let s = `<svg viewBox="${viewBoxFor(o)}" class="${o.paper ? 'paper' : ''}" xmlns="http://www.w3.org/2000/svg">${faceMarkup(o)}`;
+  if (a && o.elapsed) s += elapsedMarkup(a.m);
+  s += a ? handsMarkup(a.h, a.m, '', useSec() ? a.s : null) : '<circle class="hub" r="7"/>';
+  return s + '</svg>';
+}
+
+// Les heures 13 à 24 ne s'affichent que si l'on distingue matin et après-midi (en français)
+const faceOptions = () => ({ ticks:S.ticks, minNums:S.minNums, ring24:S.ring24 && S.h24 && S.lang === 'fr', quarters:S.quarters, elapsed:S.elapsed, lang:S.lang });
+
+
+/* =========================================================
+   5. HORLOGE MANIPULABLE
+   ========================================================= */
+class InteractiveClock {
+  constructor(host, onChange){
+    this.onChange = onChange;
+    this.total = 0;          // heure en minutes depuis minuit (0 à 1439)
+    this.freeMin = 0;        // aiguilles indépendantes : minute pointée
+    this.freeSec = 0;        // aiguilles indépendantes : seconde pointée
+    this.freeHour = 0;       // aiguilles indépendantes : angle de la petite aiguille
+    this.ghostT = null;      // position de correction affichée en pointillés
+    this.wrong = null;       // aiguilles à corriger après « Vérifier » : { h, m, s }
+    this.drag = null;        // aiguille en cours de déplacement : { hand: 'h' | 'm' | 's' }
+    this.anim = 0;           // animation en cours (requestAnimationFrame)
+    this.animTarget = null;  // heure visée par l'animation
+    host.innerHTML = '<svg class="interactive" xmlns="http://www.w3.org/2000/svg">'
+      + '<g class="l-face"></g><g class="l-elapsed"></g><g class="l-ghost"></g><g class="l-hands"></g></svg>';
+    this.svg = host.firstChild;
+    this.layers = {
+      face: this.svg.querySelector('.l-face'), elapsed: this.svg.querySelector('.l-elapsed'),
+      ghost: this.svg.querySelector('.l-ghost'), hands: this.svg.querySelector('.l-hands')
+    };
+    this.svg.addEventListener('pointerdown', e => this.down(e));
+    this.svg.addEventListener('pointermove', e => this.move(e));
+    this.svg.addEventListener('pointerup', e => this.up(e));
+    this.svg.addEventListener('pointercancel', e => this.up(e));
+    this.renderFace();
+  }
+
+  angles(){
+    if (S.linked) return anglesOf(this.total);
+    return { m: this.freeMin * 6, h: this.freeHour, s: this.freeSec * 6 };
+  }
+
+  setTotal(t, silent){
+    this.total = mod(t, 1440);
+    this.syncFree();
+    this.update();
+    if (!silent && this.onChange) this.onChange();
+  }
+
+  // Recopie l'heure dans les positions « libres » des aiguilles
+  syncFree(){
+    const sp = splitTime(this.total);
+    this.freeMin = sp.mins % 60;
+    this.freeSec = sp.s;
+    this.freeHour = anglesOf(this.total).h;
+  }
+
+  // Passage aiguilles indépendantes → liées : on reconstitue l'heure
+  relink(){
+    const idx = mod(Math.round((this.freeHour - this.freeMin * .5) / 30), 12);
+    const base = this.total >= 720 ? 720 : 0;
+    this.setTotal(base + idx * 60 + this.freeMin + (useSec() ? this.freeSec / 60 : 0));
+  }
+
+  setGhost(t){ this.ghostT = t; this.update(); }
+  setWrong(w){ this.wrong = w; this.update(); }
+
+  // Fait glisser les aiguilles jusqu'à l'heure t (au lieu de sauter) : on voit le temps passer
+  animateTo(t, ms = 550){
+    this.stopAnim();
+    const from = this.total, t0 = performance.now();
+    this.animTarget = t;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms);
+      const ease = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      this.total = mod(from + (t - from) * ease, 1440);
+      this.syncFree(); this.update();
+      if (this.onChange) this.onChange();
+      if (k < 1) this.anim = requestAnimationFrame(step);
+      else { this.anim = 0; this.animTarget = null; this.setTotal(t); }
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+  stopAnim(){
+    if (this.anim){ cancelAnimationFrame(this.anim); this.anim = 0; }
+    if (this.animTarget != null){ const t = this.animTarget; this.animTarget = null; this.setTotal(t, true); }
+  }
+
+  renderFace(){
+    this.svg.setAttribute('viewBox', viewBoxFor(S));
+    this.layers.face.innerHTML = faceMarkup(faceOptions());
+    this.update();
+  }
+
+  update(){
+    const a = this.angles();
+    this.layers.elapsed.innerHTML = S.elapsed ? elapsedMarkup(a.m) : '';
+    const sec = useSec();
+    this.layers.hands.innerHTML = handsMarkup(a.h, a.m, '', sec ? a.s : null);
+    // Aiguille saisie (halo) et aiguilles à corriger après « Vérifier » (contour jaune qui clignote)
+    for (const k of ['h','m','s']){
+      const el = this.layers.hands.querySelector('.hand-' + k);
+      if (!el) continue;
+      el.classList.toggle('grabbed', !!this.drag && this.drag.hand === k);
+      el.classList.toggle('wrong', !!(this.wrong && this.wrong[k]));
+    }
+    if (this.ghostT === null) this.layers.ghost.innerHTML = '';
+    else { const g = anglesOf(this.ghostT); this.layers.ghost.innerHTML = handsMarkup(g.h, g.m, 'ghost', sec ? g.s : null); }
+  }
+
+  // --- Glisser les aiguilles ---
+  point(e){
+    const p = this.svg.createSVGPoint();
+    p.x = e.clientX; p.y = e.clientY;
+    return p.matrixTransform(this.svg.getScreenCTM().inverse());
+  }
+  static angleOf(p){ return mod(Math.atan2(p.x, -p.y) * 180 / Math.PI, 360); }
+  static gap(a, b){ const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; }
+
+  down(e){
+    const p = this.point(e), r = Math.hypot(p.x, p.y);
+    if (r > R + 45) return;
+    this.stopAnim();
+    this.wrong = null;
+    const ang = InteractiveClock.angleOf(p), a = this.angles();
+    const dh = InteractiveClock.gap(ang, a.h), dm = InteractiveClock.gap(ang, a.m);
+    // Près du centre, on attrape l'aiguille la plus proche ; plus loin, la grande aiguille
+    // (ou l'aiguille des secondes si elle est plus près du doigt)
+    let hand = (r <= 112 && dh < dm) ? 'h' : 'm';
+    if (useSec() && hand === 'm' && r > 60 && InteractiveClock.gap(ang, a.s) < dm) hand = 's';
+    this.drag = { hand };
+    this.svg.setPointerCapture(e.pointerId);
+    this.svg.classList.add('dragging');
+    this.move(e);
+    e.preventDefault();
+  }
+
+  move(e){
+    if (!this.drag) return;
+    const ang = InteractiveClock.angleOf(this.point(e)), st = dragStep();
+    // Écart le plus court sur un tour de 60 (passage par 12 dans un sens ou dans l'autre)
+    const wrap = d => d < -30 ? d + 60 : d > 30 ? d - 60 : d;
+    if (this.drag.hand === 's'){
+      const sv = mod(Math.round(ang / 6), 60);
+      if (S.linked){
+        const cur = mod(Math.round(this.total * 60), 60);
+        this.total = mod(roundT(this.total + wrap(sv - cur) / 60), 1440);
+      } else this.freeSec = sv;
+    } else if (this.drag.hand === 'm'){
+      const m = mod(Math.round(ang / 6 / st) * st, 60);
+      if (S.linked){
+        const cur = splitTime(this.total).mins % 60;
+        this.total = mod(roundT(this.total + wrap(m - cur)), 1440);
+      } else this.freeMin = m;
+    } else {
+      if (S.linked){
+        const t12 = mod(Math.round(ang * 2 / st) * st, 720) + (useSec() ? splitTime(this.total).s / 60 : 0);
+        // On garde la moitié de journée la plus proche (le passage par 12 change matin / après-midi)
+        const cands = [t12, t12 + 720];
+        const dist = c => { const d = Math.abs(c - this.total) % 1440; return d > 720 ? 1440 - d : d; };
+        this.total = cands.reduce((b, c) => dist(c) < dist(b) ? c : b);
+      } else this.freeHour = mod(Math.round(ang / 2.5) * 2.5, 360);   // crans de 2,5° (5 minutes)
+    }
+    if (S.linked) this.syncFree();
+    this.update();
+    if (this.onChange) this.onChange();
+  }
+
+  up(){
+    if (!this.drag) return;
+    this.drag = null;
+    this.svg.classList.remove('dragging');
+    this.update();
+  }
+}
+
+
+/* =========================================================
+   6. MODE « HORLOGE » (démonstration)
+   ========================================================= */
+const H = { hidden:false };
+const clockMain = new InteractiveClock($('clockMain'), updateHorloge);
+
+// Deux boutons « − » et « + » : on recule ou on avance selon la précision choisie
+$('steppers').innerHTML = '<button class="btn" data-sign="-1"></button><button class="btn" data-sign="1"></button>';
+function stepLabel(){ return gran() === 60 ? U().hour : gran() + ' min'; }
+function refreshSteppers(){
+  $('steppers').querySelectorAll('button').forEach(b =>
+    b.textContent = (b.dataset.sign === '1' ? '+ ' : '− ') + stepLabel());
+}
+$('steppers').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  // Plusieurs clics rapides s'additionnent
+  const base = clockMain.animTarget != null ? clockMain.animTarget : roundT(clockMain.total);
+  clockMain.animateTo(base + Number(b.dataset.sign) * gran());
+});
+
+let lastHorlogeKey = '';
+function updateHorloge(){
+  const t = clockMain.total;
+  // On ne réécrit les textes que s'ils changent (évite le clignotement pendant qu'on tourne les aiguilles)
+  const key = [S.lang, S.h24, useSec(), S.linked, S.lcd, gran() <= 5, Math.floor(t * 60 + 1e-6)].join('|');
+  if (key === lastHorlogeKey){ renderDayBar(t); return; }
+  lastHorlogeKey = key;
+  // Écran type réveil : option des réglages ; l'écriture en chiffres principale est dessous, en gros
+  $('hLcd').classList.toggle('off', !S.lcd);
+  // Hauteur fixe adaptée au contenu le plus long possible (les boutons dessous ne bougent jamais)
+  $('hAnswer').style.height = (250 + (S.lcd ? 80 : 0) + (useSec() ? 85 : 0)) + 'px';
+  // « Écouter » : utile en anglais (prononciation) ; en français, la dictée d'heures se fait dans « Placer les aiguilles »
+  $('hSpeak').style.display = S.lang === 'en' ? '' : 'none';
+  if (!S.linked){
+    $('hLcd').textContent = '--:--';
+    $('hWritten').textContent = '';
+    $('hWords').textContent = U().free;
+    $('hWords2').textContent = '';
+  } else if (S.lang === 'en'){
+    const e = enExpr(t, S.h24);
+    $('hLcd').textContent = e.lcd;
+    $('hWritten').textContent = e.digital;
+    setWords(e.say, gran() <= 5 ? e.spoken : '', 'We can also say');
+  } else {
+    const f = frExpr(t, S.h24);
+    $('hLcd').textContent = f.lcd;
+    $('hWritten').textContent = f.digital;
+    setWords(f.usual, f.formal !== f.usual ? f.formal : '', 'On peut aussi dire', 'On dit');
+  }
+  renderDayBar(t);
+}
+
+// Formulation courante (en gros) et autre formulation possible, chacune avec son étiquette
+function setWords(main, alt, altLabel, mainLabel){
+  $('hWords').innerHTML = ''; $('hWords2').innerHTML = '';
+  const add = (el, label, text) => {
+    if (label){ const l = document.createElement('small'); l.textContent = label; el.appendChild(l); }
+    el.appendChild(document.createTextNode(text));
+  };
+  add($('hWords'), mainLabel, main);
+  if (alt) add($('hWords2'), altLabel, alt);
+}
+
+function renderDayBar(t){
+  const bar = $('dayBar');
+  if (!S.h24 || !S.dayBar){ bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  if (!bar.dataset.lang || bar.dataset.lang !== S.lang){
+    const d = T().day;
+    // Mêmes limites que les étiquettes : en français, le soir va jusqu'à minuit (« dix heures du soir ») ;
+    // en anglais, « at night » commence à 21 h
+    const segs = S.lang === 'en'
+      ? [[0,5,d[0],'#2c3a63'],[5,12,d[1],'#f0a53a'],[12,18,d[2],'#e2703a'],[18,21,d[3],'#7b4fa8'],[21,24,d[4],'#2c3a63']]
+      : [[0,5,d[0],'#2c3a63'],[5,12,d[1],'#f0a53a'],[12,18,d[2],'#e2703a'],[18,24,d[3],'#7b4fa8']];
+    bar.innerHTML = '<div class="track">' + segs.map(([a,b,l,c]) =>
+      `<div class="seg-d" style="width:${(b-a)/24*100}%;background:${c}">${l}</div>`).join('') + '</div>'
+      + '<div class="ticks">' + [0,6,12,18,24].map(h => `<span style="left:${h/24*100}%">${h} h</span>`).join('') + '</div>'
+      + '<div class="marker"></div>';
+    bar.dataset.lang = S.lang;
+  }
+  bar.querySelector('.marker').style.left = (t / 1440 * 100) + '%';
+}
+
+function setHidden(v){
+  H.hidden = v;
+  $('hCover').classList.toggle('off', !v);
+  $('hCover').textContent = T().question;
+  $('hToggle').textContent = v ? U().show : U().hide;
+}
+$('hToggle').onclick = () => setHidden(!H.hidden);
+$('hCover').onclick = () => setHidden(false);
+$('hSpeak').onclick = () => speak(expr(clockMain.total).say);
+$('hRandom').onclick = () => clockMain.setTotal(randomTime([clockMain.total]));
+$('hNow').onclick = () => {
+  const d = new Date(), t = d.getHours() * 60 + d.getMinutes() + (useSec() ? d.getSeconds() / 60 : 0);
+  clockMain.setTotal(S.h24 ? t : t % 720);
+};
+
+
+/* =========================================================
+   7. MODE « LIRE L'HEURE » (rituel ardoise)
+   ========================================================= */
+const L = { times:[], shown:[] };
+
+function newLire(){
+  L.times = randomTimes(S.lCount);
+  L.shown = L.times.map(() => false);
+  renderLire();
+}
+
+function answerHTML(t){
+  if (S.lang === 'en'){ const e = enExpr(t, S.h24); return `<b>${e.say}</b><span>${e.digital}</span>`; }
+  const f = frExpr(t, S.h24);
+  return `<b>${f.digital}</b><span>${f.usual}</span>`;
+}
+
+function renderLire(){
+  if (L.times.length !== S.lCount) { newLire(); return; }
+  const grid = $('lGrid');
+  grid.className = 'quiz-grid n' + S.lCount;
+  grid.innerHTML = L.times.map((t,i) => {
+    const tag = S.h24 ? `<div class="qtag">${expr(t).period}</div>` : '';
+    return `<div class="qcard" data-i="${i}">${S.lCount > 1 ? `<div class="qnum">${i+1}</div>` : ''}`
+         + staticClock(t, faceOptions()) + tag
+         + `<div class="qans${L.shown[i] ? '' : ' hide'}">${answerHTML(t)}</div></div>`;
+  }).join('');
+  fitGrid();
+  const all = L.shown.every(Boolean);
+  $('lReveal').textContent = all ? U().unreveal : U().reveal;
+}
+
+$('lGrid').addEventListener('click', e => {
+  const c = e.target.closest('.qcard'); if (!c) return;
+  const i = +c.dataset.i; L.shown[i] = !L.shown[i];
+  if (L.shown[i] && S.lCount === 1) speak(expr(L.times[i]).say);
+  renderLire();
+});
+// Choisit le nombre de colonnes qui donne les plus grandes horloges pour l'écran utilisé
+function fitGrid(){
+  const g = $('lGrid');
+  if (!g.offsetParent) return;
+  const n = S.lCount, gap = 12;
+  // Place réservée à la réponse : à droite (1 et 6 horloges) ou dessous (4 horloges)
+  const side = { 1:460, 4:0, 6:200 }[n] || 0, below = n === 4 ? 102 : 0;
+  g.style.gridTemplateColumns = ''; g.style.gridTemplateRows = '';
+  const W = g.clientWidth, H = g.clientHeight;
+  let best = 1, bestSize = 0;
+  for (let c = 1; c <= n; c++){
+    const r = Math.ceil(n / c);
+    const size = Math.min((W - gap * (c - 1)) / c - side - 22, (H - gap * (r - 1)) / r - below - 12);
+    if (size > bestSize){ bestSize = size; best = c; }
+  }
+  g.style.gridTemplateColumns = `repeat(${best}, 1fr)`;
+  g.style.gridTemplateRows = `repeat(${Math.ceil(n / best)}, minmax(0, 1fr))`;
+}
+
+$('lNew').onclick = newLire;
+$('lReveal').onclick = () => {
+  const all = L.shown.every(Boolean);
+  L.shown = L.shown.map(() => !all);
+  renderLire();
+};
+
+
+/* =========================================================
+   8. MODE « PLACER LES AIGUILLES »
+   ========================================================= */
+// checked : false, true ou 'solution' ; revealed : heure affichée en mode oral (après réussite ou solution)
+const P = { target:0, fmt:'chiffres', checked:false, revealed:false, history:[] };
+const clockPlace = new InteractiveClock($('clockPlace'), null);
+
+function newPlacer(){
+  P.target = randomTime([P.target]);
+  P.fmt = S.pFormat === 'hasard' ? (Math.random() < .5 ? 'chiffres' : 'lettres') : S.pFormat;
+  P.checked = false;
+  P.revealed = false;
+  clockPlace.ghostT = null;
+  clockPlace.wrong = null;
+  clockPlace.setTotal(0, true);
+  renderPlacer();
+  feedback('info', T().start);
+  if (P.fmt === 'oral') setTimeout(() => speak(expr(P.target).say), 250);
+}
+
+function renderPlacer(){
+  const e = expr(P.target);
+  $('pLabel').textContent = P.fmt === 'oral' ? T().listenPlace : T().placeOn;
+  const tg = $('pTarget');
+  tg.classList.toggle('words-t', P.fmt === 'lettres');
+  if (P.fmt === 'oral') tg.textContent = P.revealed ? e.digital : T().listen;
+  else if (P.fmt === 'lettres') tg.textContent = e.usual;
+  else tg.textContent = e.digital;
+  $('pSub').textContent = (P.fmt === 'chiffres' && S.h24) ? e.period : '';
+  $('pListen').style.display = P.fmt === 'oral' ? '' : 'none';
+  $('pScore').innerHTML = P.history.slice(-20).map(ok => `<i class="${ok ? 'ok' : 'ko'}"></i>`).join('');
+}
+
+function feedback(kind, text, detail){
+  const f = $('pFeedback');
+  f.className = 'feedback ' + kind;
+  f.innerHTML = '';
+  const a = document.createElement('div'); a.textContent = text; f.appendChild(a);
+  if (detail){ const b = document.createElement('div'); b.className = 'fb-detail'; b.textContent = detail; a.appendChild(b); }
+}
+
+// Vérification : sur une horloge à aiguilles, 8 h 45 et 20 h 45 se placent de la même façon
+function checkPlacer(){
+  // Comparaison en secondes sur 12 heures
+  const tgt = Math.round(P.target * 60) % 43200;
+  const ts = tgt % 60, tm = Math.floor(tgt / 60) % 60, th = Math.floor(tgt / 3600);
+  let minOk, hourOk, secOk = true;
+  if (S.linked){
+    const cur = Math.round(clockPlace.total * 60) % 43200;
+    minOk = Math.floor(cur / 60) % 60 === tm;
+    hourOk = Math.floor(cur / 3600) === th;
+    if (useSec()) secOk = cur % 60 === ts;
+  } else {
+    minOk = clockPlace.freeMin === tm;
+    hourOk = hourHandOk(clockPlace.freeHour, th, tm);
+    if (useSec()) secOk = clockPlace.freeSec === ts;
+  }
+  const ok = minOk && hourOk && secOk;
+  clockPlace.setWrong(ok ? null : { m: !minOk, h: !hourOk, s: useSec() && !secOk });
+  if (P.checked === false) P.history.push(ok);
+  P.checked = true;
+  if (ok) P.revealed = true;
+
+  const tx = T();
+  if (ok){
+    feedback('ok', useSec() ? tx.allOk3 : tx.allOk, answerLine(P.target));
+  } else if (minOk && hourOk){
+    feedback('ko', tx.secWrong);
+  } else {
+    const lines = [];
+    // Grande aiguille : bien placée, doit encore avancer, ou allée trop loin
+    const curS = Math.round(clockPlace.total * 60) % 43200;
+    const curMin = S.linked ? Math.floor(curS / 60) % 60 : clockPlace.freeMin;
+    if (minOk) lines.push(tx.minGood);
+    else lines.push(mod(tm - curMin, 60) <= 30 ? tx.minForward : tx.minBack);
+    // Petite aiguille : sens de la correction et où elle doit se trouver
+    if (!hourOk){
+      let ahead;
+      if (S.linked){ const dh = mod(th - Math.floor(curS / 3600), 12); ahead = dh > 6; }
+      else ahead = mod(clockPlace.freeHour - (th * 30 + tm * .5), 360) < 180;
+      const dir = S.linked ? (ahead ? tx.hourBack : tx.hourForward) : (ahead ? tx.hourTooFar : tx.hourNotEnough);
+      lines.push(dir + ' ' + hourWhere(th, tm));
+    } else if (!S.linked) lines.push(tx.hourGood);
+    feedback('ko', lines[0], lines.slice(1).join(' '));
+  }
+  renderPlacer();
+}
+
+// Petite aiguille placée à la main (aiguilles indépendantes) :
+//   l'aiguille avance par crans de 2,5° (5 minutes) ; on accepte un cran d'écart au plus
+//   (tolérance 3°, soit 5 minutes), et l'aiguille doit rester entre les deux bons nombres.
+function hourHandOk(angle, th, tm){
+  const expected = th * 30 + tm * .5;
+  if (InteractiveClock.gap(angle, expected) > 3) return false;
+  if (tm === 0) return true;
+  const past = mod(angle - th * 30, 360);
+  return past > 0 && past < 30;
+}
+
+// Où doit se trouver la petite aiguille (pour les corrections)
+function hourWhere(th, tm){
+  const n = th || 12, next = (th + 1) % 12 || 12, en = S.lang === 'en';
+  if (tm === 0) return en ? `It must point exactly at ${n}.` : `Elle doit être pile sur le ${n}.`;
+  if (tm < 30) return en ? `It must be just past ${n}.` : `Elle doit avoir juste dépassé le ${n}.`;
+  if (tm === 30) return en ? `It must be halfway between ${n} and ${next}.` : `Elle doit être au milieu, entre le ${n} et le ${next}.`;
+  return en ? `It must be almost at ${next}.` : `Elle doit être presque sur le ${next}.`;
+}
+
+$('pCheck').onclick = checkPlacer;
+$('pNext').onclick = newPlacer;
+$('pListen').onclick = () => speak(expr(P.target).say);
+$('pSolution').onclick = () => {
+  if (P.checked === false) P.history.push(false);
+  P.checked = 'solution';
+  P.revealed = true;
+  clockPlace.wrong = null;
+  clockPlace.setGhost(P.target);
+  feedback('info', T().solution, answerLine(P.target));
+  renderPlacer();
+};
+
+// Réponse complète sur une ligne (corrections)
+function answerLine(t){
+  const e = expr(t);
+  return S.lang === 'en' ? `${e.usual} (${e.digital})` : `${e.digital}, ${e.usual}`;
+}
+
+
+/* =========================================================
+   9. MODE « IMPRIMER » (fiches A4 et corrigé)
+   ========================================================= */
+const PR = { times:[] };
+
+function newPrint(){ PR.times = randomTimes(S.prCount); renderPrint(); }
+
+function renderPrint(){
+  if (PR.times.length !== S.prCount) { newPrint(); return; }
+  const items = PR.times.map((t,i) => ({
+    t,
+    kind: S.prType === 'mix' ? (i % 2 ? 'placer' : 'lire') : S.prType,
+    fmt: i % 2 ? 'lettres' : 'chiffres'
+  }));
+  $('preview').innerHTML = sheetHTML(items, false) + (S.prKey ? sheetHTML(items, true) : '');
+  fitPreview();
+}
+
+function sheetHTML(items, key){
+  const tx = T(), en = S.lang === 'en';
+  const title = key ? tx.key : S.prType === 'lire' ? tx.sheetRead : S.prType === 'placer' ? tx.sheetDraw : tx.sheetMix;
+  const consigne = S.prType === 'lire' ? tx.cRead + (S.h24 ? tx.cRead24 : '')
+                 : S.prType === 'placer' ? tx.cDraw : tx.cMix;
+  const size = { 6:60, 9:52, 12:44 }[items.length] || 50;
+  const o = Object.assign(faceOptions(), { paper:true, elapsed:false });
+
+  const cells = items.map((it, i) => {
+    const e = expr(it.t);
+    let clock, below = '';
+    if (it.kind === 'lire'){
+      clock = staticClock(it.t, o);
+      if (S.h24) below += `<div class="sh-tag">${e.period}</div>`;
+      below += key
+        ? `<div class="sh-key">${en ? `<b>${e.usual}</b><br>${e.digital}` : `<b>${e.digital}</b><br>${e.usual}`}</div>`
+        : en ? `<div class="sh-line">${tx.itIs} <span class="blank l"></span></div>`
+             : `<div class="sh-line">${tx.itIs} <span class="blank"></span> h <span class="blank"></span></div>`;
+    } else {
+      clock = staticClock(key ? it.t : null, o);
+      const words = it.fmt === 'lettres';
+      below += `<div class="sh-txt${words ? ' words-t' : ''}">${words ? e.usual : e.digital}</div>`;
+    }
+    return `<div class="sh-cell"><div class="sh-num">${i + 1}</div>${clock}${below}</div>`;
+  }).join('');
+
+  return `<div class="sheet-wrap"><div class="sheet">
+    <div class="sh-head"><div class="sh-title">${title}</div>
+      ${key ? '' : `<div class="sh-name">${tx.name} : <span></span>${tx.date} : <span></span></div>`}</div>
+    <div class="sh-consigne">${key ? '' : consigne}</div>
+    <div class="sh-grid" style="--clk:${size}mm">${cells}</div>
+    <div class="sh-sign">M. Guitton</div>
+  </div></div>`;
+}
+
+// Mise à l'échelle de l'aperçu selon la place disponible
+function fitPreview(){
+  const pv = $('preview');
+  if (!pv.offsetWidth) return;
+  const sheetPx = 210 * 96 / 25.4;
+  const perRow = S.prKey && pv.offsetWidth > sheetPx + 60 ? 2 : 1;   // fiche et corrigé côte à côte
+  const z = Math.min(1, (pv.offsetWidth - 30 - (perRow - 1) * 20) / perRow / sheetPx);
+  pv.querySelectorAll('.sheet-wrap').forEach(w => w.style.zoom = z.toFixed(3));
+}
+
+$('prNew').onclick = newPrint;
+$('prKey').onchange = e => { S.prKey = e.target.checked; saveSettings(); renderPrint(); };
+$('prPrint').onclick = () => {
+  $('printOnly').innerHTML = $('preview').innerHTML;
+  $('printOnly').querySelectorAll('.sheet-wrap').forEach(w => w.style.zoom = '');
+  window.print();
+};
+
+
+/* =========================================================
+   10. RÉGLAGES, BARRE DU HAUT, CLAVIER, DÉMARRAGE
+   ========================================================= */
+// Cases à cocher des catégories d'heures (libellés selon la langue)
+function renderStepChoice(){
+  const on = activeCats();
+  $('stepChoice').innerHTML = CATS[S.lang].map(([k, label]) =>
+    `<button data-v="${k}" class="${on.includes(k) ? 'on' : ''}"><i></i>${label}</button>`).join('');
+}
+$('levels').innerHTML = Object.keys(LEVELS).map(l => `<button data-level="${l}">${l}</button>`).join('');
+
+// Petits groupes de boutons (segments)
+const SEGS = {
+  lCount:  { el:'lCount',  opts:[[1,'1'],[4,'4'],[6,'6']], num:true, after:() => newLire() },
+  pFormat: { el:'pFormat', opts:[['chiffres','En chiffres'],['lettres','En lettres'],['oral',"À l'oral"],['hasard','Au hasard']], after:() => newPlacer() },
+  prType:  { el:'prType',  opts:[['lire',"Lire l'heure"],['placer','Dessiner les aiguilles'],['mix','Mélange']], after:() => renderPrint() },
+  prCount: { el:'prCount', opts:[[6,'6'],[9,'9'],[12,'12']], num:true, after:() => newPrint() }
+};
+for (const [key, sg] of Object.entries(SEGS)){
+  $(sg.el).innerHTML = sg.opts.map(([v,l]) => `<button data-v="${v}">${l}</button>`).join('');
+  $(sg.el).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S[key] = sg.num ? Number(b.dataset.v) : b.dataset.v;
+    saveSettings(); refreshSegs(); sg.after();
+  });
+}
+function refreshSegs(){
+  for (const [key, sg] of Object.entries(SEGS))
+    $(sg.el).querySelectorAll('button').forEach(b => b.classList.toggle('on', String(S[key]) === b.dataset.v));
+  $('prKey').checked = S.prKey;
+}
+
+function refreshPanel(){
+  renderStepChoice();
+  refreshSteppers();
+  const dv = S.h24 ? S.dayPart : 'non';
+  $('daySeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === dv));
+  document.querySelectorAll('[data-opt]').forEach(i => i.checked = !!S[i.dataset.opt]);
+  $('tDayBar').classList.toggle('dim', !S.h24);
+  $('tRing24').classList.toggle('dim', !S.h24);
+  $('tRing24').style.display = S.lang === 'en' ? 'none' : '';
+  $('tSec').style.display = S.lang === 'en' ? 'none' : '';
+  $('panel').classList.toggle('hidden', !!S.panelHidden);
+  $('panelTab').classList.toggle('on', !S.panelHidden);
+}
+
+function refreshTop(){
+  const en = S.lang === 'en';
+  $('brand').innerHTML = en ? 'Tic-Tac <span>Time</span>' : 'Les aiguilles <span>du temps</span>';
+  document.title = en ? 'Tic-Tac Time' : TITRE_PAGE;
+  applyUI();
+  $('levels').querySelectorAll('button').forEach(b => b.title = en ? LEVEL_TIPS_EN[b.dataset.level] : '');
+  document.querySelectorAll('.topbar [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
+  $('levels').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.level === S.level));
+  $('lang').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.lang === S.lang));
+  document.querySelectorAll('.mode').forEach(m => m.classList.toggle('on', m.id === 'mode-' + S.mode));
+}
+
+// Redessine tout ce qui dépend des aides ou de la langue
+function redrawClocks(){
+  clockMain.renderFace(); clockPlace.renderFace();
+  updateHorloge(); setHidden(H.hidden);
+  renderLire(); renderPlacer(); renderPrint();
+}
+
+// Quand les heures possibles changent, on tire de nouvelles heures
+function newSeries(){
+  newLire(); newPlacer(); newPrint();
+  if (!S.h24 && clockMain.total >= 720) clockMain.setTotal(clockMain.total - 720, true);
+}
+
+// Niveau, moments de la journée… : cadrans redessinés et nouvelles heures partout
+function onTimesChanged(){
+  saveSettings(); refreshPanel();
+  clockMain.renderFace(); clockPlace.renderFace();
+  newSeries(); updateHorloge();
+}
+
+// Onglets (Horloge, Lire l'heure, Placer) et bouton Imprimer
+function onModeClick(e){
+  const b = e.target.closest('[data-mode]'); if (!b) return;
+  S.mode = b.dataset.mode; saveSettings(); refreshTop();
+  if (S.mode === 'lire') fitGrid();
+  if (S.mode === 'imprimer') fitPreview();
+}
+$('tabs').addEventListener('click', onModeClick);
+$('printTab').addEventListener('click', onModeClick);
+$('levels').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.level = b.dataset.level; Object.assign(S, presetFor(S.lang, S.level));
+  refreshTop(); onTimesChanged();
+});
+$('lang').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (S.lang === b.dataset.lang) return;
+  S.lang = b.dataset.lang;
+  Object.assign(S, presetFor(S.lang, S.level));   // l'anglais a sa propre progression
+  saveSettings(); refreshTop(); refreshPanel();
+  newSeries(); redrawClocks();
+  feedback('info', T().start);
+});
+// Moments de la journée : non / matin / après-midi et soir / les deux
+$('daySeg').innerHTML = [['non','Non'],['am','Matin'],['pm','Après-midi et soir'],['both','Les deux']]
+  .map(([v,l]) => `<button data-v="${v}">${l}</button>`).join('');
+$('daySeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const v = b.dataset.v;
+  S.h24 = v !== 'non';
+  if (S.h24) S.dayPart = v;
+  onTimesChanged();
+});
+
+$('stepChoice').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const key = S.lang === 'en' ? 'catsEn' : 'catsFr', k = b.dataset.v;
+  if (S[key].includes(k)){
+    if (S[key].length === 1) return;          // au moins une catégorie cochée
+    S[key] = S[key].filter(x => x !== k);
+  } else {
+    const order = CATS[S.lang].map(c => c[0]);
+    S[key] = order.filter(x => x === k || S[key].includes(x));
+  }
+  saveSettings(); refreshPanel(); newSeries();
+});
+document.querySelectorAll('[data-opt]').forEach(inp => inp.addEventListener('change', () => {
+  const k = inp.dataset.opt; S[k] = inp.checked; saveSettings(); refreshPanel();
+  if (k === 'sec'){ clockMain.setTotal(roundT(clockMain.total), true); newSeries(); }
+  if (k === 'linked' && S.linked){ clockMain.relink(); clockPlace.relink(); }
+  redrawClocks();
+}));
+// Le panneau des réglages passe par-dessus la page : il se ferme avec le bouton
+// ou en cliquant n'importe où en dehors (le clic agit aussi sur ce qui est dessous)
+function showPanel(v){ S.panelHidden = !v; refreshPanel(); }
+$('hidePanel').onclick = () => showPanel(false);
+$('panelTab').onclick = () => showPanel(S.panelHidden);
+document.addEventListener('pointerdown', e => {
+  if (S.panelHidden) return;
+  if (e.target.closest('#panel, #panelTab')) return;
+  showPanel(false);
+}, true);
+
+// Redimensionnement : grille du rituel et aperçu d'impression
+window.addEventListener('resize', () => {
+  if (S.mode === 'lire') fitGrid();
+  if (S.mode === 'imprimer') fitPreview();
+});
+
+$('fsBtn').onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+};
+
+// Clavier : flèches pour avancer ou reculer, espace pour masquer ou montrer l'heure
+// (ou montrer la réponse suivante dans « Lire l'heure »), Entrée pour vérifier
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,select,textarea')) return;
+  // Lire l'heure : la barre d'espace montre la réponse suivante (1, puis 2, puis 3…)
+  if (S.mode === 'lire' && e.key === ' '){
+    e.preventDefault();
+    const i = L.shown.indexOf(false);
+    if (i >= 0){ L.shown[i] = true; renderLire(); }
+    return;
+  }
+  const clock = S.mode === 'horloge' ? clockMain : S.mode === 'placer' ? clockPlace : null;
+  if (!clock) return;
+  const d = { ArrowRight:dragStep(), ArrowLeft:-dragStep(), ArrowUp:60, ArrowDown:-60 }[e.key];
+  if (d){
+    e.preventDefault();
+    if (!S.linked){ S.linked = true; clock.relink(); refreshPanel(); redrawClocks(); }
+    clock.setTotal(roundT(clock.total) + d);
+  }
+  else if (e.key === ' ' && S.mode === 'horloge'){ e.preventDefault(); setHidden(!H.hidden); }
+  else if (e.key === 'Enter' && S.mode === 'placer'){ e.preventDefault(); checkPlacer(); }
+});
+
+// Démarrage : réglages fermés pour laisser toute la place à l'horloge
+S.panelHidden = true;
+refreshTop(); refreshPanel(); refreshSegs();
+clockMain.setTotal(S.h24 ? 8 * 60 + 30 : 3 * 60 + 15, true);
+setHidden(false);
+updateHorloge();
+newLire(); newPlacer(); newPrint();
+</script>
+</body>
+</html>
