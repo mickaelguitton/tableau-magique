@@ -64,17 +64,6 @@ self.OUTILS = [
     couleur: '#2B4C8C', ombre: '#C3D2F0'
   },
   {
-    dossier: 'cartes-a-la-carte',
-    version: '1.1',
-    nom: 'Cartes à la carte',
-    niveau: 'du CP à la 6e',
-    texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
-         + 'On choisit ce qu’on affiche (régions, pays, fleuves, population, climats…), on zoome et on situe l’école. '
-         + 'Cartes muettes. Préparation de séances. Conception d’évaluations. Impression ou copie pour Word.',
-    donnees: ['cartes-a-la-carte'],
-    couleur: '#6A4BD1', ombre: '#CFC4F7'
-  },
-  {
     dossier: 'nature-des-mots',
     version: '1.3',
     nom: 'La gym des mots',
@@ -120,6 +109,17 @@ self.OUTILS = [
          + 'Copie dans Word, impression ou affichage en plein écran.',
     donnees: ['syllabes-en-couleur'],
     couleur: '#0B7FB8', ombre: '#B5E0F5'
+  },
+  {
+    dossier: 'cartes-a-la-carte',
+    version: '1.1',
+    nom: 'Cartes à la carte',
+    niveau: 'du CP à la 6e',
+    texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
+         + 'On choisit ce qu’on affiche (régions, pays, fleuves, population, climats…), on zoome et on situe l’école. '
+         + 'Cartes muettes. Préparation de séances. Conception d’évaluations. Impression ou copie pour Word.',
+    donnees: ['cartes-a-la-carte'],
+    couleur: '#6A4BD1', ombre: '#CFC4F7'
   },
   {
     dossier: 'tirage-au-sort',
