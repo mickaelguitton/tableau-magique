@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title data-court="Le tableau magique">Le tableau magique : outils gratuits à projeter au TBI, du CP au CM2</title>
-<meta name="description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, droites graduées, lecture de l’heure en français et en anglais, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, jeu de révision en équipes, minuteur visuel, tirage au sort des élèves, textes adaptés en syllabes de couleur. Fonctionnent sans internet une fois installés.">
+<title data-court="Le tableau magique">Le tableau magique : des outils clés en main à projeter au TBI, du CP au CM2</title>
+<meta name="description" content="Des outils de classe gratuits et clés en main à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, droites graduées, lecture de l’heure en français et en anglais, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, jeu de révision en équipes, minuteur visuel, tirage au sort des élèves, textes adaptés en syllabes de couleur. Fonctionnent sans internet une fois installés.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/">
 <meta name="google-site-verification" content="M0ho2rjFlrCD5UeTchszL2o4FO9_UYwn1Wu52MNHViI">   <!-- Google Search Console -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="Le tableau magique : outils gratuits à projeter au TBI, du CP au CM2">
-<meta property="og:description" content="Outils de classe gratuits à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, droites graduées, lecture de l’heure en français et en anglais, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, jeu de révision en équipes, minuteur visuel, tirage au sort des élèves, textes adaptés en syllabes de couleur. Fonctionnent sans internet une fois installés.">
+<meta property="og:title" content="Le tableau magique : des outils clés en main à projeter au TBI, du CP au CM2">
+<meta property="og:description" content="Des outils de classe gratuits et clés en main à projeter au TBI ou au vidéoprojecteur, du CP au CM2 : calcul mental, droites graduées, lecture de l’heure en français et en anglais, conjugaison, natures des mots, géométrie, cartes de géographie, copie guidée, jeu de révision en équipes, minuteur visuel, tirage au sort des élèves, textes adaptés en syllabes de couleur. Fonctionnent sans internet une fois installés.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -63,29 +63,17 @@
     padding:6vh 24px 1.5vh;   /* un peu d’air au-dessus du titre */
   }
 
-  /* ---------- Titre multicolore (une couleur par lettre) ---------- */
+  /* ---------- Titre sobre (bleu nuit, « magique » en violet), puis la phrase d'accroche ---------- */
   header{text-align:center;margin-bottom:1.5vh;flex:none}
   h1{
-    font-size:clamp(36px,min(6.5vw,10vh),88px);
-    font-weight:700;letter-spacing:1px;line-height:1.05;
+    font-size:clamp(34px,min(6vw,9vh),80px);
+    font-weight:700;letter-spacing:.5px;line-height:1.05;color:#2B3A67;white-space:nowrap;
   }
-  h1 .mot{display:inline-block;white-space:nowrap}   /* un mot n'est jamais coupé en fin de ligne */
-
-  /* Lettres qui dansent doucement, chacune avec un petit décalage */
-  h1 .l{
-    display:inline-block;
-    text-shadow:0 4px 0 rgba(31,42,68,.08);
-    animation:danse 2.8s ease-in-out infinite;
-    animation-delay:calc(var(--i) * -0.18s);
+  h1 .magique{color:#7048E8}
+  #accroche{
+    font-size:clamp(14px,min(2vw,2.8vh),24px);font-weight:500;color:#5A6488;
+    margin-top:.5vh;
   }
-  @keyframes danse{
-    0%,100%{transform:translateY(0) rotate(0deg)}
-    25%    {transform:translateY(-7%) rotate(-4deg)}
-    50%    {transform:translateY(0) rotate(0deg)}
-    75%    {transform:translateY(4%) rotate(3deg)}
-  }
-  /* Respecte le réglage « réduire les animations » de l'ordinateur */
-  @media (prefers-reduced-motion: reduce){ h1 .l{animation:none} }
 
   /* ---------- Grille des tuiles ----------
      Le nombre de colonnes et la taille des tuiles sont calculés par le script
@@ -302,7 +290,8 @@
 <body>
 
 <header>
-  <h1 id="titre" aria-label="Le tableau magique">Le tableau magique</h1>
+  <h1 id="titre">Le tableau <span class="magique">magique</span></h1>
+  <p id="accroche">Des outils clés en main à projeter au TBI · du CP au CM2</p>
 </header>
 
 <!-- Tuiles des outils : fabriquées à partir de outils.js (voir le script en bas) -->
@@ -372,19 +361,6 @@
 <footer>M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></footer>
 
 <script>
-  /* Colore le titre lettre par lettre (les espaces restent neutres) */
-  (function colorerTitre(){
-    const h1 = document.getElementById('titre');
-    const COULEURS = ['var(--bleu)', 'var(--orange)', 'var(--rouge)', 'var(--vert)', 'var(--violet)'];
-    let i = 0;
-    h1.innerHTML = h1.textContent.split(' ').map(mot =>
-      '<span class="mot" aria-hidden="true">' + [...mot].map(c => {
-        const s = '<span class="l" style="--i:' + i + ';color:' + COULEURS[i % 5] + '">' + c + '</span>';
-        i++; return s;
-      }).join('') + '</span>'
-    ).join(' ');
-  })();
-
   const OUTILS = self.OUTILS || [];
   const echapper = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const couleurs = o => '--couleur:' + o.couleur + ';--ombre:' + o.ombre;
