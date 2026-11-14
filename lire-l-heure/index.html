@@ -432,7 +432,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.1</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -655,12 +655,12 @@ const UI = {
   fr:{ hide:"Masquer l'heure", show:"Montrer l'heure", listen:'Écouter', random:'Heure au hasard', now:'Maintenant',
        clocks:'Horloges', newClocks:'Nouvelles horloges', reveal:'Voir les réponses', unreveal:'Masquer les réponses',
        consigne:'Consigne', check:'Vérifier', solution:'Solution', next:'Heure suivante',
-       free:'Aiguilles indépendantes', hour:'1 h',
+       hour:'1 h',
        fmt:{ chiffres:'En chiffres', lettres:'En lettres', oral:"À l'oral", hasard:'Au hasard' } },
   en:{ hide:'Hide the time', show:'Show the time', listen:'Listen', random:'Random time', now:'Now',
        clocks:'Clocks', newClocks:'New clocks', reveal:'Show answers', unreveal:'Hide answers',
        consigne:'Task', check:'Check', solution:'Answer', next:'Next time',
-       free:'Hands not linked', hour:'1 hr',
+       hour:'1 hr',
        fmt:{ chiffres:'In numbers', lettres:'In words', oral:'Listening', hasard:'Mixed' } }
 };
 const U = () => UI[S.lang];
@@ -1127,7 +1127,7 @@ function updateHorloge(){
   if (!S.linked){
     $('hLcd').textContent = '--:--';
     $('hWritten').textContent = '';
-    $('hWords').textContent = U().free;
+    $('hWords').textContent = T().question;   // aiguilles indépendantes : on fait chercher l'heure
     $('hWords2').textContent = '';
   } else if (S.lang === 'en'){
     const e = enExpr(t, S.h24);

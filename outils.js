@@ -53,7 +53,7 @@ self.OUTILS = [
   },
   {
     dossier: 'lire-l-heure',
-    version: '1.0',
+    version: '1.1',
     nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
     niveau: 'lire l’heure · français et anglais',
     texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure en français et en anglais, '
