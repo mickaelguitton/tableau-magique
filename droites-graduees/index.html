@@ -78,6 +78,10 @@
   }
   #classes button{font-weight:700; font-size:.85rem; border-radius:8px; padding:7px 0; background:rgba(155,93,229,.12); color:var(--violet)}
   #classes button.actif{background:var(--violet); color:#fff}
+  /* CP : nombres connus (sur toute la largeur, sous les classes) */
+  #classes .limite{grid-column:1/-1; display:flex; align-items:center; gap:4px; margin-top:4px}
+  #classes .limite span{font-weight:700; font-size:.8rem; margin-right:4px; white-space:nowrap}
+  #classes .limite button{flex:1; font-size:.8rem; padding:4px 0}
 
   /* Modes (une couleur par mode, transmise par --c) */
   #modes{display:flex; flex-direction:column; gap:5px}
@@ -310,7 +314,7 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.1</span></footer>
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.2</span></footer>
 
 <script>
 'use strict';
@@ -320,7 +324,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.1' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.2' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -363,6 +367,15 @@ const DEPARTS = [
 ];
 const departVisible = d => rangClasse(d.classe) <= rangClasse(etat.classe);
 
+/* CP : en début d'année, tous les nombres ne sont pas connus. Comme dans « Calculs en tête »,
+   on choisit le plus grand nombre connu (19, 49, 69 ou 100) : le niveau « jusqu'à 100 »
+   devient « jusqu'à 20, 50, 70 ou 100 », et aucun nombre cherché ou proposé ne dépasse la limite. */
+const LIMITES_CP = [19, 49, 69, 100];
+const limiteCP = () => etat.classe === 'CP' ? etat.limiteCP : 100;
+const finCP = () => limiteCP() === 100 ? 100 : limiteCP() + 1;      // fin de droite : 20, 50, 70 ou 100
+const DEPUIS_ZERO = { 20:[2, 1], 50:[10, 5], 70:[10, 5], 100:[10, 5] };   // pas des droites « de 0 à la fin »
+const nomNiveau = nv => nv.id === 'i0' ? `jusqu’à ${finCP()}` : nv.nom;
+
 // Zoom le plus fin (chiffres après la virgule) : pas de nombres à virgule avant le CM1
 const ZOOM_MAX = { CP:0, CE1:0, CE2:0, CM1:2, CM2:3 };
 const UNITE_MINI = ['unités', 'dixièmes', 'centièmes', 'millièmes'];
@@ -390,7 +403,8 @@ const REGLAGES_PAR_DEFAUT = {
   reponse: 'ecrire',                     // « Trouver » : 'ecrire' (sans propositions) ou 'entourer' (6 propositions)
   lettres: false,                        // « Placer » : lettres au-dessus des graduations (réponse sur l'ardoise)
   couleurs: false,                       // intervalles en couleur (orange pâle / vert pâle)
-  difficulte: 1                          // 1, 2, 3 ou 'prog' (progressive)
+  difficulte: 1,                         // 1, 2, 3 ou 'prog' (progressive)
+  limiteCP: 100                          // CP : plus grand nombre connu (19, 49, 69 ou 100)
 };
 
 const etat = {
@@ -491,8 +505,13 @@ function genererEntiers(niveau, palier) {
     const t = palier === 1 ? choisir([1, 2, 5, 8, 9]) : choisir([3, 4, 6, 7]);
     return { genre:'nombre', scale:0, a:0, s:1, n:10, t, sansMilieu: palier === 3 };
   }
+  if (niveau === 'i0' && etat.classe === 'CP' && Math.random() < 0.35) {   // CP : de 0 à 20, 50, 70 ou 100
+    const fin = finCP(), pas = DEPUIS_ZERO[fin];
+    const s = palier === 1 ? pas[0] : palier === 3 ? pas[1] : choisir(pas), n = fin / s;
+    return { genre:'nombre', scale:0, a:0, s, n, t:positionCherchee(n, palier), plafond:limiteCP() };
+  }
   const cfg = {
-    i0: { lim:1e2, pas:[1, 1, 2, 5, 10, 10] },
+    i0: { lim:finCP(), pas:[1, 1, 2, 5, 10, 10].filter(p => 4 * p <= finCP()) },   // au moins 4 intervalles
     i1: { lim:1e3, pas:[1, 2, 5, 10, 10, 20, 50, 100, 100] },
     i2: { lim:1e4, pas:[1, 10, 20, 50, 100, 100, 200, 500, 1000, 1000] },
     i3: { lim:1e6, pas:[10, 100, 1000, 1000, 5000, 1e4, 1e4, 5e4, 1e5] },
@@ -508,7 +527,8 @@ function genererEntiers(niveau, palier) {
   while (n * s > cfg.lim) n--;
 
   // Bornes : 0 ou très rondes (1), multiples du pas (2), « pas rondes » (3, ex. 2 050 → 6 050)
-  if (palier === 1 && Math.random() < 0.25 && n * s >= 10) return { genre:'nombre', scale:0, a:0, s, n, t:positionCherchee(n, palier) };
+  const plafond = niveau === 'i0' ? limiteCP() : undefined;            // CP : propositions jusqu'à la limite
+  if (palier === 1 && Math.random() < 0.25 && n * s >= 10) return { genre:'nombre', scale:0, a:0, s, n, t:positionCherchee(n, palier), plafond };
   const haut = cfg.lim - n * s, bas = Math.min(haut, cfg.lim / 10);
   const tirer = arrondi => {
     const mini = Math.ceil(bas / arrondi), maxi = Math.floor(haut / arrondi);
@@ -519,7 +539,7 @@ function genererEntiers(niveau, palier) {
     const decale = a + (s / 10) * alea(1, 9);
     if (decale <= haut) a = decale;
   } else if (palier === 3) a = tirer(1);
-  return { genre:'nombre', scale:0, a, s, n, t:positionCherchee(n, palier) };
+  return { genre:'nombre', scale:0, a, s, n, t:positionCherchee(n, palier), plafond };
 }
 
 function genererDecimaux(niveau, palier) {
@@ -683,7 +703,7 @@ function propositionsAEntourer(exo) {
   const ajouter = (p, ecriture = false) => {
     if (!p || liste.length >= 6) return;
     const v = valeurParties(p), dehors = v < mini || v > maxi;
-    if (!(v > 0) || vues.has(cle(v)) || (dehors && (!ecriture || loin >= 1))) return;
+    if (!(v > 0) || v > (exo.plafond ?? Infinity) || vues.has(cle(v)) || (dehors && (!ecriture || loin >= 1))) return;
     vues.add(cle(v)); liste.push(p); if (dehors) loin++;
   };
 
@@ -1160,6 +1180,13 @@ function majMenu() {
   const classes = document.getElementById('classes');
   classes.innerHTML = '';
   for (const c of CLASSES) pastille(classes, c, etat.classe === c, () => choisirClasse(c));
+  if (etat.classe === 'CP' && !explorer) {                       // CP : nombres connus
+    const ligne = document.createElement('div');
+    ligne.className = 'limite';
+    titreMenu(ligne, 'Nombres connus', '');
+    for (const l of LIMITES_CP) pastille(ligne, String(l), etat.limiteCP === l, () => { etat.limiteCP = l; sauver(); nouvelleSerie(); });
+    classes.appendChild(ligne);
+  }
 
   // Modes et types ; le sous-menu s'ouvre sous le mode choisi, les niveaux sous le type choisi
   document.querySelectorAll('#modes > button').forEach(b => b.classList.toggle('actif', b.dataset.mode === etat.mode));
@@ -1181,7 +1208,7 @@ function majMenu() {
   if (!explorer) {
     document.querySelector(`#types > button[data-type="${etat.type}"]`).after(niveaux);
     for (const nv of NIVEAUX[etat.type].filter(nv => niveauVisible(nv.id))) {
-      pastille(niveaux, nv.nom, etat.niveau[etat.type] === nv.id, () => { etat.niveau[etat.type] = nv.id; sauver(); nouvelleSerie(); });
+      pastille(niveaux, nomNiveau(nv), etat.niveau[etat.type] === nv.id, () => { etat.niveau[etat.type] = nv.id; sauver(); nouvelleSerie(); });
     }
   }
 
@@ -1279,8 +1306,8 @@ majPleinEcran();
 // Mémorisation des derniers réglages sur cet ordinateur
 const CLE_MEMOIRE = 'route-des-nombres';
 function sauver() {
-  const { classe, mode, type, niveau, reponse, lettres, couleurs, difficulte } = etat;
-  try { localStorage.setItem(CLE_MEMOIRE, JSON.stringify({ classe, mode, type, niveau, reponse, lettres, couleurs, difficulte })); } catch (e) {}
+  const { classe, mode, type, niveau, reponse, lettres, couleurs, difficulte, limiteCP } = etat;
+  try { localStorage.setItem(CLE_MEMOIRE, JSON.stringify({ classe, mode, type, niveau, reponse, lettres, couleurs, difficulte, limiteCP })); } catch (e) {}
 }
 function charger() {
   let r = null;
@@ -1298,6 +1325,7 @@ function charger() {
   etat.lettres  = r.lettres === true;
   etat.couleurs = r.couleurs === true;
   etat.difficulte = parmi(r.difficulte, DIFFICULTES, D.difficulte);
+  etat.limiteCP = parmi(r.limiteCP, LIMITES_CP, D.limiteCP);
 }
 
 // En dernier recours : réglages d'origine (et mémoire effacée) si quelque chose empêche de démarrer
@@ -1326,7 +1354,7 @@ function resumeFiche() {
   const nv = NIVEAUX[etat.type].find(n => n.id === etat.niveau[etat.type]);
   const propositions = etat.mode === 'trouver' ? (etat.reponse === 'entourer' ? ' · avec propositions' : ' · sans propositions') : '';
   const difficulte = etat.difficulte === 'prog' ? ' · difficulté progressive' : ` · difficulté ${etat.difficulte}`;
-  return `${NOM_MODE[etat.mode]} · ${etat.classe} · ${NOM_TYPE[etat.type]} ${nv.nom}${difficulte}${propositions}`;
+  return `${NOM_MODE[etat.mode]} · ${etat.classe} · ${NOM_TYPE[etat.type]} ${nomNiveau(nv)}${difficulte}${propositions}`;
 }
 
 function majFenetreFiche() {
@@ -1582,13 +1610,18 @@ fenetreFiche.addEventListener('click', e => { if (e.target === fenetreFiche) fen
    « loin » de la droite ; lettres de « Placer » contenant la bonne graduation.
    ===================================================================== */
 function verifier(nombre = 3000) {
-  const sauvegarde = { type: etat.type, niveau: { ...etat.niveau } };
+  const sauvegarde = { type: etat.type, niveau: { ...etat.niveau }, classe: etat.classe, limiteCP: etat.limiteCP };
   const exacte = (e, i) => e.genre === 'nombre' ? (e.a + i * e.s) / 10 ** e.scale : (e.origine + i) / e.den;
   const egal = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a));
   const LIMITE = { c0:10, i0:1e2, i1:1e3, i2:1e4, i3:1e6, i4:1e9 };
   const lignes = [];
+  const essais = [];
   for (const type of Object.keys(NIVEAUX)) for (const { id, nom } of NIVEAUX[type]) {
-    etat.type = type; etat.niveau[type] = id;
+    essais.push({ type, id, nom, classe: 'CM2', limite: 100 });
+    if (id === 'i0') for (const l of LIMITES_CP) essais.push({ type, id, nom: `jusqu’à ${l === 100 ? 100 : l + 1} (CP)`, classe: 'CP', limite: l });
+  }
+  for (const { type, id, nom, classe, limite } of essais) {
+    etat.type = type; etat.niveau[type] = id; etat.classe = classe; etat.limiteCP = limite;
     const pb = {}, note = m => pb[m] = (pb[m] || 0) + 1;
     for (let k = 0; k < nombre; k++) {
       const e = genererExercice(1 + k % 3), d = exacte(e, 0), f = exacte(e, e.n), vj = exacte(e, e.t);   // les 3 paliers
@@ -1602,6 +1635,7 @@ function verifier(nombre = 3000) {
       if (ecritures.some(ec => !egal(valeurParties(ec), vj))) note('écriture de la réponse fausse');
       if (!(e.t >= 1 && e.t < e.n)) note('nombre cherché hors des bornes');
       if (!(d >= 0 && d < f) || (LIMITE[id] && f > LIMITE[id])) note('bornes incohérentes');
+      if (id === 'i0' && (vj > limite || f > (limite === 100 ? 100 : limite + 1))) note('au-delà des nombres connus');
       for (let i = 0; i <= e.n; i++) {
         if (!egal(valeurParties(partiesGraduation(e, i)), exacte(e, i)) || !egal(valeurParties(etiquetteGraduation(e, i)), exacte(e, i))) note('étiquette fausse');
         if (i && !egal(exacte(e, i) - exacte(e, i - 1), (f - d) / e.n)) note('pas irrégulier');
@@ -1612,12 +1646,13 @@ function verifier(nombre = 3000) {
       if (vals.filter(v => egal(v, vj)).length !== 1) note('pas exactement une bonne réponse');
       if (vals.some(v => egal(v, d) || egal(v, f))) note('borne proposée');
       if (vals.filter(v => v < d - m || v > f + m).length > 1) note('propositions trop loin');
+      if (id === 'i0' && vals.some(v => v > limite)) note('proposition au-delà des nombres connus');
       if (!graduationsLettrees(e).includes(e.t)) note('lettres sans la bonne graduation');
     }
     const bilan = Object.entries(pb).map(([m, n]) => `${m} (${n})`).join(', ');
     lignes.push(`${bilan ? '✗' : '✓'} ${NOM_TYPE[type]} ${nom} (paliers 1 à 3) : ${bilan || 'tout est juste'}`);
   }
-  Object.assign(etat, { type: sauvegarde.type, niveau: sauvegarde.niveau });
+  Object.assign(etat, sauvegarde);
   return lignes;
 }
 
