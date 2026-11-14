@@ -17,7 +17,8 @@ const RESERVES = {
   [PREFIXE + 'liste-' + (empreinte >>> 0).toString(36)]: ['outils.js'],
   [PREFIXE + 'portail-' + self.APP_VERSION]: [
     './', 'version.js', 'portail.js', 'sauvegarde.js', 'manifest.webmanifest', 'fonts/fredoka.woff2',
-    'icone-tbi-192.png', 'icone-tbi-512.png', 'icone-tbi-maskable-512.png', 'icone-tbi-apple.png', 'icone-tbi-favicon.png'
+    'icone-tbi-192.png', 'icone-tbi-512.png', 'icone-tbi-maskable-512.png', 'icone-tbi-apple.png', 'icone-tbi-favicon.png',
+    'images/icone-tableau.svg'
   ]
 };
 self.OUTILS.forEach(o => {

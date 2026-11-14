@@ -70,6 +70,9 @@
     font-weight:700;letter-spacing:.5px;line-height:1.05;color:#2B3A67;white-space:nowrap;
   }
   h1 .magique{color:#7048E8}
+  /* Icône du portail devant le titre (la même que l'appli installée) */
+  h1 .icone-titre{height:1.05em;width:auto;vertical-align:-.17em;margin-right:.3em;border-radius:22%;
+    box-shadow:0 4px 10px rgba(43,58,103,.18)}
   #accroche{
     font-size:clamp(14px,min(2vw,2.8vh),24px);font-weight:500;color:#5A6488;
     margin-top:.5vh;
@@ -290,7 +293,7 @@
 <body>
 
 <header>
-  <h1 id="titre">Le tableau <span class="magique">magique</span></h1>
+  <h1 id="titre"><img class="icone-titre" src="images/icone-tableau.svg" alt="">Le tableau <span class="magique">magique</span></h1>
   <p id="accroche">Des outils clés en main à projeter au TBI · du CP au CM2</p>
 </header>
 
