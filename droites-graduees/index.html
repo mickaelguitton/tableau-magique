@@ -256,6 +256,20 @@
   #fenetreFiche .choix button.actif{background:var(--violet); color:#fff}
   #fenetreFiche .boutons{display:flex; justify-content:flex-end; gap:10px; margin-top:22px}
   #fenetreFiche .boutons button.creer{background:var(--vert); color:#fff; padding:10px 18px}
+
+  /* « À propos de l'outil » : présentation pour les collègues (et pour les moteurs de recherche) */
+  footer .lien{background:none; padding:0; font:inherit; font-weight:700; color:var(--violet); text-decoration:underline; cursor:pointer}
+  #aPropos{border:none; border-radius:22px; padding:0; width:min(760px,94vw); max-height:88vh; box-shadow:0 10px 40px rgba(0,0,0,.25); color:var(--noir)}
+  #aPropos::backdrop{background:rgba(0,0,0,.35)}
+  #aPropos article{padding:24px 30px 8px; overflow-y:auto; max-height:calc(88vh - 70px); line-height:1.5}
+  #aPropos h2{margin:0 0 4px; color:var(--orange); font-size:1.5rem}
+  #aPropos .chapeau{margin:0 0 10px; font-weight:600; color:var(--vert)}
+  #aPropos h3{margin:18px 0 4px; color:var(--violet); font-size:1.08rem}
+  #aPropos p, #aPropos li{font-size:.98rem}
+  #aPropos ul{margin:4px 0; padding-left:1.3em}
+  #aPropos li{margin:3px 0}
+  #aPropos .bas{display:flex; justify-content:flex-end; padding:10px 22px 16px; border-top:2px solid var(--gris-clair)}
+  #aPropos .bas button{border-radius:999px; padding:9px 20px; background:var(--violet); color:#fff}
 </style>
 </head>
 <body>
@@ -326,7 +340,49 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.6</span></footer>
+<footer><button id="ouvrirAPropos" class="lien">À propos de l’outil</button> · La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.6</span></footer>
+
+<!-- Présentation de l'outil : lisible par les collègues (bouton « À propos » du pied de page) et par les moteurs de recherche -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">La route des nombres</h2>
+    <p class="chapeau">Des droites graduées à projeter au tableau, du CP au CM2, sur le modèle des évaluations nationales.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>La route des nombres affiche au TBI ou au vidéoprojecteur des droites graduées toujours nouvelles. Les élèves lisent ou placent un nombre et répondent sur l’ardoise. L’enseignant corrige en un clic, avec une explication pas à pas.
+    C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Trois façons de travailler</h3>
+    <ul>
+      <li><b>Trouver le nombre :</b> une flèche montre une graduation, les élèves écrivent le nombre. En CP et en CE1, six propositions à entourer, comme dans les évaluations nationales.</li>
+      <li><b>Placer le nombre :</b> les élèves placent un nombre sur la droite, en touchant la graduation ou en choisissant une lettre sur l’ardoise.</li>
+      <li><b>Explorer :</b> on part de 0 à 10, 100, 1 000… et on grossit un intervalle 10 fois, puis encore 10 fois. Toutes les droites restent empilées : on voit le chemin des unités aux dixièmes et aux centièmes.</li>
+    </ul>
+
+    <h3>Les nombres travaillés</h3>
+    <ul>
+      <li><b>Nombres entiers :</b> de 0 à 10 en CP (avec un réglage « nombres connus » jusqu’à 19, 49, 69 ou 100), puis jusqu’à 1 000, 10 000, 1 000 000 et au milliard.</li>
+      <li><b>Nombres décimaux :</b> dixièmes, centièmes et millièmes, en CM1 et CM2.</li>
+      <li><b>Fractions :</b> plus petites ou plus grandes que 1, et fractions décimales, de la fin du CE2 au CM2.</li>
+    </ul>
+    <p>Pour chaque niveau, trois difficultés (ou une difficulté progressive) font varier le nombre de graduations, la valeur d’un intervalle et les bornes, comme dans les évaluations.</p>
+
+    <h3>Une aide en quatre étapes</h3>
+    <p>Le bouton « Pas à pas » montre la méthode, une étape à chaque clic : compter les intervalles, calculer l’écart entre deux nombres connus, trouver la valeur d’un intervalle, puis compter jusqu’au nombre. Pour les fractions, une bande partagée en parts égales se colorie sous la droite : on fait le lien entre la fraction comme partage et la fraction comme nombre.</p>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>En rituel de quelques minutes, sur ardoise, avec une droite nouvelle à chaque clic.</li>
+      <li>Pour préparer ou exploiter les évaluations nationales de début de CP, CE1, CE2, CM1, CM2 et 6e.</li>
+      <li>En différenciation : chaque groupe a son niveau et sa difficulté.</li>
+      <li>Avec des fiches Word à imprimer, de 4 à 10 droites, avec leur corrigé.</li>
+    </ul>
+
+    <h3>Les programmes</h3>
+    <p>Placer et repérer des nombres sur une demi-droite graduée fait partie des programmes de mathématiques du cycle 2 (2024) et du cycle 3. La compréhension de la droite numérique est un très bon appui pour les fractions et les décimaux.</p>
+  </article>
+  <div class="bas"><button id="fermerAPropos">Fermer</button></div>
+</dialog>
 
 <script>
 'use strict';
@@ -1428,10 +1484,16 @@ document.querySelectorAll('#types > button').forEach(b => b.onclick = () => {
 
 // Clavier : Espace = réponse, flèche droite = nouvelle droite (sauf en « Explorer » et fenêtre ouverte)
 document.addEventListener('keydown', e => {
-  if (etat.mode === 'explorer' || !fenetreFiche.hidden) return;
+  if (etat.mode === 'explorer' || !fenetreFiche.hidden || aPropos.open) return;
   if (e.code === 'Space') { e.preventDefault(); basculer('voirReponse'); }
   if (e.code === 'ArrowRight') nouvelleDroite();
 });
+
+// « À propos de l'outil » : s'ouvre depuis le pied de page, se ferme avec le bouton, Échap ou un clic à côté
+const aPropos = document.getElementById('aPropos');
+document.getElementById('ouvrirAPropos').onclick = () => aPropos.showModal();
+document.getElementById('fermerAPropos').onclick = () => aPropos.close();
+aPropos.addEventListener('click', e => { if (e.target === aPropos) aPropos.close(); });
 
 // Plein écran : même picto que dans les autres outils du portail (4 coins vers l'extérieur ou vers l'intérieur)
 const btnPleinEcran = document.getElementById('pleinEcran');
