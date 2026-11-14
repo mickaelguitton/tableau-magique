@@ -233,7 +233,11 @@
         stroke-dasharray:300; stroke-dashoffset:300; animation:trace .3s ease-out forwards}
   .etiquette-saut{opacity:0; animation:apparait .3s ease-out forwards}
   .apparait{animation:apparait .35s ease-out}
-  .part-bande{opacity:0; animation:apparait .3s ease-out forwards}   /* bande des fractions : une part après l'autre */
+  .part-bande, .apparait-tard{opacity:0; animation:apparait .3s ease-out forwards}   /* invisibles jusqu'à leur tour */
+  /* « Pas à pas » redessiné sans changer d'étape (réponse, proposition…) : tout est déjà là, sans animation */
+  .fixe, .fixe *{animation:none !important}
+  .fixe.part-bande, .fixe.apparait-tard, .fixe .etiquette-saut, .fixe.etiquette-saut{opacity:1}
+  .fixe.saut, .fixe .saut{stroke-dashoffset:0}
   .zone{fill:transparent; cursor:zoom-in}
   .zone:hover{fill:rgba(155,93,229,.13)}
   @keyframes trace{to{stroke-dashoffset:0}}
@@ -322,7 +326,7 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.4</span></footer>
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.5</span></footer>
 
 <script>
 'use strict';
@@ -332,7 +336,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.4' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.5' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -423,6 +427,7 @@ const etat = {
   exo: null,                             // la droite en cours (voir partie 3)
   voirReponse: false, voirGraduations: false,
   etape: 0,                              // « Pas à pas » : 0 (rien), puis étapes 1 à ETAPES
+  animerEtape: false,                    // vrai juste après un clic sur « Pas à pas » (le dessin s'anime)
   placement: null,                       // graduation touchée en mode « Placer »
   explo: { depart:1, scale:0, a:0, s:1, historique:[] }
 };
@@ -894,7 +899,7 @@ function dessinerNumerosIntervalles(exo, y) {
   const T = Math.min(22, largeur * .55);
   for (let i = g0; i < g1; i++) {
     const t = el('text', { x: (xDe(i, exo.n) + xDe(i + 1, exo.n)) / 2, y: y - 14, 'font-size': T, 'text-anchor': 'middle',
-                           class: 'numero-intervalle apparait', style: `animation-delay:${(i - g0) * .12}s` }, svg);
+                           class: 'numero-intervalle apparait-tard', style: `animation-delay:${(i - g0) * .12}s` }, svg);
     t.textContent = i - g0 + 1;
   }
 }
@@ -907,7 +912,7 @@ function dessinerEcart(exo, yc) {
   const ecart = unite ? [{ txt: '1 unité' }] : exo.genre === 'nombre' ? [{ txt: 'écart : ' + ecrire(exo.n * exo.s, exo.scale) }]
                       : [{ txt: 'écart : ' }, ...partiesEcart(exo)];
   const T = 22, w = largeurParties(ecart, T) + 20, cx = (x0 + x1) / 2, cy = yc + (aUneFraction(ecart) ? 28 : 20);
-  el('rect', { x: cx - w / 2, y: cy - 20, width: w, height: 40, fill: '#fff' }, svg);
+  el('rect', { x: cx - w / 2, y: yc - 4, width: w, height: cy - yc + 24, fill: '#fff' }, svg);   // coupe le trait du crochet
   dessinerParties(svg, ecart, cx, cy, T, COULEURS.violet).classList.add('apparait');
 }
 
@@ -949,6 +954,12 @@ function dessinerChemin(exo, y) {
 const avecBande = exo => exo.genre === 'fraction' && ['f1', 'f2', 'f3'].includes(exo.niveau);
 const HAUTEUR_BANDE = 46;
 
+// Numéro écrit dans la k-ième part de la bande. Droite depuis 0 (ou depuis une borne non entière) :
+// on compte toutes les parts (1/3, 2/3, 3/3, 4/3…). Droite qui part d'un entier (1, 2…) : on compte
+// dans chaque unité (1/8 … 8/8, puis 1/8…), car sans le début de la droite les élèves lisent 1 + 7/8.
+const comptageParUnite = exo => exo.origine > 0 && exo.origine % exo.den === 0;
+const numeroPart = (exo, k) => comptageParUnite(exo) ? k % exo.den + 1 : exo.origine + k + 1;
+
 function dessinerBande(exo, yHaut) {
   const largeur = (X1 - X0) / exo.n;
   for (let k = 0; k < exo.n; k++) {
@@ -960,7 +971,7 @@ function dessinerBande(exo, yHaut) {
                  stroke: COULEURS.noir, 'stroke-width': coloriee ? 2.5 : 1.5,
                  'stroke-dasharray': coloriee ? 'none' : '6 5' }, g);
     if (coloriee) {                                  // le nombre de parts compté jusque-là
-      const parties = [{ num: exo.origine + k + 1, den: exo.den }];
+      const parties = [{ num: numeroPart(exo, k), den: exo.den }];
       const T = Math.min(20, 20 * (largeur - 8) / largeurParties(parties, 20));
       if (T >= 11) dessinerParties(g, parties, x + largeur / 2, yHaut + HAUTEUR_BANDE / 2, T, COULEURS.noir);
       g.classList.add('part-bande');
@@ -1079,12 +1090,18 @@ function rendreExercice() {
     if (etat.voirReponse) zoneExplication.innerHTML = bilanPlacer(exo);
   }
 
-  // « Pas à pas » : le dessin montre l'étape en cours ; les phrases des étapes s'ajoutent l'une sous l'autre
+  // « Pas à pas » : le dessin montre l'étape en cours ; les phrases des étapes s'ajoutent l'une sous l'autre.
+  // L'animation ne se joue qu'au clic sur « Pas à pas » ; sinon (réponse, proposition…), le dessin est figé.
+  const avantEtape = svg.childElementCount;
   if (etat.etape) {
     let chemin = null;
     const yBas = Y + (etat.voirGraduations ? 140 : 92);    // sous les étiquettes (plus bas si toutes sont écrites)
     const agrandir = h => svg.setAttribute('viewBox', `0 0 ${L} ${Math.max(Number(svg.getAttribute('viewBox').split(' ')[3]), h)}`);
     if (etat.etape === 1) dessinerNumerosIntervalles(exo, Y);
+    const { g1, unite } = segmentConnu(exo);   // fractions : la fin de l'unité (ex. 2) écrite, si elle ne l'est pas déjà
+    if (unite && etat.etape <= 3 && g1 < exo.n && !etat.voirGraduations) {
+      dessinerParties(svg, etiquetteGraduation(exo, g1), xDe(g1, exo.n), Y + 46, 30, COULEURS.violet);
+    }
     if (etat.etape === 2 || etat.etape === 3) { agrandir(yBas + 60); dessinerEcart(exo, yBas); }
     if (etat.etape === 3) dessinerIntervalleSurligne(exo, Y);
     if (etat.etape === 4) {
@@ -1093,7 +1110,9 @@ function rendreExercice() {
     }
     const bilan = zoneExplication.innerHTML;
     zoneExplication.innerHTML = (bilan ? bilan + '<br>' : '') + textesEtapes(exo, etat.etape, chemin);
+    if (!etat.animerEtape) [...svg.children].slice(avantEtape).forEach(e => e.classList.add('fixe'));
   }
+  etat.animerEtape = false;
 }
 
 // Message après « Vérifier » en mode « Placer » : juste, faux ou pas de réponse
@@ -1118,7 +1137,8 @@ function textesEtapes(exo, etape, chemin) {
   const valeur = exo.genre === 'nombre' ? `<b>${ecrire(exo.s, exo.scale)}</b>` : fracHTML(1, exo.den);
   const ecart = exo.genre === 'nombre' ? `<b>${ecrire(exo.n * exo.s, exo.scale)}</b>` : fracHTML(exo.n, exo.den);
   const lignes = [
-    `Je compte les intervalles : de ${nombre(g0)} à ${nombre(g1)}, il y a <b>${k}</b> intervalles.`,
+    unite ? `Je compte les intervalles dans une unité : de ${nombre(g0)} à ${nombre(g1)}, il y a <b>${k}</b> intervalles.`
+          : `Je compte les intervalles : de ${nombre(g0)} à ${nombre(g1)}, il y a <b>${k}</b> intervalles.`,
     unite ? `Je calcule l’écart : ${nombre(g1)} − ${nombre(g0)} = <b>1</b>, c’est 1 unité.`
           : `Je calcule l’écart : ${nombre(g1)} − ${nombre(g0)} = ${ecart}.`,
     unite ? `Je trouve la valeur d’un intervalle : 1 unité partagée en <b>${k}</b> parts égales, 1 intervalle = ${valeur}.`
@@ -1131,6 +1151,9 @@ function textesEtapes(exo, etape, chemin) {
                 `j’${depuisGauche ? 'avance' : 'recule'} de <b>${nb}</b> intervalle${nb > 1 ? 's' : ''}.`;
     if (avecBande(exo) && exo.origine === 0) {
       lignes[3] += ` <b>${exo.t}</b> part${exo.t > 1 ? 's' : ''} de ${fracHTML(1, exo.den)}, c’est ${fracHTML(exo.t, exo.den)}.`;
+    } else if (avecBande(exo) && comptageParUnite(exo)) {      // ex. 1 + 7/8, c'est 15/8
+      const num = exo.origine + exo.t, entier = Math.floor(num / exo.den);
+      lignes[3] += ` J’arrive à <b>${entier}</b> + ${fracHTML(num % exo.den, exo.den)}, c’est ${fracHTML(num, exo.den)}.`;
     }
   }
   return lignes.slice(0, etape)
@@ -1374,7 +1397,7 @@ function majMenu() {
     return;
   }
   bouton('Écrire les graduations', () => basculer('voirGraduations'), '', etat.voirGraduations);
-  bouton(etat.etape ? `Pas à pas ${etat.etape}/${ETAPES}` : 'Pas à pas', () => { etat.etape = (etat.etape + 1) % (ETAPES + 1); rendre(); }, '', etat.etape > 0);
+  bouton(etat.etape ? `Pas à pas ${etat.etape}/${ETAPES}` : 'Pas à pas', () => { etat.etape = (etat.etape + 1) % (ETAPES + 1); etat.animerEtape = true; rendre(); }, '', etat.etape > 0);
   bouton(etat.mode === 'placer' ? 'Vérifier' : 'Voir la réponse', () => basculer('voirReponse'), 'principal');
   bouton('Nouvelle droite', nouvelleDroite, 'nouveau');
 }
