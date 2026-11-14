@@ -6,9 +6,9 @@ ADRESSE : https://mickaelguitton.github.io/tableau-magique/
 CONTENU DU DÉPÔT
   index.html               la page d'accueil (les tuiles)
   calcul-mental/           un dossier par outil, contenant son index.html
-  gym-des-mots/
+  nature-des-mots/
   machine-conjugaison/
-  a-qui-le-tour/
+  tirage-au-sort/
   images/                  les captures affichées sur les tuiles
   outils.js                LA liste des outils (tuiles, aperçus, bulles, hors ligne) avec le numéro de chaque outil
   version.js               le numéro de version du PORTAIL (accueil, icônes, police, portail.js)

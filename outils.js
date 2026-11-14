@@ -20,16 +20,16 @@
 self.OUTILS = [
   {
     dossier: 'calcul-mental',
-    version: '1.1',                             // numéro de CET outil : à changer quand on le modifie
-    nom: 'Calcul mental',
-    niveau: 'du CP au CM2',
+    version: '1.2',                             // numéro de CET outil : à changer quand on le modifie
+    nom: 'Calculs en tête',
+    niveau: 'calcul mental · du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
          + 'Correction au tableau. Chrono. Différentes options. Impression de fiches personnalisées.',
     donnees: ['rcm-'],   // début du nom de ses données dans le navigateur (résumé de la sauvegarde)
     couleur: '#3D6FD9', ombre: '#B7D3FB'
   },
   {
-    dossier: 'gym-des-mots',
+    dossier: 'nature-des-mots',
     version: '1.2',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
@@ -51,7 +51,7 @@ self.OUTILS = [
     couleur: '#D9443C', ombre: '#F9B9B4'
   },
   {
-    dossier: 'a-qui-le-tour',
+    dossier: 'tirage-au-sort',
     version: '1.0',
     nom: 'À qui le tour ?',
     niveau: 'tous niveaux',
@@ -84,7 +84,7 @@ self.OUTILS = [
     couleur: '#2F9E44', ombre: '#B9E8C3'
   },
   {
-    dossier: 'fabrique-a-figures',
+    dossier: 'geometrie',
     version: '2.2',
     nom: 'La fabrique à figures',
     niveau: 'cycle 3',
@@ -96,7 +96,7 @@ self.OUTILS = [
     couleur: '#D6336C', ombre: '#F8C3D5'
   },
   {
-    dossier: 'poursuite-des-diamants',
+    dossier: 'jeu-de-revision',
     version: '1.1',
     nom: 'À la poursuite des diamants',
     niveau: 'jeu de révision · tous niveaux',
@@ -120,7 +120,7 @@ self.OUTILS = [
     couleur: '#0B7FB8', ombre: '#B5E0F5'
   },
   {
-    dossier: 'route-des-nombres',
+    dossier: 'droites-graduees',
     version: '1.0',
     nom: 'La route des nombres',
     niveau: 'du CP au CM2',
