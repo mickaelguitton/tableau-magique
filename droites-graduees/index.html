@@ -326,7 +326,7 @@
   </div>
 </div>
 
-<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.5</span></footer>
+<footer>La route des nombres – M. Guitton – licence CC BY-NC 4.0<span class="app-version"> – v1.6</span></footer>
 
 <script>
 'use strict';
@@ -336,7 +336,7 @@
    ===================================================================== */
 
 // Signature (pied de page et fiches Word) ; la version vient du portail (outils.js) quand il est là
-const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.5' }).version;
+const VERSION = 'v' + ((self.OUTILS || []).find(o => o.dossier === 'droites-graduees') || { version: '1.6' }).version;
 const SIGNATURE = 'La route des nombres – M. Guitton – licence CC BY-NC 4.0 – ' + VERSION;
 
 // Niveaux proposés pour chaque type de nombres
@@ -1098,9 +1098,14 @@ function rendreExercice() {
     const yBas = Y + (etat.voirGraduations ? 140 : 92);    // sous les étiquettes (plus bas si toutes sont écrites)
     const agrandir = h => svg.setAttribute('viewBox', `0 0 ${L} ${Math.max(Number(svg.getAttribute('viewBox').split(' ')[3]), h)}`);
     if (etat.etape === 1) dessinerNumerosIntervalles(exo, Y);
-    const { g1, unite } = segmentConnu(exo);   // fractions : la fin de l'unité (ex. 2) écrite, si elle ne l'est pas déjà
-    if (unite && etat.etape <= 3 && g1 < exo.n && !etat.voirGraduations) {
-      dessinerParties(svg, etiquetteGraduation(exo, g1), xDe(g1, exo.n), Y + 46, 30, COULEURS.violet);
+    // Fractions : les nombres entiers de la droite restent écrits en violet jusqu'à la fin (ex. 3 dans 3 + 2/4) ;
+    // aux étapes 1 à 3, seulement la fin de l'unité étudiée
+    const { g1, unite } = segmentConnu(exo);
+    if (unite && !etat.voirGraduations) {
+      for (let i = 1; i < exo.n; i++) {
+        const entier = (exo.origine + i) % exo.den === 0;
+        if (entier && (i === g1 || etat.etape === 4)) dessinerParties(svg, etiquetteGraduation(exo, i), xDe(i, exo.n), Y + 46, 30, COULEURS.violet);
+      }
     }
     if (etat.etape === 2 || etat.etape === 3) { agrandir(yBas + 60); dessinerEcart(exo, yBas); }
     if (etat.etape === 3) dessinerIntervalleSurligne(exo, Y);

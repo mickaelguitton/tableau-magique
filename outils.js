@@ -42,7 +42,7 @@ self.OUTILS = [
   },
   {
     dossier: 'droites-graduees',
-    version: '1.5',
+    version: '1.6',
     nom: 'La route des nombres',
     niveau: 'droites graduées · du CP au CM2',
     texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
