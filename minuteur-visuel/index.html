@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-court="Le temps en couleur">Le temps en couleur : minuteur visuel pour la classe (disque, barre, sablier), temps majoré – Le tableau magique</title>
+<meta name="author" content="Mickaël Guitton">
+<meta name="license" content="CC BY-NC 4.0">
+<meta name="description" content="Minuteur visuel gratuit à projeter en classe : le temps qui reste se voit sur un disque qui se vide, une barre ou un sablier. Préavis avant la fin, heure de fin, temps majoré pour les PAP et PPS, étapes enchaînées pour les ateliers, pictos de consigne, sons doux. Pensé pour les élèves qui ont besoin de repères dans le temps.">
+<!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
+<link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/minuteur-visuel/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Le tableau magique">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Le temps en couleur : minuteur visuel pour la classe (disque, barre, sablier), temps majoré – Le tableau magique">
+<meta property="og:description" content="Minuteur visuel gratuit à projeter en classe : le temps qui reste se voit sur un disque qui se vide, une barre ou un sablier. Préavis avant la fin, heure de fin, temps majoré pour les PAP et PPS, étapes enchaînées pour les ateliers, pictos de consigne, sons doux. Pensé pour les élèves qui ont besoin de repères dans le temps.">
+<meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/minuteur-visuel/">
+<meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-minuteur-visuel.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Portail « Le tableau magique » : version, bouton Accueil, hors ligne et mise à jour (voir ../portail.js) -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icone-tbi-favicon.png">
+<link rel="apple-touch-icon" href="../icone-tbi-apple.png">
+<script src="../version.js"></script>
+<script src="../outils.js"></script>
+<script src="../portail.js"></script>
+<style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:grid!important}</style>
+<!--
+  Le temps en couleur (ex-« Repère temps ») : minuteur visuel pour la classe
+  Version 2.1 (couleur tournante et disque par défaut, code allégé) ; v1.0 dans le portail « Le tableau magique »
+  Mickaël Guitton, licence CC BY-NC 4.0
+  Mis au point avec l'aide de Claude AI
+
+  Organisation du code :
+    1. Réglages et sauvegarde
+    2. État du minuteur et déroulement (lancer, pause, étapes, temps majoré)
+    3. Dessins (disque, barre, sablier, chiffres)
+    4. Affichage de l'écran
+    5. Sons (synthétisés, aucun fichier externe)
+    6. Panneau des réglages
+    7. Clavier, plein écran, veille de l'écran, masquage des boutons
+-->
+<style>
+:root{
+  --carte:#ffffff; --texte:#24303f; --doux:#6b7686; --trait:#d9dde3;
+  /* --teinte : couleur choisie ; --accent : couleur du moment (autre couleur pendant le temps majoré) */
+  --teinte:#3b82c4; --accent:#3b82c4;
+  /* Le fond et la piste prennent une teinte très légère de la couleur choisie */
+  --fond:color-mix(in srgb, var(--teinte) 10%, #fbfaf7);
+  --piste:color-mix(in srgb, var(--teinte) 8%, #eceef2);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+html{background:var(--fond)}
+body{--taille:min(52vh,86vw);--reserve:150px;background:var(--fond);color:var(--texte);font-family:"Nunito","Segoe UI","Helvetica Neue",Arial,sans-serif;overflow:hidden;transition:background .4s}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none!important}
+
+/* ---------- Écran principal ---------- */
+#app{height:100vh;height:100dvh;display:grid;grid-template-rows:auto 1fr}
+/* Taille du dessin et place réservée en bas, selon l'état : réglages ouverts, normal, décompte */
+body.panneau-ouvert{--taille:min(24vh,60vw);--reserve:calc(38vh + 120px)}
+body.calme{--taille:min(62vh,90vw);--reserve:16px}
+.haut{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;padding:12px 14px 0;gap:10px}
+.haut .droite{justify-self:end;display:flex;gap:10px;align-items:flex-start}
+/* Pictos accueil et plein écran : couleur choisie, discrets */
+.picto{width:44px;height:44px;border:none;background:var(--teinte);color:#fff;border-radius:12px;display:grid;place-items:center;transition:opacity .6s;opacity:.85}
+.picto:hover{opacity:1}
+.picto svg{width:24px;height:24px}
+.titre-etape{text-align:center}
+.etiquette{font-size:clamp(1.6rem,5vh,3.2rem);font-weight:800;min-height:1.3em;line-height:1.25}
+body.fini .etiquette{color:var(--accent)}
+.points{display:flex;gap:9px;justify-content:center;margin-top:6px}
+.point{width:13px;height:13px;border-radius:50%;background:var(--trait);transition:transform .3s}
+.point.fait{background:var(--doux)}
+.point.actuel{background:var(--accent);transform:scale(1.35)}
+.consigne{display:inline-flex;margin-bottom:6px;align-items:center;gap:.5em;background:var(--carte);border:2px solid var(--trait);border-radius:16px;padding:.35em .9em;font-weight:800;font-size:clamp(1rem,2.8vh,1.6rem)}
+.consigne svg{width:2.1em;height:2.1em;flex:none}
+
+.centre{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vh;min-height:0;padding:0 12px var(--reserve);transition:padding .5s;overflow:hidden}
+.visuel{display:flex;align-items:center;justify-content:center;min-height:0;transition:transform .3s}
+.visuel svg{width:100%;height:100%;display:block;overflow:visible}
+.v-disque,.v-sablier{height:var(--taille);transition:width .5s,height .5s}
+.v-disque{width:var(--taille)}
+.v-sablier{width:calc(var(--taille) * .75)}
+.v-barre{width:min(92vw,1200px);aspect-ratio:1000/220}
+.v-disque.reglable svg{cursor:grab;touch-action:none}
+.grand-chiffres{font-size:min(30vh,23vw);font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1}
+.chiffres{font-size:clamp(2rem,7.5vh,4.6rem);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+body.panneau-ouvert .grand-chiffres{font-size:min(15vh,14vw)}
+body.panneau-ouvert .chiffres{font-size:clamp(1.5rem,4.5vh,3rem)}
+.sous-info{font-size:clamp(1rem,2.8vh,1.6rem);color:var(--doux);min-height:1.4em}
+.ensuite{background:var(--carte);border:2px solid var(--trait);border-radius:16px;padding:.45em 1.2em;font-size:clamp(1.1rem,3.2vh,1.9rem);font-weight:700}
+.ensuite b{color:var(--accent)}
+
+.bas{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 12px 28px;background:var(--fond);transition:transform .5s,opacity .5s}
+body.panneau-ouvert .bas{border-top:2px solid var(--trait)}
+body.panneau-ouvert .presets{display:none}
+.presets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{border:2px solid var(--trait);background:var(--carte);border-radius:999px;padding:.3em .85em;font-weight:700;font-size:1rem}
+.chip.actif{background:var(--accent);border-color:var(--accent);color:#fff}
+.commandes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{border:2px solid var(--trait);background:var(--carte);border-radius:14px;padding:.55em 1.2em;font-weight:800;font-size:1.1rem}
+.btn.principal{background:var(--accent);border-color:var(--accent);color:#fff;min-width:9em}
+.btn:hover,.chip:hover{filter:brightness(.95)}
+
+/* Pendant le décompte, le bandeau du bas glisse hors de l'écran ; une petite poignée reste visible */
+body.calme .bas{transform:translateY(100%);opacity:0;pointer-events:none}
+body.calme .picto{opacity:0;pointer-events:none}
+.poignee{position:fixed;bottom:8px;left:50%;width:70px;height:7px;border-radius:4px;background:var(--trait);transform:translateX(-50%);opacity:0;transition:opacity .5s}
+body.calme .poignee{opacity:1}
+.btn.actif{border-color:var(--accent);color:var(--accent)}
+body.calme{cursor:none}
+
+.bandeau{position:fixed;left:50%;top:16%;transform:translate(-50%,-20px);background:var(--carte);border:3px solid var(--accent);border-radius:20px;padding:.6em 1.4em;font-size:clamp(1.3rem,4.2vh,2.5rem);font-weight:800;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;box-shadow:0 10px 30px rgba(0,0,0,.12);text-align:center;max-width:90vw;z-index:5}
+.bandeau.visible{opacity:1;transform:translate(-50%,0)}
+
+.signature{position:fixed;z-index:6;right:10px;bottom:6px;font-size:12px;color:var(--doux);opacity:.75}
+
+/* Fin : respiration lente, jamais de clignotement */
+body.fini .visuel{animation:respire 3.2s ease-in-out infinite}
+@keyframes respire{50%{transform:scale(1.03)}}
+
+/* ---------- Dessins ---------- */
+.face{fill:var(--carte);stroke:var(--trait);stroke-width:3}
+.piste{fill:var(--piste)}
+.graduation{stroke:var(--texte);stroke-width:2;opacity:.45}
+.graduation.longue{stroke-width:4;opacity:.8}
+.nombre{fill:var(--texte);font-size:23px;font-weight:800;font-family:inherit}
+.bouton-centre{fill:var(--carte);stroke:var(--trait);stroke-width:3}
+.verre{fill:none;stroke:var(--doux);stroke-width:4;stroke-linejoin:round}
+.verre-fond{fill:var(--carte)}
+.socle{fill:var(--doux)}
+.filet{stroke:url(#flux);stroke-width:4;stroke-linecap:round}
+@media (prefers-reduced-motion:reduce){
+  body.fini .visuel{animation:none}
+}
+
+/* ---------- Panneau des réglages ---------- */
+.nom-appli{margin:0 0 8px;text-align:center;font-size:1.35rem;font-weight:800;color:var(--texte)}
+.nom-appli span{color:var(--teinte)}   /* « couleur » dans la couleur choisie */
+.panneau{display:none;width:100%;max-width:1100px;max-height:40vh;overflow-y:auto;padding:4px 8px 6px}
+body.panneau-ouvert .panneau{display:block}
+.grille{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+/* Trois colonnes séparées par un trait vertical noir */
+.colonne{padding:0 22px}
+.colonne+.colonne{border-left:2px solid #000}
+.titre-col{margin:2px 0 4px;font-size:.85rem;font-weight:800;color:var(--doux);text-transform:uppercase;letter-spacing:.05em}
+@media (max-width:900px){
+  .grille{grid-template-columns:1fr}
+  .colonne+.colonne{border-left:none;border-top:2px solid #000;padding-top:8px;margin-top:8px}
+}
+.reglage{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;border-bottom:1px solid var(--trait);font-weight:700}
+.reglage:last-child{border-bottom:none}
+.reglage select{font:inherit;font-weight:600;border:2px solid var(--trait);border-radius:10px;padding:.25em .5em;background:var(--carte);color:var(--texte);cursor:pointer}
+.duo{display:flex;align-items:center;gap:8px}
+.pastille-mini{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--teinte)}
+.interrupteur{appearance:none;width:44px;height:24px;border-radius:12px;background:var(--trait);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+.interrupteur::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
+.interrupteur:checked{background:var(--teinte)}
+.interrupteur:checked::after{left:23px}
+.replie{margin-top:10px;border:2px solid var(--trait);border-radius:12px;background:var(--carte)}
+.replie summary{cursor:pointer;font-weight:800;padding:.5em .9em}
+.contenu-replie{padding:0 .9em .6em;max-width:520px}
+.panneau h3{font-size:.95rem;margin:14px 0 8px;color:var(--doux);text-transform:uppercase;letter-spacing:.05em}
+.mini{border:2px solid var(--trait);background:var(--fond);border-radius:10px;padding:.35em .8em;font-weight:700}
+/* Une étape sur deux lignes : le nom, puis la durée */
+.etape{display:grid;grid-template-columns:1.5em 4em auto 3.8em auto 1fr 2.4em;align-items:center;gap:6px;margin:8px 0 12px}
+.etape>:nth-child(1){grid-area:1/1}
+.etape>:nth-child(2){grid-area:1/2/2/7}
+.etape>:nth-child(7){grid-area:1/7}
+.etape>:nth-child(3){grid-area:2/2}
+.etape>:nth-child(4){grid-area:2/3}
+.etape>:nth-child(5){grid-area:2/4}
+.etape>:nth-child(6){grid-area:2/5}
+.etape .mini{padding:.25em 0}
+input[type=text],input[type=number]{font:inherit;border:2px solid var(--trait);border-radius:8px;padding:.3em .45em;background:var(--fond);color:var(--texte);width:100%;min-width:0}
+.ligne{display:flex;align-items:center;gap:8px;margin:8px 0}
+.note{font-size:.9rem;color:var(--doux);margin:6px 0;line-height:1.35}
+label.case{display:flex;align-items:center;gap:8px;margin:7px 0}
+label.case input{width:1.2em;height:1.2em;accent-color:var(--accent)}
+.routine{display:flex;align-items:center;gap:6px;margin:6px 0}
+.routine .nom-routine{flex:1;font-weight:700}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="haut">
+    <div>
+      <a id="btnAccueil" class="picto portail-accueil" href="../" aria-label="Accueil" title="Revenir à l'accueil du tableau magique">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+      </a>
+    </div>
+    <div class="titre-etape">
+      <div id="consigne" class="consigne" hidden></div>
+      <div id="etiquette" class="etiquette"></div>
+      <div id="points" class="points"></div>
+    </div>
+    <div class="droite">
+      <button id="btnPleinEcran" class="picto" type="button" aria-label="Plein écran" title="Plein écran (F)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="centre">
+    <div id="visuel" class="visuel"></div>
+    <div id="chiffres" class="chiffres"></div>
+    <div id="sousInfo" class="sous-info"></div>
+    <div id="ensuite" class="ensuite" hidden></div>
+  </main>
+
+  <footer class="bas">
+    <div id="presets" class="presets"></div>
+    <div class="commandes">
+      <button id="btnLancer" class="btn principal" type="button">Lancer</button>
+      <button id="btnMoins" class="btn" type="button" title="Enlever une minute (flèche bas)">−1 min</button>
+      <button id="btnPlus" class="btn" type="button" title="Ajouter une minute (flèche haut)">+1 min</button>
+      <button id="btnRecommencer" class="btn" type="button" title="Arrêter et revenir au début (R)">Arrêter</button>
+      <button id="btnReglages" class="btn" type="button" aria-controls="panneau">Réglages</button>
+    </div>
+    <div id="panneau" class="panneau" aria-label="Réglages">
+      <p class="nom-appli">Le temps en <span>couleur</span></p>
+      <div class="grille">
+        <div class="colonne">
+          <p class="titre-col">Déroulement</p>
+          <label class="reglage"><span>Mode</span><select id="selMode"></select></label>
+          <label class="reglage" data-minuteur><span>Prévenir avant la fin</span><select id="selPreavis"></select></label>
+          <label class="reglage" data-minuteur><span>Temps majoré</span><select id="selMajore"></select></label>
+          <label class="reglage"><span>Consigne</span><select id="selConsigne"></select></label>
+        </div>
+        <div class="colonne">
+          <p class="titre-col">Dessin</p>
+          <label class="reglage"><span>Affichage</span><select id="selVue"></select></label>
+          <label class="reglage"><span>Couleur</span><span class="duo"><i id="pastilleCouleur" class="pastille-mini"></i><select id="selCouleur"></select></span></label>
+          <label class="reglage" data-disque><span>Cadran</span><select id="selCadran"></select></label>
+          <label class="reglage" data-disque><span>Sens des chiffres</span><select id="selSens"></select></label>
+          <label class="reglage"><span>Couleur suivante à chaque lancement</span><input type="checkbox" class="interrupteur" id="chkCouleurTourne"></label>
+        </div>
+        <div class="colonne">
+          <p class="titre-col">Chiffres et sons</p>
+          <label class="reglage"><span>Temps en chiffres</span><input type="checkbox" class="interrupteur" id="chkChiffres"></label>
+          <label class="reglage" data-minuteur><span>Heure de fin</span><input type="checkbox" class="interrupteur" id="chkHeureFin"></label>
+          <div class="reglage"><span>Sonnerie</span><span class="duo"><select id="selSon"></select><button id="btnEcouter" class="mini" type="button">Écouter</button></span></div>
+          <label class="reglage"><span>Volume</span><select id="selVolume"></select></label>
+        </div>
+      </div>
+      <details class="replie" data-minuteur>
+        <summary id="titreDuree">Nom de l'activité, étapes, ensuite</summary>
+        <div class="contenu-replie">
+      <div id="listeEtapes"></div>
+      <div class="ligne"><span style="white-space:nowrap">Ensuite :</span><input type="text" id="ensuiteTexte" maxlength="40" placeholder="ex. récréation (facultatif)"></div>
+      <label class="case"><input type="checkbox" id="chkMulti"> Plusieurs étapes (ateliers, routines)</label>
+
+      <div id="blocMulti">
+        <div class="ligne"><button id="btnAjouterEtape" class="mini" type="button">Ajouter une étape</button></div>
+        <label class="case"><input type="checkbox" id="chkAuto"> Passer seul à l'étape suivante</label>
+        <h3>Mes enchaînements</h3>
+        <div class="ligne"><input type="text" id="nomRoutine" maxlength="30" placeholder="Nom (ex. Atelier du matin)"><button id="btnEnregistrer" class="mini" type="button">Enregistrer</button></div>
+        <div id="listeRoutines"></div>
+      </div>
+        </div>
+      </details>
+    </div>
+  </footer>
+</div>
+
+<div class="poignee" aria-hidden="true"></div>
+<div id="bandeau" class="bandeau" aria-live="polite"></div>
+
+<!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
+     et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Le temps en couleur</h2>
+    <p class="chapeau">Un minuteur visuel à projeter en classe : le temps qui reste se voit, en couleur, sans savoir lire l’heure.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Le temps en couleur affiche au TBI ou au vidéoprojecteur la durée d’une activité sous une forme que tous les élèves comprennent : une couleur qui diminue à mesure que le temps passe. Chacun voit d’un coup d’œil s’il reste beaucoup ou peu de temps, et peut s’organiser seul. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Quatre façons de montrer le temps</h3>
+    <ul>
+      <li><b>Le disque :</b> une part de couleur qui se vide, sur un cadran de 60 minutes. On règle la durée en faisant glisser le doigt sur le disque.</li>
+      <li><b>La barre :</b> une bande graduée en minutes qui fond vers la gauche.</li>
+      <li><b>Le sablier :</b> le sable coule du haut vers le bas.</li>
+      <li><b>Les chiffres seuls,</b> en très grand. Le temps en chiffres peut aussi s’afficher sous le dessin, ainsi que l’heure de fin.</li>
+    </ul>
+    <p>Six couleurs au choix, qui peuvent changer à chaque lancement. Un mode chronomètre compte aussi le temps qui passe.</p>
+
+    <h3>Pensé pour les élèves qui ont besoin de repères</h3>
+    <ul>
+      <li><b>Un écran calme :</b> pendant le décompte, les boutons disparaissent et seul le temps reste à l’écran. À la fin, la couleur « respire » doucement, sans jamais clignoter.</li>
+      <li><b>Prévenir avant la fin :</b> un son doux et un message « Encore 2 minutes » (1, 2 ou 5 minutes avant).</li>
+      <li><b>Le temps majoré :</b> à la fin, le minuteur continue dans une autre couleur pendant un quart, un tiers ou la moitié du temps prévu, pour les élèves qui bénéficient d’un temps supplémentaire (PAP, PPS).</li>
+      <li><b>Savoir ce qui vient après :</b> « Ensuite : récréation ».</li>
+      <li><b>Des pictos de consigne :</b> en silence, on chuchote, à deux, en groupe.</li>
+      <li><b>Des sons doux</b> (carillon, bol chantant, xylophone) à trois volumes, ou aucun son.</li>
+    </ul>
+
+    <h3>Des étapes pour les ateliers et les routines</h3>
+    <p>On peut enchaîner plusieurs étapes, chacune avec son nom et sa durée : ateliers tournants, routine du matin, travail en plusieurs temps. Des pastilles montrent où l’on en est, et l’étape suivante est annoncée. Les enchaînements se gardent pour être relancés d’un clic.</p>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>Pour donner un temps de travail, un temps de rangement ou un temps de lecture, à tous les niveaux, de la maternelle au collège.</li>
+      <li>Pour aider les élèves avec un trouble de l’attention, un trouble du spectre de l’autisme ou des difficultés à se repérer dans le temps, et pour mettre en place le temps majoré.</li>
+      <li>Pendant une évaluation : la durée et l’heure de fin restent affichées, l’écran ne se met pas en veille.</li>
+    </ul>
+    <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
+  </article>
+  <!-- « pied » et non « bas » : la classe .bas est déjà celle des boutons du minuteur -->
+  <div class="pied"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
+<div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
+
+<script>
+'use strict';
+const VERSION = '2.1';
+
+/* =========================================================
+   1. Réglages et sauvegarde
+   ========================================================= */
+const CLE = 'repere-temps-v1';
+const COULEURS = {bleu:'#3b82c4', vert:'#3fa36b', violet:'#8a63c9', orange:'#ef8a3c', rose:'#e06aa3', rouge:'#d9534f'};
+const COULEUR_EXTRA = '#8a63c9';      // temps majoré
+const COULEUR_EXTRA_BIS = '#3fa36b';  // temps majoré si la couleur choisie est déjà violette
+const PRESETS = [5, 10, 15, 20, 30];
+const DEFAUT = {
+  mode:'minuteur', vue:'disque', couleur:'bleu', cadran:'60',
+  chiffres:true, heureFin:true, couleurTourne:true,
+  son:'carillon', volume:0.6, preavis:120, majore:0,
+  consigne:'aucune', auto:true, ensuite:'', sens:'horloge', multi:false, etapesCachees:null
+};
+
+function lireStockage(){
+  try { return JSON.parse(localStorage.getItem(CLE)) || {}; } catch(e){ return {}; }
+}
+const stock = lireStockage();
+const R = Object.assign({}, DEFAUT, stock.reglages || {});
+// Étapes lues (stockage ou enchaînement enregistré) : nom en texte, durée d'au moins 5 s
+function normaliserEtapes(liste){
+  return (Array.isArray(liste) && liste.length ? liste : [{nom:'', sec:600}])
+    .map(e => ({nom:String(e.nom || ''), sec:Math.max(5, +e.sec || 600)}));
+}
+let etapes = normaliserEtapes(stock.etapes);
+if (etapes.length > 1) R.multi = true;
+let routines = (stock.routines && typeof stock.routines === 'object') ? stock.routines : {};
+
+function sauver(){
+  try { localStorage.setItem(CLE, JSON.stringify({reglages:R, etapes, routines})); } catch(e){}
+}
+
+/* =========================================================
+   2. État du minuteur et déroulement
+   ========================================================= */
+// statut : pret | marche | pause | fini      phase : principal | extra (temps majoré)
+const T = {statut:'pret', phase:'principal', index:0, totalMs:0, resteMs:0, finA:0, avertie:false, chronoMs:0, chronoDepart:0};
+let horloge = null;
+const $ = id => document.getElementById(id);
+
+function preparer(i){
+  T.index = i;
+  T.phase = 'principal';
+  T.totalMs = Math.max(5, etapes[i].sec) * 1000;
+  T.resteMs = T.totalMs;
+  T.avertie = false;
+}
+
+function reinitialiser(){
+  arreterHorloge();
+  libererEcran();
+  T.statut = 'pret';
+  T.chronoMs = 0;
+  preparer(0);
+  cacherBandeau();
+  reveiller();
+  rendre();
+}
+
+// Couleur suivante dans l'ordre de la liste (bleu, vert, violet, orange, rose, rouge, puis bleu)
+function couleurSuivante(){
+  const noms = Object.keys(COULEURS);
+  R.couleur = noms[(noms.indexOf(R.couleur) + 1) % noms.length];
+  sauver();
+  majChoix();
+}
+let dejaLance = false;
+
+function lancer(){
+  debloquerAudio();
+  // Nouveau lancement (pas une reprise après pause) : on passe à la couleur suivante
+  const nouveau = T.statut === 'fini' || (T.statut === 'pret' && T.index === 0);
+  if (R.couleurTourne && nouveau && dejaLance) couleurSuivante();
+  if (nouveau) dejaLance = true;
+  if (R.mode === 'chrono') {
+    T.chronoDepart = Date.now() - T.chronoMs;
+  } else {
+    if (T.statut === 'fini') preparer(0);
+    T.finA = Date.now() + T.resteMs;
+  }
+  T.statut = 'marche';
+  if (panneauOuvert()) basculerPanneau(false);
+  demarrerHorloge();
+  verrouillerEcran();
+  reveiller();
+  rendre();
+}
+
+function mettrePause(){
+  if (R.mode === 'chrono') T.chronoMs = Date.now() - T.chronoDepart;
+  else T.resteMs = Math.max(0, T.finA - Date.now());
+  T.statut = 'pause';
+  arreterHorloge();
+  libererEcran();
+  reveiller();
+  rendre();
+}
+
+function basculer(){ T.statut === 'marche' ? mettrePause() : lancer(); }
+
+// Le temps est calculé à partir de l'horloge de l'ordinateur : il reste juste même si l'onglet passe en arrière-plan
+function demarrerHorloge(){
+  arreterHorloge();
+  horloge = setInterval(() => { actualiser(); rendre(); }, 100);
+}
+function arreterHorloge(){
+  if (horloge) { clearInterval(horloge); horloge = null; }
+}
+
+function actualiser(){
+  const maintenant = Date.now();
+  if (R.mode === 'chrono') { T.chronoMs = maintenant - T.chronoDepart; return; }
+  T.resteMs = T.finA - maintenant;
+
+  // Préavis : seulement si l'étape est au moins deux fois plus longue que le préavis
+  const p = R.preavis * 1000;
+  if (!T.avertie && p > 0 && T.phase === 'principal' && T.totalMs >= p * 2 && T.resteMs <= p && T.resteMs > 0) {
+    T.avertie = true;
+    jouer('preavis');
+    let txt = 'Encore ' + texteDuree(R.preavis);
+    if (T.index < etapes.length - 1) txt += ', puis : ' + nomEtape(T.index + 1);
+    afficherBandeau(txt);
+  }
+  if (T.resteMs <= 0) finEtape();
+}
+
+function finEtape(){
+  const maintenant = Date.now();
+
+  // Temps majoré : le minuteur continue dans une autre couleur
+  if (T.phase === 'principal' && R.majore > 0 && etapes.length === 1) {
+    const extraSec = Math.max(5, Math.round(etapes[0].sec * R.majore));
+    T.phase = 'extra';
+    T.totalMs = extraSec * 1000;
+    T.resteMs = T.totalMs;
+    T.finA = maintenant + T.totalMs;
+    jouer('preavis');
+    afficherBandeau('Temps supplémentaire : ' + texteCourt(extraSec));
+    return;
+  }
+
+  // Étape suivante d'un enchaînement
+  if (T.index < etapes.length - 1) {
+    jouer(R.son);
+    preparer(T.index + 1);
+    afficherBandeau('Maintenant : ' + nomEtape(T.index));
+    if (R.auto) {
+      T.finA = maintenant + T.resteMs;
+    } else {
+      T.statut = 'pret';
+      arreterHorloge();
+      libererEcran();
+      reveiller();
+    }
+    return;
+  }
+
+  // Fin
+  T.statut = 'fini';
+  T.resteMs = 0;
+  cacherBandeau();
+  arreterHorloge();
+  libererEcran();
+  jouer(R.son);
+  reveiller();
+}
+
+function ajusterMinute(sens){
+  if (R.mode === 'chrono' || T.statut === 'fini') return;
+
+  // Avant le lancement : on modifie la durée de l'étape
+  if (T.statut === 'pret' && T.phase === 'principal') {
+    const e = etapes[T.index];
+    e.sec = Math.min(240 * 60, Math.max(60, e.sec + 60 * sens));
+    sauver();
+    preparer(T.index);
+    remplirEtapes();
+    rendre();
+    return;
+  }
+
+  // Pendant le décompte : ajout ou retrait ponctuel
+  const reste = T.statut === 'marche' ? T.finA - Date.now() : T.resteMs;
+  if (sens < 0 && reste <= 60000) return;
+  const d = 60000 * sens;
+  T.totalMs = Math.max(1000, T.totalMs + d);
+  if (T.statut === 'marche') T.finA += d; else T.resteMs += d;
+  if (reste + d > R.preavis * 1000) T.avertie = false;
+  rendre();
+}
+
+/* ---------- Petits outils de texte ---------- */
+function nomEtape(i){ return etapes[i].nom.trim() || ('étape ' + (i + 1)); }
+function deux(n){ return String(n).padStart(2, '0'); }
+function fmt(ms, versLeHaut){
+  const s = versLeHaut ? Math.ceil(ms / 1000) : Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+  return h ? h + ':' + deux(m) + ':' + deux(ss) : m + ':' + deux(ss);
+}
+function texteAffiche(){
+  return R.mode === 'chrono' ? fmt(T.chronoMs, false) : fmt(Math.max(0, T.resteMs), true);
+}
+function texteDuree(sec){
+  const m = Math.round(sec / 60);
+  return m + (m > 1 ? ' minutes' : ' minute');
+}
+function texteCourt(sec){
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if (!m) return s + ' s';
+  return s ? m + ' min ' + s + ' s' : m + ' min';
+}
+function heure(ms){
+  const d = new Date(ms);
+  return d.getHours() + ' h ' + deux(d.getMinutes());
+}
+function esc(t){
+  return String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+/* =========================================================
+   3. Dessins
+   ========================================================= */
+let cleVisuel = '';
+
+function vueEffective(){ return (R.mode === 'chrono' && R.vue === 'sablier') ? 'disque' : R.vue; }
+function cadranEffectif(){
+  if (R.mode === 'chrono') return '60';
+  return (R.cadran === '60' && T.totalMs <= 3600000) ? '60' : 'plein';
+}
+
+function couleurActuelle(){
+  const base = COULEURS[R.couleur] || COULEURS.bleu;
+  if (R.mode !== 'minuteur') return base;
+  if (T.phase === 'extra') return R.couleur === 'violet' ? COULEUR_EXTRA_BIS : COULEUR_EXTRA;
+  return base;
+}
+
+function construireVisuel(){
+  const v = vueEffective(), c = cadranEffectif();
+  const nMin = R.mode === 'chrono' ? 60 : Math.max(1, Math.round(T.totalMs / 60000));
+  const cle = v + '|' + c + '|' + R.sens + '|' + (v === 'barre' ? nMin : '');
+  if (cle === cleVisuel) return;
+  cleVisuel = cle;
+  memoire.delete('grandsChiffres:texte');   // l'élément est recréé
+  const boite = $('visuel');
+  boite.className = 'visuel v-' + v;
+  if (v === 'disque') boite.innerHTML = svgDisque(c);
+  else if (v === 'barre') boite.innerHTML = svgBarre(nMin);
+  else if (v === 'sablier') boite.innerHTML = svgSablier();
+  else boite.innerHTML = '<div class="grand-chiffres" id="grandsChiffres"></div>';
+}
+
+// Sens du cadran : 'horloge' = chiffres dans le sens des aiguilles d'une montre,
+// 'timer' = comme le Time Timer (chiffres dans l'autre sens, la couleur disparaît dans le sens des aiguilles)
+function signeSens(){ return R.sens === 'horloge' ? -1 : 1; }
+
+// Disque : 0 en haut, la couleur part du haut
+function svgDisque(c){
+  const sg = signeSens();
+  const rs = c === '60' ? 145 : 170;
+  let s = '<svg id="svgDisque" viewBox="0 0 400 400" role="img" aria-label="Temps restant">';
+  s += '<circle class="face" cx="200" cy="200" r="196"/>';
+  s += '<circle class="piste" cx="200" cy="200" r="' + rs + '"/>';
+  s += '<path id="secteur" fill="var(--accent)" d=""/>';
+  if (c === '60') {
+    for (let i = 0; i < 60; i++) {
+      const longue = i % 5 === 0, a = i * 6 * Math.PI / 180, r1 = longue ? 148 : 153, r2 = 162;
+      s += '<line class="graduation' + (longue ? ' longue' : '') + '" x1="' + (200 - sg * r1 * Math.sin(a)).toFixed(1) + '" y1="' + (200 - r1 * Math.cos(a)).toFixed(1) +
+           '" x2="' + (200 - sg * r2 * Math.sin(a)).toFixed(1) + '" y2="' + (200 - r2 * Math.cos(a)).toFixed(1) + '"/>';
+    }
+    for (let v = 0; v < 60; v += 5) {
+      const a = v * 6 * Math.PI / 180;
+      s += '<text class="nombre" text-anchor="middle" dominant-baseline="central" x="' + (200 - sg * 179 * Math.sin(a)).toFixed(1) + '" y="' + (200 - 179 * Math.cos(a)).toFixed(1) + '">' + v + '</text>';
+    }
+  }
+  s += '<circle class="bouton-centre" cx="200" cy="200" r="14"/></svg>';
+  return s;
+}
+
+function secteurChemin(r, deg){
+  if (deg <= 0.05) return '';
+  if (deg >= 359.95) return 'M200 ' + (200 - r) + ' A' + r + ' ' + r + ' 0 1 0 200 ' + (200 + r) + ' A' + r + ' ' + r + ' 0 1 0 200 ' + (200 - r) + ' Z';
+  const sg = signeSens();
+  const a = deg * Math.PI / 180, x = 200 - sg * r * Math.sin(a), y = 200 - r * Math.cos(a);
+  return 'M200 200 L200 ' + (200 - r) + ' A' + r + ' ' + r + ' 0 ' + (deg > 180 ? 1 : 0) + ' ' + (sg === 1 ? 0 : 1) + ' ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' Z';
+}
+
+// Barre qui fond vers la gauche, graduée en minutes
+function svgBarre(nMin){
+  let s = '<svg viewBox="0 0 1000 220" role="img" aria-label="Temps restant"><defs><clipPath id="clipBarre"><rect x="20" y="30" width="960" height="130" rx="65"/></clipPath></defs>';
+  s += '<rect class="piste" x="20" y="30" width="960" height="130" rx="65"/>';
+  s += '<rect id="remplissage" x="20" y="30" height="130" width="0" fill="var(--accent)" clip-path="url(#clipBarre)"/>';
+  s += '<rect x="20" y="30" width="960" height="130" rx="65" fill="none" stroke="var(--trait)" stroke-width="4"/>';
+  const pas = nMin <= 20 ? 1 : (nMin <= 60 ? 5 : 10);
+  for (let m = 0; m <= nMin; m += pas) {
+    const x = (20 + 960 * m / nMin).toFixed(1);
+    const longue = (m % (pas * 5) === 0) || m === 0 || m === nMin;
+    s += '<line class="graduation' + (longue ? ' longue' : '') + '" x1="' + x + '" x2="' + x + '" y1="172" y2="' + (longue ? 200 : 190) + '"/>';
+  }
+  return s + '</svg>';
+}
+
+// Sablier : bulbes arrondis, montants de bois, reflets sur le verre
+// Le sable du haut se creuse en entonnoir, celui du bas forme un tas
+function mouvementReduit(){
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; }
+}
+const VERRE = 'M70 42 C70 132 141 158 146 200 C141 242 70 268 70 358 L230 358 C230 268 159 242 154 200 C159 158 230 132 230 42 Z';
+function svgSablier(){
+  return '<svg viewBox="0 0 300 400" role="img" aria-label="Temps restant"><defs>' +
+    '<clipPath id="clipHaut"><path d="M70 42 C70 132 141 158 146 200 L154 200 C159 158 230 132 230 42 Z"/></clipPath>' +
+    '<clipPath id="clipBas"><path d="M146 200 C141 242 70 268 70 358 L230 358 C230 268 159 242 154 200 Z"/></clipPath>' +
+    '<linearGradient id="ombreSable" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>' +
+    // Filet de sable : des reflets clairs qui descendent en continu (pas de pointillés)
+    '<linearGradient id="flux" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="34" spreadMethod="repeat">' +
+    '<stop offset="0" style="stop-color:var(--accent)"/><stop offset=".5" style="stop-color:var(--accent);stop-opacity:.6"/><stop offset="1" style="stop-color:var(--accent)"/>' +
+    (mouvementReduit() ? '' : '<animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="0 34" dur=".6s" repeatCount="indefinite"/>') +
+    '</linearGradient>' +
+    '</defs>' +
+    '<rect class="socle" x="40" y="34" width="8" height="332" rx="4"/><rect class="socle" x="252" y="34" width="8" height="332" rx="4"/>' +
+    '<path class="verre-fond" d="' + VERRE + '"/>' +
+    '<g clip-path="url(#clipHaut)"><path id="sableHaut" d="" fill="var(--accent)"/><path id="ombreHaut" d="" fill="url(#ombreSable)"/></g>' +
+    '<line id="filet" class="filet" x1="150" x2="150" y1="198" y2="358"/>' +
+    '<g clip-path="url(#clipBas)"><path id="sableBas" d="" fill="var(--accent)"/><path id="ombreBas" d="" fill="url(#ombreSable)"/></g>' +
+    '<path d="M88 62 C90 116 118 146 134 176" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="7" stroke-linecap="round"/>' +
+    '<path d="M134 226 C118 254 90 284 88 336" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="7" stroke-linecap="round"/>' +
+    '<path class="verre" d="' + VERRE + '"/>' +
+    '<rect class="socle" x="26" y="20" width="248" height="22" rx="10"/><rect class="socle" x="26" y="358" width="248" height="22" rx="10"/></svg>';
+}
+
+function majSablier(frac){
+  const coule = T.statut === 'marche' && frac > 0 && frac < 1;
+  const entame = frac > 0 && frac < 1;
+  // Hauteurs : le bulbe se rétrécit vers le col, d'où la racine carrée
+  const hHaut = 142 * Math.sqrt(frac);
+  const hBas = 130 * (1 - Math.sqrt(frac));
+  const yH = 200 - hHaut;                                  // niveau du sable en haut, au bord du verre
+  const creux = entame ? Math.min(16, hHaut * 0.35) : 0;   // profondeur de l'entonnoir
+  const yB = 358 - hBas;                                    // niveau du sable en bas, au bord du verre
+  const tas = frac < 1 ? Math.min(46, 8 + hBas * 0.45) : 0; // hauteur du tas (cône) sous le filet
+  const pente = 0.42, ecart = tas / pente;                  // demi-largeur du cône à sa base
+  const dHaut = hHaut < 0.5 ? '' :
+    'M40 200 L40 ' + yH.toFixed(1) + ' Q150 ' + (yH + 2 * creux).toFixed(1) + ' 260 ' + yH.toFixed(1) + ' L260 200 Z';
+  const yP = yB - tas, f = v => v.toFixed(1);
+  const dBas = frac >= 1 ? '' :
+    'M40 358 L40 ' + f(yB) + ' L' + f(150 - ecart) + ' ' + f(yB) +
+    ' C' + f(150 - ecart * 0.5) + ' ' + f(yB) + ' ' + f(150 - ecart * 0.3) + ' ' + f(yP) + ' 150 ' + f(yP) +
+    ' C' + f(150 + ecart * 0.3) + ' ' + f(yP) + ' ' + f(150 + ecart * 0.5) + ' ' + f(yB) + ' ' + f(150 + ecart) + ' ' + f(yB) +
+    ' L260 ' + f(yB) + ' L260 358 Z';
+  $('sableHaut').setAttribute('d', dHaut);
+  $('ombreHaut').setAttribute('d', dHaut);
+  $('sableBas').setAttribute('d', dBas);
+  $('ombreBas').setAttribute('d', dBas);
+  $('filet').setAttribute('y2', f(yP));
+  $('filet').style.display = coule ? '' : 'none';
+}
+
+function majVisuel(){
+  construireVisuel();
+  const v = vueEffective(), c = cadranEffectif();
+  let frac, deg;
+  if (R.mode === 'chrono') {
+    frac = (T.chronoMs % 3600000) / 3600000;
+    deg = frac * 360;
+  } else {
+    const reste = Math.max(0, T.resteMs);
+    frac = T.totalMs ? reste / T.totalMs : 0;
+    deg = c === '60' ? reste / 3600000 * 360 : frac * 360;
+  }
+  frac = Math.min(1, Math.max(0, frac));
+
+  if (v === 'disque') {
+    $('secteur').setAttribute('d', secteurChemin(c === '60' ? 145 : 170, deg));
+    $('visuel').classList.toggle('reglable', peutGlisser());
+  } else if (v === 'barre') {
+    $('remplissage').setAttribute('width', (960 * frac).toFixed(1));
+  } else if (v === 'sablier') {
+    majSablier(frac);
+  } else {
+    ecrire('grandsChiffres', texteAffiche());
+  }
+}
+
+/* ---------- Réglage de la durée en glissant sur le disque ---------- */
+let glisse = false, dernierGlisse = 10;
+function peutGlisser(){
+  return R.mode === 'minuteur' && vueEffective() === 'disque' && cadranEffectif() === '60' &&
+         T.statut === 'pret' && T.phase === 'principal';
+}
+function minutesDepuisPointeur(ev){
+  const svg = $('svgDisque');
+  if (!svg) return null;
+  const r = svg.getBoundingClientRect();
+  const x = signeSens() * ((ev.clientX - r.left) / r.width * 400 - 200);
+  const y = (ev.clientY - r.top) / r.height * 400 - 200;
+  let deg = Math.atan2(-x, -y) * 180 / Math.PI;
+  if (deg < 0) deg += 360;
+  let m = Math.round(deg / 6);
+  if (m === 0 || m === 60) m = dernierGlisse > 30 ? 60 : 1;
+  return Math.min(60, Math.max(1, m));
+}
+function glisserVers(ev){
+  const m = minutesDepuisPointeur(ev);
+  if (m === null) return;
+  dernierGlisse = m;
+  etapes[T.index].sec = m * 60;
+  preparer(T.index);
+  rendre();
+}
+$('visuel').addEventListener('pointerdown', ev => {
+  if (!peutGlisser()) return;
+  glisse = true;
+  try { ev.target.setPointerCapture(ev.pointerId); } catch(e){}
+  glisserVers(ev);
+});
+$('visuel').addEventListener('pointermove', ev => { if (glisse) glisserVers(ev); });
+['pointerup', 'pointercancel'].forEach(t => $('visuel').addEventListener(t, () => {
+  if (!glisse) return;
+  glisse = false;
+  sauver();
+  remplirEtapes();
+}));
+
+/* =========================================================
+   4. Affichage de l'écran
+   ========================================================= */
+const CONSIGNES = {
+  silence:{t:'En silence', svg:'<path d="M8 8h32a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H22l-8 7v-7H8a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z"/><path d="M6 44L42 4"/>'},
+  chuchoter:{t:'On chuchote', svg:'<path d="M14 14h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H24l-6 5v-5h-4a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z"/><circle cx="18" cy="23" r="1.6" fill="currentColor"/><circle cx="24" cy="23" r="1.6" fill="currentColor"/><circle cx="30" cy="23" r="1.6" fill="currentColor"/>'},
+  deux:{t:'À deux', svg:'<circle cx="15" cy="16" r="6"/><path d="M4 40a11 11 0 0 1 22 0"/><circle cx="33" cy="16" r="6"/><path d="M22 40a11 11 0 0 1 22 0"/>'},
+  groupe:{t:'En groupe', svg:'<circle cx="10" cy="18" r="5"/><path d="M1 40a9 9 0 0 1 18 0"/><circle cx="24" cy="14" r="5"/><path d="M15 36a9 9 0 0 1 18 0"/><circle cx="38" cy="18" r="5"/><path d="M29 40a9 9 0 0 1 18 0"/>'}
+};
+
+// L'écran est rafraîchi 10 fois par seconde pendant le décompte :
+// ces deux fonctions n'écrivent dans la page que si le contenu a changé
+const memoire = new Map();
+function ecrire(id, contenu, enHTML){
+  const cle = id + (enHTML ? ':html' : ':texte');
+  if (memoire.get(cle) === contenu) return;
+  memoire.set(cle, contenu);
+  if (enHTML) $(id).innerHTML = contenu; else $(id).textContent = contenu;
+}
+function variable(el, nom, valeur){
+  if (el.style.getPropertyValue(nom) !== valeur) el.style.setProperty(nom, valeur);
+}
+
+function majConsigne(){
+  const c = CONSIGNES[R.consigne];
+  $('consigne').hidden = !c;
+  if (c) ecrire('consigne', '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + c.svg + '</svg><span>' + c.t + '</span>', true);
+}
+
+function rendre(){
+  const b = document.body, chrono = R.mode === 'chrono';
+  variable(document.documentElement, '--teinte', COULEURS[R.couleur] || COULEURS.bleu);
+  variable(b, '--accent', couleurActuelle());
+  b.classList.toggle('fini', T.statut === 'fini');
+
+  // Nom de l'étape ou message de fin
+  let etiq = '';
+  if (T.statut === 'fini') etiq = 'Le temps est écoulé';
+  else if (chrono) etiq = 'Chronomètre';
+  else if (T.phase === 'extra') etiq = 'Temps supplémentaire';
+  else etiq = etapes[T.index].nom.trim();
+  ecrire('etiquette', etiq);
+
+  // Pastilles de progression dans l'enchaînement
+  ecrire('points', (!chrono && etapes.length > 1)
+    ? etapes.map((e, i) => {
+        const fait = i < T.index || T.statut === 'fini', actuel = i === T.index && T.statut !== 'fini';
+        return '<span class="point' + (fait ? ' fait' : '') + (actuel ? ' actuel' : '') + '"></span>';
+      }).join('')
+    : '', true);
+
+  majConsigne();
+  majVisuel();
+
+  // Chiffres sous le dessin
+  $('chiffres').hidden = !R.chiffres || vueEffective() === 'chiffres';
+  ecrire('chiffres', texteAffiche());
+
+  // En pause, ou heure de fin
+  let si = '';
+  if (T.statut === 'pause') si = 'En pause';
+  else if (!chrono && R.heureFin && T.statut !== 'fini') {
+    si = 'Fin à ' + heure(T.statut === 'marche' ? T.finA : Date.now() + T.resteMs);
+  }
+  ecrire('sousInfo', si);
+
+  // Ensuite (d'abord ceci, ensuite cela)
+  let ens = '';
+  if (!chrono) {
+    if (T.statut !== 'fini' && T.index < etapes.length - 1) {
+      ens = 'Ensuite : <b>' + esc(nomEtape(T.index + 1)) + '</b> (' + texteCourt(etapes[T.index + 1].sec) + ')';
+    } else if (R.ensuite.trim()) {
+      ens = (T.statut === 'fini' ? 'Maintenant : ' : 'Ensuite : ') + '<b>' + esc(R.ensuite.trim()) + '</b>';
+    }
+  }
+  $('ensuite').hidden = !ens;
+  ecrire('ensuite', ens, true);
+
+  // Boutons
+  ecrire('btnLancer', {pret:'Lancer', marche:'Pause', pause:'Reprendre', fini:'Relancer'}[T.statut]);
+  $('btnPlus').hidden = $('btnMoins').hidden = chrono || T.statut === 'fini';
+  // Arrêter : seulement quand il y a quelque chose à arrêter
+  $('btnRecommencer').hidden = !(T.statut === 'marche' || T.statut === 'pause' || (T.statut === 'pret' && T.index > 0));
+  const montrer = !panneauOuvert() && !chrono && T.statut === 'pret' && T.index === 0 && etapes.length === 1 && T.phase === 'principal';
+  $('presets').hidden = !montrer;
+  if (montrer) $('presets').querySelectorAll('.chip').forEach(c => c.classList.toggle('actif', +c.dataset.min * 60 === etapes[0].sec));
+}
+
+let minuteurBandeau = null;
+function afficherBandeau(txt){
+  const b = $('bandeau');
+  b.textContent = txt;
+  b.classList.add('visible');
+  clearTimeout(minuteurBandeau);
+  minuteurBandeau = setTimeout(cacherBandeau, 6000);
+}
+function cacherBandeau(){
+  clearTimeout(minuteurBandeau);
+  $('bandeau').classList.remove('visible');
+}
+
+/* =========================================================
+   5. Sons doux, synthétisés (pas de fichier, fonctionne hors ligne)
+   ========================================================= */
+let ctx = null, sortie = null;
+function debloquerAudio(){
+  try {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      sortie = ctx.createGain();
+      sortie.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch(e){}
+}
+// Une note de cloche : fondamentale et harmoniques qui s'éteignent doucement
+function note(freq, debut, duree, volume, type, partiels){
+  const t = ctx.currentTime + debut;
+  partiels.forEach(([mult, amp]) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    const fin = t + duree / Math.sqrt(mult);
+    o.type = type;
+    o.frequency.value = freq * mult;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume * amp), t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, fin);
+    o.connect(g);
+    g.connect(sortie);
+    o.start(t);
+    o.stop(fin + 0.05);
+  });
+}
+const SONS = {
+  carillon(){ [1046.5, 1318.5, 1568].forEach((f, i) => note(f, i * 0.42, 2.6, 0.28, 'sine', [[1, 1], [2, 0.25], [3, 0.08]])); },
+  bol(){ note(392, 0, 6, 0.35, 'sine', [[1, 1], [2.76, 0.35], [5.4, 0.12]]); note(394.5, 0, 6, 0.2, 'sine', [[1, 1]]); },
+  xylophone(){ [784, 1046.5, 1318.5, 1568].forEach((f, i) => note(f, i * 0.17, 0.8, 0.3, 'triangle', [[1, 1], [4, 0.12]])); },
+  preavis(){ note(880, 0, 1.8, 0.22, 'sine', [[1, 1], [2, 0.2]]); }
+};
+function jouer(quel){
+  if (R.son === 'aucun') return;
+  debloquerAudio();
+  if (!ctx) return;
+  sortie.gain.value = R.volume;
+  (SONS[quel] || SONS.carillon)();
+}
+
+/* =========================================================
+   6. Panneau des réglages
+   ========================================================= */
+// Le panneau des réglages s'ouvre sous les boutons ; le dessin rétrécit pour lui laisser la place
+function panneauOuvert(){ return document.body.classList.contains('panneau-ouvert'); }
+function basculerPanneau(ouvrir){
+  const o = ouvrir === undefined ? !panneauOuvert() : ouvrir;
+  document.body.classList.toggle('panneau-ouvert', o);
+  $('btnReglages').classList.toggle('actif', o);
+  reveiller();
+  rendre();
+}
+
+// Listes déroulantes : chaque réglage = une liste de choix [valeur, libellé]
+const CHOIX = {
+  selMode:     ['mode', [['minuteur', 'Minuteur'], ['chrono', 'Chronomètre']], () => reinitialiser()],
+  selVue:      ['vue', [['disque', 'Disque'], ['barre', 'Barre'], ['sablier', 'Sablier'], ['chiffres', 'Chiffres seuls']]],
+  selCouleur:  ['couleur', [['bleu', 'Bleu'], ['vert', 'Vert'], ['violet', 'Violet'], ['orange', 'Orange'], ['rose', 'Rose'], ['rouge', 'Rouge']]],
+  selCadran:   ['cadran', [['60', '60 minutes'], ['plein', 'Disque entier']]],
+  selSens:     ['sens', [['horloge', 'Comme une horloge'], ['timer', 'Comme le Time Timer']]],
+  selSon:      ['son', [['carillon', 'Carillon'], ['bol', 'Bol chantant'], ['xylophone', 'Xylophone'], ['aucun', 'Aucune']]],
+  selVolume:   ['volume', [[0.25, 'Doux'], [0.6, 'Moyen'], [1, 'Fort']]],
+  selPreavis:  ['preavis', [[0, 'Non'], [60, '1 min avant'], [120, '2 min avant'], [300, '5 min avant']]],
+  selMajore:   ['majore', [[0, 'Aucun'], [0.25, '+ 1/4'], [0.3333, '+ 1/3'], [0.5, '+ 1/2']]],
+  selConsigne: ['consigne', [['aucune', 'Aucune'], ['silence', 'Silence'], ['chuchoter', 'Chuchoter'], ['deux', 'À deux'], ['groupe', 'En groupe']]]
+};
+function initialiserChoix(){
+  Object.entries(CHOIX).forEach(([id, [cle, options, apres]]) => {
+    const sel = $(id);
+    sel.innerHTML = options.map(([v, l]) => '<option value="' + v + '">' + l + '</option>').join('');
+    // Valeur enregistrée absente de la liste : on prend la plus proche (ou la première)
+    if (!options.some(([v]) => String(v) === String(R[cle]))) {
+      R[cle] = typeof options[0][0] === 'number'
+        ? options.reduce((m, [v]) => Math.abs(v - R[cle]) < Math.abs(m - R[cle]) ? v : m, options[0][0])
+        : options[0][0];
+    }
+    sel.addEventListener('change', () => {
+      const opt = options.find(([v]) => String(v) === sel.value);
+      R[cle] = opt[0];
+      sauver();
+      majChoix();
+      if (apres) apres();
+      rendre();
+    });
+  });
+}
+function majChoix(){
+  Object.entries(CHOIX).forEach(([id, [cle]]) => { $(id).value = String(R[cle]); });
+  document.querySelectorAll('[data-minuteur]').forEach(el => { el.hidden = R.mode === 'chrono'; });
+  document.querySelectorAll('[data-disque]').forEach(el => { el.hidden = vueEffective() !== 'disque'; });
+}
+
+function remplirEtapes(){
+  const boite = $('listeEtapes');
+  boite.innerHTML = '';
+  etapes.forEach((e, i) => {
+    const ligne = document.createElement('div');
+    ligne.className = 'etape';
+    ligne.innerHTML = '<span>' + (R.multi ? (i + 1) + '.' : '') + '</span>' +
+      '<input type="text" maxlength="40" placeholder="Activité (facultatif)" aria-label="Nom de l\'étape">' +
+      '<input type="number" min="0" max="240" aria-label="Minutes"><span>min</span>' +
+      '<input type="number" min="0" max="59" step="5" aria-label="Secondes"><span>s</span>' +
+      '<button class="mini" type="button" title="Retirer cette étape" aria-label="Retirer cette étape">×</button>';
+    const [nom, mn, sc] = ligne.querySelectorAll('input');
+    const retirer = ligne.querySelector('button');
+    nom.value = e.nom;
+    mn.value = Math.floor(e.sec / 60);
+    sc.value = e.sec % 60;
+    nom.addEventListener('input', () => { e.nom = nom.value; sauver(); rendre(); });
+    const majDuree = () => {
+      const s = (parseInt(mn.value, 10) || 0) * 60 + (parseInt(sc.value, 10) || 0);
+      e.sec = Math.max(5, Math.min(240 * 60, s));
+      sauver();
+      if (T.statut === 'pret' && T.index === i) preparer(i);
+      rendre();
+    };
+    mn.addEventListener('input', majDuree);
+    sc.addEventListener('input', majDuree);
+    retirer.hidden = etapes.length === 1;
+    retirer.addEventListener('click', () => {
+      etapes.splice(i, 1);
+      sauver();
+      remplirEtapes();
+      reinitialiser();
+    });
+    boite.appendChild(ligne);
+  });
+}
+
+// « Plusieurs étapes » : décoché, on garde seulement la première étape
+// (les autres sont mises de côté et reviennent si on recoche)
+function majMulti(){
+  $('chkMulti').checked = R.multi;
+  $('blocMulti').hidden = !R.multi;
+  $('titreDuree').textContent = R.multi ? 'Étapes et enchaînements' : "Nom de l'activité, étapes, ensuite";
+}
+function basculerMulti(){
+  R.multi = $('chkMulti').checked;
+  if (!R.multi && etapes.length > 1) {
+    R.etapesCachees = etapes.slice(1);
+    etapes = etapes.slice(0, 1);
+  } else if (R.multi && Array.isArray(R.etapesCachees) && R.etapesCachees.length && etapes.length === 1) {
+    etapes = etapes.concat(R.etapesCachees);
+    R.etapesCachees = null;
+  }
+  sauver();
+  majMulti();
+  remplirEtapes();
+  reinitialiser();
+}
+
+function remplirRoutines(){
+  const boite = $('listeRoutines');
+  const noms = Object.keys(routines).sort((a, b) => a.localeCompare(b, 'fr'));
+  if (!noms.length) { boite.innerHTML = '<p class="note">Aucun enchaînement enregistré pour l\'instant.</p>'; return; }
+  boite.innerHTML = '';
+  noms.forEach(n => {
+    const ligne = document.createElement('div');
+    ligne.className = 'routine';
+    ligne.innerHTML = '<span class="nom-routine"></span><button class="mini" type="button">Charger</button><button class="mini" type="button">Supprimer</button>';
+    ligne.querySelector('.nom-routine').textContent = n;
+    const [charger, suppr] = ligne.querySelectorAll('button');
+    charger.addEventListener('click', () => {
+      const r = routines[n];
+      etapes = normaliserEtapes(r.etapes);
+      R.ensuite = r.ensuite || '';
+      R.multi = true;
+      R.etapesCachees = null;
+      majMulti();
+      $('ensuiteTexte').value = R.ensuite;
+      sauver();
+      remplirEtapes();
+      reinitialiser();
+    });
+    // Deux clics pour supprimer, pour éviter les erreurs
+    let arme = false, minuteurArme = null;
+    suppr.addEventListener('click', () => {
+      if (!arme) {
+        arme = true;
+        suppr.textContent = 'Confirmer';
+        minuteurArme = setTimeout(() => { arme = false; suppr.textContent = 'Supprimer'; }, 3000);
+        return;
+      }
+      clearTimeout(minuteurArme);
+      delete routines[n];
+      sauver();
+      remplirRoutines();
+    });
+    boite.appendChild(ligne);
+  });
+}
+
+function initialiserReglages(){
+  initialiserChoix();
+
+  // Interrupteurs
+  [['chkChiffres', 'chiffres'], ['chkHeureFin', 'heureFin'], ['chkCouleurTourne', 'couleurTourne'], ['chkAuto', 'auto']].forEach(([id, cle]) => {
+    $(id).checked = !!R[cle];
+    $(id).addEventListener('change', () => { R[cle] = $(id).checked; sauver(); rendre(); });
+  });
+
+  $('btnEcouter').addEventListener('click', () => { debloquerAudio(); jouer(R.son); });
+
+  $('ensuiteTexte').value = R.ensuite;
+  $('ensuiteTexte').addEventListener('input', () => { R.ensuite = $('ensuiteTexte').value; sauver(); rendre(); });
+
+  $('btnAjouterEtape').addEventListener('click', () => {
+    etapes.push({nom:'', sec:300});
+    sauver();
+    remplirEtapes();
+    rendre();
+  });
+  $('btnEnregistrer').addEventListener('click', () => {
+    const n = $('nomRoutine').value.trim();
+    if (!n) { $('nomRoutine').focus(); return; }
+    routines[n] = {etapes:JSON.parse(JSON.stringify(etapes)), ensuite:R.ensuite};
+    sauver();
+    $('nomRoutine').value = '';
+    remplirRoutines();
+  });
+  $('chkMulti').addEventListener('change', basculerMulti);
+
+  majChoix();
+  majMulti();
+  remplirEtapes();
+  remplirRoutines();
+}
+
+/* =========================================================
+   7. Clavier, plein écran, veille de l'écran, masquage des boutons
+   ========================================================= */
+function pleinEcran(){
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  } catch(e){}
+}
+
+// Empêche l'écran de se mettre en veille pendant le décompte
+let verrou = null;
+async function verrouillerEcran(){
+  try { if ('wakeLock' in navigator && !verrou) verrou = await navigator.wakeLock.request('screen'); } catch(e){ verrou = null; }
+}
+function libererEcran(){
+  try { if (verrou) verrou.release(); } catch(e){}
+  verrou = null;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    verrou = null;
+    if (T.statut === 'marche') { verrouillerEcran(); actualiser(); rendre(); }
+  }
+});
+
+// Les boutons disparaissent après 4 secondes de décompte et reviennent au moindre geste
+let minuteurCalme = null;
+function reveiller(){
+  document.body.classList.remove('calme');
+  clearTimeout(minuteurCalme);
+  if (T.statut === 'marche' && !panneauOuvert()) {
+    minuteurCalme = setTimeout(() => document.body.classList.add('calme'), 4000);
+  }
+}
+['mousemove', 'pointerdown', 'touchstart'].forEach(t => document.addEventListener(t, reveiller, {passive:true}));
+// Un clic en dehors du bandeau du bas referme les réglages
+document.addEventListener('pointerdown', ev => {
+  if (panneauOuvert() && !ev.target.closest('.bas')) basculerPanneau(false);
+});
+
+document.addEventListener('keydown', ev => {
+  const tag = (ev.target.tagName || '').toLowerCase();
+  if (tag === 'input') { if (ev.key === 'Escape') basculerPanneau(false); return; }
+  if (ev.code === 'Space') { ev.preventDefault(); basculer(); }
+  else if (ev.key === 'r' || ev.key === 'R') reinitialiser();
+  else if (ev.key === 'f' || ev.key === 'F') pleinEcran();
+  else if (ev.key === 'ArrowUp' || ev.key === '+') { ev.preventDefault(); ajusterMinute(1); }
+  else if (ev.key === 'ArrowDown' || ev.key === '-') { ev.preventDefault(); ajusterMinute(-1); }
+  else if (ev.key === 'Escape') basculerPanneau(false);
+  reveiller();
+});
+// Après un clic, on retire le focus du bouton pour que la barre d'espace ne le déclenche pas une deuxième fois
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('button');
+  if (b && !b.closest('.panneau')) b.blur();
+});
+
+/* ---------- Démarrage ---------- */
+$('presets').innerHTML = PRESETS.map(m => '<button class="chip" type="button" data-min="' + m + '">' + m + ' min</button>').join('');
+$('presets').addEventListener('click', ev => {
+  const c = ev.target.closest('.chip');
+  if (!c) return;
+  etapes[0].sec = +c.dataset.min * 60;
+  sauver();
+  preparer(0);
+  remplirEtapes();
+  rendre();
+});
+$('btnLancer').addEventListener('click', basculer);
+$('btnPlus').addEventListener('click', () => ajusterMinute(1));
+$('btnMoins').addEventListener('click', () => ajusterMinute(-1));
+$('btnRecommencer').addEventListener('click', reinitialiser);
+$('btnReglages').addEventListener('click', () => basculerPanneau());
+$('btnPleinEcran').addEventListener('click', pleinEcran);
+
+initialiserReglages();
+preparer(0);
+rendre();
+// L'heure de fin affichée avant le lancement reste à jour
+setInterval(() => { if (T.statut !== 'marche') rendre(); }, 15000);
+</script>
+</body>
+</html>

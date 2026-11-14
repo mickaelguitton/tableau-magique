@@ -131,6 +131,17 @@ self.OUTILS = [
     couleur: '#16A497', ombre: '#A6E6DF'
   },
   {
+    dossier: 'minuteur-visuel',
+    version: '1.0',
+    nom: 'Le temps en couleur',
+    niveau: 'minuteur visuel · tous niveaux',
+    texte: 'Un minuteur visuel à projeter : le temps qui reste se voit sur un disque qui se vide, une barre ou un sablier. '
+         + 'Écran calme, préavis avant la fin, heure de fin, temps majoré (PAP, PPS), étapes pour les ateliers, '
+         + 'pictos de consigne et sons doux. Pensé pour les élèves qui ont besoin de repères dans le temps.',
+    donnees: ['repere-temps'],
+    couleur: '#A33EA1', ombre: '#EBC3EA'
+  },
+  {
     dossier: 'jeu-de-revision',
     version: '1.2',
     nom: 'À la poursuite des diamants',

@@ -145,8 +145,8 @@
       #aPropos ul{margin:4px 0;padding-left:1.3em;list-style:disc}
       #aPropos b{color:#111}
       #aPropos .licence{margin-top:16px;font-size:.88rem;color:#666}
-      #aPropos .bas{display:flex;justify-content:flex-end;padding:10px 22px 16px;border-top:2px solid #eee}
-      #aPropos .bas button{all:unset;cursor:pointer;border-radius:999px;padding:9px 20px;background:${c};color:#fff;font-weight:700}`;
+      #aPropos .bas,#aPropos .pied{display:flex;justify-content:flex-end;padding:10px 22px 16px;border-top:2px solid #eee}
+      #aPropos .bas button,#aPropos .pied button{all:unset;cursor:pointer;border-radius:999px;padding:9px 20px;background:${c};color:#fff;font-weight:700}`;
     document.head.appendChild(style);
     document.querySelectorAll('[data-a-propos]').forEach(b => b.addEventListener('click', e => {
       e.stopPropagation();
