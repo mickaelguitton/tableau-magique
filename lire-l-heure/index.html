@@ -108,6 +108,7 @@ button{font:inherit;color:inherit}
 .words{font-size:1.9rem;font-weight:700;line-height:1.2}
 .words2{font-size:1.05rem;color:var(--muted)}
 .lcd.off{display:none}
+.hand-warn{margin-top:8px;font-size:1rem;font-weight:700;color:var(--warn)}
 .words small,.words2 small{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:4px}
 #hAnswer{height:250px}   /* hauteur fixe (ajustée en JS) : les boutons dessous ne bougent pas */
 .cover{position:absolute;inset:0;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border-radius:20px;cursor:pointer;transition:opacity .25s}
@@ -617,6 +618,7 @@ const TXT = {
     hourGood:'La petite aiguille est bien placée.', hourForward:'La petite aiguille doit avancer.',
     hourBack:'La petite aiguille doit reculer.', hourTooFar:'La petite aiguille est trop avancée.',
     hourNotEnough:"La petite aiguille n'a pas assez avancé.",
+    hourBad:"Attention, la petite aiguille n'est pas bien placée.",
     secWrong:'Les heures et les minutes sont justes. Regarde l\'aiguille des secondes.',
     start:'Fais glisser les aiguilles, puis clique sur Vérifier.',
     solution:'Voici la bonne position :',
@@ -637,6 +639,7 @@ const TXT = {
     hourGood:'The short hand is right.', hourForward:'The short hand must go forward.',
     hourBack:'The short hand must go back.', hourTooFar:'The short hand has gone too far.',
     hourNotEnough:"The short hand hasn't gone far enough.",
+    hourBad:'Careful, the short hand is not in the right place.',
     secWrong:'Look at the second hand.',
     start:'Move the hands, then click Check.',
     solution:'Here is the right answer:',
@@ -1111,25 +1114,29 @@ $('steppers').addEventListener('click', e => {
   clockMain.animateTo(base + Number(b.dataset.sign) * gran());
 });
 
+// Aiguilles indépendantes : heure lue sur le cadran (minutes de la grande aiguille,
+// heure d'après la position de la petite aiguille, comme quand on relie les aiguilles)
+function freeTime(clock){
+  const idx = mod(Math.round((clock.freeHour - clock.freeMin * .5) / 30), 12);
+  const base = clock.total >= 720 ? 720 : 0;
+  return base + idx * 60 + clock.freeMin + (useSec() ? clock.freeSec / 60 : 0);
+}
+
 let lastHorlogeKey = '';
 function updateHorloge(){
-  const t = clockMain.total;
+  const t = S.linked ? clockMain.total : freeTime(clockMain);
+  const libres = S.linked ? '' : [clockMain.freeMin, clockMain.freeHour, clockMain.freeSec].join(',');
   // On ne réécrit les textes que s'ils changent (évite le clignotement pendant qu'on tourne les aiguilles)
-  const key = [S.lang, S.h24, useSec(), S.linked, S.lcd, gran() <= 5, Math.floor(t * 60 + 1e-6)].join('|');
+  const key = [S.lang, S.h24, useSec(), S.linked, S.lcd, gran() <= 5, libres, Math.floor(t * 60 + 1e-6)].join('|');
   if (key === lastHorlogeKey){ renderDayBar(t); return; }
   lastHorlogeKey = key;
   // Écran type réveil : option des réglages ; l'écriture en chiffres principale est dessous, en gros
   $('hLcd').classList.toggle('off', !S.lcd);
   // Hauteur fixe adaptée au contenu le plus long possible (les boutons dessous ne bougent jamais)
-  $('hAnswer').style.height = (250 + (S.lcd ? 80 : 0) + (useSec() ? 85 : 0)) + 'px';
+  $('hAnswer').style.height = (250 + (S.lcd ? 80 : 0) + (useSec() ? 85 : 0) + (S.linked ? 0 : 55)) + 'px';
   // « Écouter » : utile en anglais (prononciation) ; en français, la dictée d'heures se fait dans « Placer les aiguilles »
   $('hSpeak').style.display = S.lang === 'en' ? '' : 'none';
-  if (!S.linked){
-    $('hLcd').textContent = '--:--';
-    $('hWritten').textContent = '';
-    $('hWords').textContent = T().question;   // aiguilles indépendantes : on fait chercher l'heure
-    $('hWords2').textContent = '';
-  } else if (S.lang === 'en'){
+  if (S.lang === 'en'){
     const e = enExpr(t, S.h24);
     $('hLcd').textContent = e.lcd;
     $('hWritten').textContent = e.digital;
@@ -1139,6 +1146,16 @@ function updateHorloge(){
     $('hLcd').textContent = f.lcd;
     $('hWritten').textContent = f.digital;
     setWords(f.usual, f.formal !== f.usual ? f.formal : '', 'On peut aussi dire', 'On dit');
+  }
+  // Aiguilles indépendantes : on signale une petite aiguille mal placée pour l'heure lue
+  if (!S.linked){
+    const sp = splitTime(t), th = Math.floor(sp.mins / 60) % 12, tm = sp.mins % 60;
+    if (!hourHandOk(clockMain.freeHour, th, tm)){
+      const w = document.createElement('div');
+      w.className = 'hand-warn';
+      w.textContent = T().hourBad + ' ' + hourWhere(th, tm);
+      $('hWords2').appendChild(w);
+    }
   }
   renderDayBar(t);
 }
@@ -1583,6 +1600,7 @@ document.querySelectorAll('[data-opt]').forEach(inp => inp.addEventListener('cha
   const k = inp.dataset.opt; S[k] = inp.checked; saveSettings(); refreshPanel();
   if (k === 'sec'){ clockMain.setTotal(roundT(clockMain.total), true); newSeries(); }
   if (k === 'linked' && S.linked){ clockMain.relink(); clockPlace.relink(); }
+  if (k === 'linked' && !S.linked) setHidden(true);   // aiguilles indépendantes : on fait chercher l'heure
   redrawClocks();
 }));
 // Le panneau des réglages passe par-dessus la page : il se ferme avec le bouton
