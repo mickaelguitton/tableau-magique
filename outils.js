@@ -52,6 +52,17 @@ self.OUTILS = [
     couleur: '#F2662E', ombre: '#FFD0BC'
   },
   {
+    dossier: 'fractions',
+    version: '1.0',
+    nom: 'À parts égales',
+    niveau: 'fractions · du CE1 au CM2',
+    texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
+         + 'fractions à comparer, mur des fractions, fractions décimales sur le carré de 100. '
+         + 'Des défis d’après les programmes, avec coup de pouce et correction en images, et des fiches Word à imprimer.',
+    donnees: ['fractions-'],
+    couleur: '#23887C', ombre: '#B5E3DC'
+  },
+  {
     dossier: 'lire-l-heure',
     version: '1.5',
     nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
