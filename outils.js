@@ -75,15 +75,6 @@ self.OUTILS = [
     couleur: '#6A4BD1', ombre: '#CFC4F7'
   },
   {
-    dossier: 'tirage-au-sort',
-    version: '1.1',
-    nom: 'À qui le tour ?',
-    niveau: 'tous niveaux',
-    texte: 'Une roue colorée tire au sort un élève de la liste de la classe, avec l’historique des tirages.',
-    donnees: ['dernier_liste_utilisee', 'son_actif', 'son_style', 'son_fin'],
-    couleur: '#16A497', ombre: '#A6E6DF'
-  },
-  {
     dossier: 'nature-des-mots',
     version: '1.3',
     nom: 'La gym des mots',
@@ -129,6 +120,15 @@ self.OUTILS = [
          + 'Copie dans Word, impression ou affichage en plein écran.',
     donnees: ['syllabes-en-couleur'],
     couleur: '#0B7FB8', ombre: '#B5E0F5'
+  },
+  {
+    dossier: 'tirage-au-sort',
+    version: '1.1',
+    nom: 'À qui le tour ?',
+    niveau: 'tous niveaux',
+    texte: 'Une roue colorée tire au sort un élève de la liste de la classe, avec l’historique des tirages.',
+    donnees: ['dernier_liste_utilisee', 'son_actif', 'son_style', 'son_fin'],
+    couleur: '#16A497', ombre: '#A6E6DF'
   },
   {
     dossier: 'jeu-de-revision',
