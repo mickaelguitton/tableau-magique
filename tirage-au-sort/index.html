@@ -473,7 +473,6 @@ body.fs-active .history-panel { max-width:760px; padding:10px 16px; }
   </select>
 
   <button class="btn btn-reset" id="resetBtn">🔄 Remettre à zéro</button>
-  <div class="signature" style="margin-top:auto;padding-top:.6rem"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · À qui le tour ? – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
 </aside>
 
 <main class="container">
@@ -2112,6 +2111,8 @@ async function init() {
 
 init();
 </script>
+<!-- Signature, en bas à droite de l’écran comme dans les autres outils -->
+<div class="signature-bas" style="color:#4b5563"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
 <dialog id="aPropos" aria-labelledby="titreAPropos">
@@ -2139,6 +2140,7 @@ init();
     </ul>
 
     <p>Les prénoms restent sur l’ordinateur de l’enseignant : rien n’est envoyé sur internet.</p>
+    <p class="licence">Outil créé par M. Guitton, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
   </article>
   <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
 </dialog>

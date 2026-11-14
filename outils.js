@@ -76,7 +76,7 @@ self.OUTILS = [
     version: '1.3',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
-    texte: 'Application inspirée de l’outil du Blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
+    texte: 'Application inspirée de la grammaire gym du blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
          + 'projetée au tableau. Ils la miment par un geste. La bonne réponse s’affiche ensuite. '
          + 'Déroulement manuel ou automatique. Phrases fournies ou les vôtres.',
     donnees: ['gymDesMots'],

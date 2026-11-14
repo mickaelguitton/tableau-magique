@@ -130,6 +130,7 @@
     const c = outil.couleur || '#6A4BD1';
     const style = document.createElement('style');
     style.textContent = `
+      .signature-bas{position:fixed;right:16px;bottom:5px;z-index:20;font:11px/1.3 "Segoe UI",Arial,sans-serif;text-align:right}
       .lien-a-propos{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;color:${c}}
       .lien-a-propos:focus-visible{outline:2px solid ${c};outline-offset:2px}
       #aPropos{position:fixed!important;inset:0!important;margin:auto!important;height:fit-content;border:none!important;border-radius:22px;padding:0!important;width:min(760px,94vw)!important;max-width:none!important;max-height:88vh;color:#222!important;background:#fff!important;
@@ -143,6 +144,7 @@
       #aPropos p,#aPropos li{font-size:.98rem;color:#222;margin:4px 0}
       #aPropos ul{margin:4px 0;padding-left:1.3em;list-style:disc}
       #aPropos b{color:#111}
+      #aPropos .licence{margin-top:16px;font-size:.88rem;color:#666}
       #aPropos .bas{display:flex;justify-content:flex-end;padding:10px 22px 16px;border-top:2px solid #eee}
       #aPropos .bas button{all:unset;cursor:pointer;border-radius:999px;padding:9px 20px;background:${c};color:#fff;font-weight:700}`;
     document.head.appendChild(style);

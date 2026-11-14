@@ -408,7 +408,6 @@ body.fs .topbar:hover{opacity:1}
 <aside id="drawer" aria-label="Options">
   <div class="d-head"><h2>⚙️ Options</h2><button class="btn-icon" id="closeOpts">✕</button></div>
   <div class="d-body" id="opts"></div>
-  <div class="signature" style="padding:.4rem 1rem .7rem"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · Machine à conjuguer – M. Guitton – <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr" target="_blank" rel="noopener">licence CC BY-NC 4.0</a><span class="app-version"> – v1.0</span></div>
 </aside>
 
 <div id="pp" class="pop" role="dialog" aria-label="Imprimer des exercices">
@@ -1700,6 +1699,8 @@ document.getElementById('ppgo').onclick = ()=>{
   closePP();
 };
 </script>
+<!-- Signature, en bas à droite de l’écran comme dans les autres outils -->
+<div class="signature-bas" style="color:#9aa3b8"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
 <dialog id="aPropos" aria-labelledby="titreAPropos">
@@ -1726,6 +1727,7 @@ document.getElementById('ppgo').onclick = ()=>{
 
     <h3>Les programmes</h3>
     <p>La machine accompagne l’apprentissage de la conjugaison du cycle 2 au cycle 3 : les temps simples et composés de l’indicatif, avec les verbes les plus fréquents.</p>
+    <p class="licence">Outil créé par M. Guitton, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
   </article>
   <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
 </dialog>
