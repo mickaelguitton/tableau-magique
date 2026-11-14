@@ -125,7 +125,7 @@
   }
 
   .tuile .niveau{font-size:max(10px,calc(var(--police,28px) * .6));font-weight:500;color:var(--encre-douce);text-align:center;margin-top:2px;line-height:1.15}
-  @media (max-height:500px){ .tuile .niveau{display:none} }   /* téléphone à l'horizontale : le nom seul, faute de place */
+  @media (max-height:500px){ .tuile .niveau, .apercu .niveau{display:none} }   /* téléphone à l'horizontale : le nom seul, faute de place */
 
   /* (la couleur propre à chaque outil, --couleur et --ombre, vient de outils.js) */
 
@@ -175,6 +175,9 @@
   .consigne{flex:none;margin:3.5vh 0 1vh;font-size:clamp(14px,1.9vh,18px);color:var(--encre-douce);font-weight:500}
 
   /* Aperçus des outils : même calcul de disposition que les tuiles (fonction disposer) */
+  /* Très petit écran (voir disposer) : la page défile plutôt que d'afficher des cartes illisibles */
+  html.defile-apercus, html.defile-apercus body, html.defile-tuiles, html.defile-tuiles body{height:auto;min-height:100%;overflow-y:auto}
+  html.defile-apercus #apercus, html.defile-tuiles #tuiles{flex:none;align-content:flex-start;padding-bottom:80px}
   #apercus{
     flex:1;min-height:0;width:100%;
     display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:var(--ecart,24px);
@@ -401,57 +404,75 @@
     + '<div class="niveau">' + echapper(o.niveau) + '</div></button>').join('');
 
   /* Dispose des cartes (tuiles ou aperçus) pour qu'elles tiennent toutes dans leur zone.
-     On essaie 1, 2, 3… colonnes et on garde celle qui donne les plus grandes cartes.
-     S'adapte tout seul quand on ajoute un outil. */
+     Pour 1, 2, 3… colonnes : on estime la plus grande largeur de carte, on l'essaie, et on la réduit
+     tant que les cartes débordent (noms sur deux lignes, police minimale sur téléphone…).
+     On garde le nombre de colonnes qui donne les plus grandes cartes. S'adapte tout seul quand on ajoute un outil. */
   function disposer(zone, selecteur, marge, texte){
     const cartes = zone.querySelectorAll(selecteur);
     const n = cartes.length;
+    document.documentElement.classList.remove('defile-' + zone.id);   // on mesure la zone telle qu'elle est sans défilement
     if(!n || !zone.clientHeight) return;
 
     const W = zone.clientWidth, H = zone.clientHeight;
     const ecart = Math.round(Math.min(40, Math.max(12, Math.min(W, H) * 0.035)));
     const ombre = 16;           // ombre colorée sous la carte
-    let meilleur = { largeur:0, colonnes:1 };
+
+    // Applique une disposition : largeur des cartes, marges sur les côtés (chaque rangée contient
+    // exactement « colonnes » cartes) et rangées équilibrées, les plus courtes en haut (7 outils = 3 + 4).
+    const appliquer = (colonnes, l) => {
+      const rangee = colonnes * l + (colonnes - 1) * ecart;
+      zone.style.setProperty('--bord', Math.max(0, Math.floor((W - rangee) / 2) - 1) + 'px');
+      zone.style.setProperty('--largeur', l + 'px');
+      zone.style.setProperty('--ecart', ecart + 'px');
+      zone.style.setProperty('--police', Math.max(12, Math.min(34, l * 0.065)) + 'px');   // police plus petite sur téléphone : le nom reste entier
+      zone.querySelectorAll('.saut-rangee').forEach(s => s.remove());
+      const lignes = Math.ceil(n / colonnes);
+      if(lignes > 1 && n % lignes){
+        const base = Math.floor(n / lignes), courtes = lignes - n % lignes;   // rangées de « base », puis de « base + 1 »
+        let fin = 0;
+        for(let r = 0; r < lignes - 1; r++){
+          fin += r < courtes ? base : base + 1;
+          const saut = document.createElement('span');
+          saut.className = 'saut-rangee';
+          cartes[fin - 1].after(saut);
+        }
+      }
+    };
+    const tient = () => {
+      const r = [...cartes].map(c => c.getBoundingClientRect());
+      return Math.max(...r.map(x => x.bottom)) - Math.min(...r.map(x => x.top)) <= H + 2   // l'ombre peut mordre sur la marge
+          && Math.max(...r.map(x => x.right)) - Math.min(...r.map(x => x.left)) <= W + 1;
+    };
 
     // Au moins deux rangées dès 4 outils (3 + 3 pour 6 outils), sauf sur un écran très bas (téléphone
     // à l'horizontale) où une seule rangée laisse des cartes plus lisibles.
     const maxColonnes = (n >= 4 && H >= 260) ? Math.ceil(n / 2) : n;
+    let meilleur = { l:0, colonnes:1 };
     for(let colonnes = 1; colonnes <= maxColonnes; colonnes++){
       const lignes = Math.ceil(n / colonnes);
-      // largeur permise par la place en largeur…
+      // largeur permise par la place en largeur, et par la place en hauteur (image 16/9 + texte ≈ « texte » × la largeur)
       const parLargeur = (W - ecart * (colonnes - 1)) / colonnes;
-      // …et par la place en hauteur (image 16/9 + texte ≈ « texte » × la largeur)
       const hTuile = (H - ecart * (lignes - 1)) / lignes - ombre;
-      const parHauteur = (hTuile - marge) / (9/16 + texte) + 24;
-      const largeur = Math.min(parLargeur, parHauteur);
-      if(largeur > meilleur.largeur) meilleur = { largeur, colonnes };
+      let l = Math.floor(Math.min(parLargeur, (hTuile - marge) / (9/16 + texte) + 24));
+      if(l <= meilleur.l) continue;                        // ne peut pas faire mieux que la meilleure trouvée
+      appliquer(colonnes, l);
+      while(!tient() && l > meilleur.l && l > 50) appliquer(colonnes, l = Math.floor(l * 0.95));
+      if(tient() && l > meilleur.l) meilleur = { l, colonnes };
     }
-
-    const l = Math.floor(meilleur.largeur);
-    // marges sur les côtés pour que chaque rangée contienne exactement « colonnes » cartes
-    const rangee = meilleur.colonnes * l + (meilleur.colonnes - 1) * ecart;
-    zone.style.setProperty('--bord', Math.max(0, Math.floor((W - rangee) / 2) - 1) + 'px');
-    zone.style.setProperty('--largeur', l + 'px');
-    zone.style.setProperty('--ecart', ecart + 'px');
-    zone.style.setProperty('--police', Math.max(12, Math.min(34, l * 0.065)) + 'px');   // police plus petite sur téléphone : le nom reste entier
-
-    // Rangées équilibrées, les plus courtes en haut : 7 outils = 3 + 4 sur deux rangées, 2 + 2 + 3 sur trois
-    zone.querySelectorAll('.saut-rangee').forEach(s => s.remove());
-    const lignes = Math.ceil(n / meilleur.colonnes);
-    if(lignes > 1 && n % lignes){
-      const base = Math.floor(n / lignes), courtes = lignes - n % lignes;   // rangées de « base », puis de « base + 1 »
-      let fin = 0;
-      for(let r = 0; r < lignes - 1; r++){
-        fin += r < courtes ? base : base + 1;
-        const saut = document.createElement('span');
-        saut.className = 'saut-rangee';
-        cartes[fin - 1].after(saut);
-      }
+    /* Téléphone : si les cartes deviennent trop petites pour être lues, la page défile exceptionnellement,
+       avec des cartes d'au moins 130 px (2 ou 3 par rangée en portrait). */
+    const MINI = 105;
+    if(meilleur.l < MINI){
+      const colonnes = Math.max(2, Math.min(n, Math.floor((W + ecart) / (130 + ecart))));
+      meilleur = { l: Math.floor((W - ecart * (colonnes - 1)) / colonnes), colonnes };
+      document.documentElement.classList.add('defile-' + zone.id);
     }
+    appliquer(meilleur.colonnes, meilleur.l);
   }
   function disposerTout(){
+    document.documentElement.classList.remove('defile-apercus', 'defile-tuiles');   // chaque zone se mesure sans défilement
     disposer(document.getElementById('tuiles'), '.tuile', 32, innerHeight > 500 ? 0.17 : 0.12);   // 0.17 : nom + niveau
-    disposer(document.getElementById('apercus'), '.apercu', 24, 0.19);
+    disposer(document.getElementById('apercus'), '.apercu', 24, innerHeight > 500 ? 0.19 : 0.14);   // 0.19 : nom + niveau
     fermerBulle();
   }
 
