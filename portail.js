@@ -145,9 +145,23 @@
       #aPropos ul{margin:4px 0;padding-left:1.3em;list-style:disc}
       #aPropos b{color:#111}
       #aPropos .licence{margin-top:16px;font-size:.88rem;color:#666}
-      #aPropos .bas,#aPropos .pied{display:flex;justify-content:flex-end;padding:10px 22px 16px;border-top:2px solid #eee}
+      #aPropos .bas,#aPropos .pied{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:10px 22px 16px;border-top:2px solid #eee}
+      #aPropos .lien-portail{margin-right:auto;display:flex;align-items:center;gap:8px;color:#2B3A67;font-weight:600;font-size:.92rem;text-decoration:none}
+      #aPropos .lien-portail img{width:26px;height:26px;border-radius:22%}
+      #aPropos .lien-portail b{color:#7048E8}
+      #aPropos .lien-portail:hover span,#aPropos .lien-portail:focus-visible span{text-decoration:underline}
       #aPropos .bas button,#aPropos .pied button{all:unset;cursor:pointer;border-radius:999px;padding:9px 20px;background:${c};color:#fff;font-weight:700}`;
     document.head.appendChild(style);
+    // En bas de la fenêtre : lien vers le portail, pour les collègues arrivés directement sur un outil
+    const pied = fenetre.querySelector('.bas, .pied');
+    if (pied) {
+      const lien = document.createElement('a');
+      lien.className = 'lien-portail';
+      lien.href = racine.href;
+      lien.innerHTML = '<img src="' + new URL('images/icone-tableau.svg', racine).href + '" alt="">'
+        + '<span>Le tableau <b>magique</b> · voir tous les outils</span>';
+      pied.prepend(lien);
+    }
     document.querySelectorAll('[data-a-propos]').forEach(b => b.addEventListener('click', e => {
       e.stopPropagation();
       fenetre.showModal();
