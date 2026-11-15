@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.1 dans le portail « Le tableau magique » (coups de pouce sans mot d'introduction)
+  v1.2 dans le portail « Le tableau magique » (réponses avec l'unité, correction animée des additions et soustractions)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -200,6 +200,12 @@ svg{user-select:none;-webkit-user-select:none}
 .signs button.bad{background:var(--ko);border-color:var(--ko);box-shadow:0 .3rem 0 #a8283a;color:#fff;animation:shake .4s}
 .sentence{font-size:clamp(1.3rem,4vh,2.2rem);font-weight:600;padding:.5rem 1.2rem;border-radius:1rem;background:var(--ok-soft);color:#1d6b33}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* Correction animée d'une addition ou d'une soustraction : la part passe de --from à sa couleur, après --de secondes */
+.part-anim{animation:partFill .4s var(--de,0s) ease-out both}
+@keyframes partFill{from{fill:var(--from)}}
+.apparait{animation:apparait .4s var(--de,0s) ease-out both}
+@keyframes apparait{from{opacity:0}}
+@media (prefers-reduced-motion: reduce){ .part-anim,.apparait{animation:none} }
 .mini{display:flex;align-items:center;gap:14px;justify-content:center;font-size:clamp(2rem,5vh,3rem);flex-wrap:wrap}
 .defi{flex:1;display:flex;flex-direction:column;min-height:0}
 .dtop{display:flex;align-items:center;justify-content:center;gap:14px}
@@ -255,7 +261,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.1</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.2</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -478,8 +484,9 @@ function barG({ x = 0, y = 0, unitW, h, d, u, fill, interactive, gap = 30, label
   for (let k = 0; k < u; k++) {
     const X = x + k * (unitW + gap), w = unitW / d;
     for (let j = 0; j < d; j++) {
-      const i = k * d + j, c = fill(i);
-      s += `<rect ${interactive ? `data-i="${i}" class="part"` : ''} x="${X + j * w}" y="${y}" width="${w}" height="${h}" fill="${c || '#fff'}" stroke="${INK}" stroke-width="${sw}"/>`;
+      const i = k * d + j, f = fill(i), c = f && f.c !== undefined ? f.c : f;
+      const anim = f && f.from ? ` class="part-anim" style="--from:${f.from};--de:${f.de}s"` : '';   // part qui change de couleur (correction animée)
+      s += `<rect ${interactive ? `data-i="${i}" class="part"` : ''}${anim} x="${X + j * w}" y="${y}" width="${w}" height="${h}" fill="${c || '#fff'}" stroke="${INK}" stroke-width="${sw}"/>`;
       if (labels && w >= 44 && h >= 60) s += svgFrac(X + j * w + w / 2, y + h / 2 - 4, 1, d, Math.min(24, w / 2.4), '#2b2d4299').replace('<g', '<g pointer-events="none"');
     }
     s += `<rect x="${X}" y="${y}" width="${unitW}" height="${h}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
@@ -555,7 +562,7 @@ function jumpsG(x, y, L, u, d, n, color) {
 const svg = (w, h, inner, extra = '') => `<svg viewBox="0 0 ${w} ${h}" ${extra} xmlns="http://www.w3.org/2000/svg" font-family="Fredoka, Nunito, sans-serif">${inner}</svg>`;
 
 /* Une représentation complète prête à afficher */
-function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0 }) {
+function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0, bilanDe = 0 }) {
   if (rep === 'barre') {
     const gap = 30, avail = W - 80;
     const unitW = u === 1 ? Math.min(820, avail) : (avail - (u - 1) * gap) / u;
@@ -564,6 +571,7 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
     let s = barG({ x, y: 10, unitW, h, d, u, fill, interactive, gap, labels });
     if (bilan) { // « 1 + 1/4 » écrit sous les unités : on voit que 4/4 font 1
       const yb = h + 62;
+      if (bilanDe) s += `<g class="apparait" style="--de:${bilanDe}s">`;   // correction animée : le bilan arrive à la fin
       for (let k = 0; k < u; k++) {
         const part = Math.min(d, Math.max(0, bilan - k * d)), cx = x + k * (unitW + gap) + unitW / 2;
         if (!part) break;
@@ -572,6 +580,7 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
                         : svgFrac(cx, yb, part, d, 34, INK);
         s += `<path d="M ${x + k * (unitW + gap) + 6} ${h + 22} q ${unitW / 2 - 6} 14 ${unitW - 12} 0" fill="none" stroke="${INK}" stroke-width="2.5" opacity=".45"/>`;
       }
+      if (bilanDe) s += '</g>';
       return svg(W, h + 112, s);
     }
     return svg(W, h + 20, s);
@@ -1647,10 +1656,22 @@ function autreUnite(cent, unit) {
   if (cent % 100 === 0) return '';
   const v = comma(cent * 10);
   if (unit === 'm') return `<div class="pill">${v} m = ${cent} cm</div>`;
-  if (unit === 'kg') return `<div class="pill">${v} kg = ${cent * 10} g</div>`;
+  if (unit === 'kg') return `<div class="pill">${v} kg = ${milliers(cent * 10)} g</div>`;
   if (unit === 'L') return `<div class="pill">${v} L = ${cent} cL</div>`;
-  if (unit === '€') return `<div class="pill">${v} € = ${Math.floor(cent / 100)} € ${String(cent % 100).padStart(2, '0')}</div>`;
+  if (unit === '€') return `<div class="pill">${v} € = ${cent < 100 ? cent + ' centimes' : Math.floor(cent / 100) + ' € ' + String(cent % 100).padStart(2, '0')}</div>`;
   return '';
+}
+
+/* Correction animée sur la barre : on montre d'abord le premier nombre (a parts),
+   puis on enlève les parts une à une en partant de la fin (soustraction), ou on ajoute les b parts à la suite (addition). */
+function fillAnime(a, b, moins, A, B) {
+  const pause = 0.8, pas = Math.min(0.35, 2.4 / Math.max(1, b));
+  let f;
+  if (moins) { const pale = soft('--a', .3), res = a - b;
+    f = i => i < res ? A : i < a ? { c: pale, from: A, de: pause + (a - 1 - i) * pas } : null; }
+  else f = i => i < a ? A : i < a + b ? { c: B, from: '#fff', de: pause + (i - a) * pas } : null;
+  f.fin = pause + b * pas + 0.3;   // fin de l'animation (secondes) : le bilan « 1 + … » apparaît alors
+  return f;
 }
 
 /* Fin de réponse : un résultat entier s'écrit « = 1 », « = 2 »… ; au-delà de 1 (CM), « = 1 + 3/4 » */
@@ -1798,7 +1819,8 @@ function renderDefi() {
                  M(`${F(a, d)} = ${Fbox(null, d2)} ; puis ${moins ? 'enlève' : 'ajoute'} les ${denName(d2, true)}. Le dénominateur ne change pas.`)];
         if (R) {
           const u = Math.min(C().maxU, Math.max(1, Math.ceil(Math.max(a * k, res) / d2)));
-          viz = drawRep('barre', { d: d2, u, fill: moins ? (i => i < res ? A : i < a * k ? soft('--a', .3) : null) : (i => i < a * k ? A : i < a * k + b ? B : null), bilan: res >= d2 ? res : 0 });
+          const fill = fillAnime(a * k, b, moins, A, B);
+          viz = drawRep('barre', { d: d2, u, fill, bilan: res >= d2 ? res : 0, bilanDe: fill.fin });
         }
         ans = `<div class="pill">${F(a, d)} = ${F(a * k, d2)} &nbsp;donc&nbsp; ${F(a * k, d2)} ${moins ? '−' : '+'} ${F(b, d2)} = ${F(res, d2)}</div>` + finPill(res, d2);
         break;
@@ -1811,8 +1833,8 @@ function renderDefi() {
                M(moins ? `On enlève ${b} ${denName(d, b > 1)} aux ${a} : le dénominateur ne change pas.` : `On ajoute les numérateurs : ${a} ${denName(d, a > 1)} et ${b} ${denName(d, b > 1)}. Le dénominateur ne change pas.`)];
       const u = Math.max(1, Math.ceil(Math.max(a, res) / d));
       if (R) {
-        const fill = moins ? (i => i < res ? A : i < a ? soft('--a', .3) : null) : (i => i < a ? A : i < a + b ? B : null);
-        viz = drawRep('barre', { d, u: Math.min(u, C().maxU), fill, bilan: res >= d ? res : 0 });
+        const fill = fillAnime(a, b, moins, A, B);
+        viz = drawRep('barre', { d, u: Math.min(u, C().maxU), fill, bilan: res >= d ? res : 0, bilanDe: fill.fin });
       }
       ans = `<div class="pill">${fracWords(a, d)} ${moins ? 'moins' : 'plus'} ${fracWords(b, d)}, ça fait ${fracWords(res, d)}</div>` + finPill(res, d);
       break;
@@ -1891,7 +1913,7 @@ function renderDefi() {
                Dn(`On partage les ${Q} ${obj} en ${d} parts égales.`, tokensSVG(Q, d, k, 0, false)),
                M(n === 1 ? `Compte les ${obj} d'une part : c'est ${Q} ÷ ${d}.` : `Compte les ${obj} d'une part (${Q} ÷ ${d}), puis prends ${words(n)} parts.`)];
       if (R) viz = tokensSVG(Q, d, k, n, true);
-      ans = `<div class="pill">${Q} ÷ ${d} = ${k}, donc ${F(1, d)} de ${Q}, c'est ${k}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q}, c'est ${n} × ${k} = ${n * k} ${obj}</div>` : '');
+      ans = `<div class="pill">${Q} ÷ ${d} = ${k}, donc ${F(1, d)} de ${Q} ${obj}, c'est ${k} ${obj}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n} × ${k} = ${n * k} ${obj}</div>` : '');
       break;
     }
     case 'produit': {
