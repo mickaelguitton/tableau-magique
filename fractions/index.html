@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.2 dans le portail « Le tableau magique » (réponses avec l'unité, corrections animées, bouton « Animations »)
+  v1.3 dans le portail « Le tableau magique » (bouton « Animations » seulement quand la correction est animée)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -265,7 +265,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.2</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.3</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1759,6 +1759,7 @@ function renderDefi() {
   const q = D.list[D.i], R = D.revealed, lvl = C().lvl, AN = R && S.anim;   // AN : correction animée
   const dots = D.list.map((_, i) => `<i class="${i < D.i ? 'done' : i === D.i ? 'cur' : ''}"></i>`).join('');
   let prompt = '', sub = '', viz = '', ans = '', extraBtn = '';
+  let animable = false;   // cette question a une correction animée : on montre alors le bouton « Animations »
   // Coup de pouce en étapes, montrées une par une : un indice pour démarrer, un dessin pour comprendre, la méthode.
   // La réponse complète reste derrière « Voir la réponse ».
   let steps = [];
@@ -1801,6 +1802,7 @@ function renderDefi() {
       steps = q.k > 1
         ? [I(`Attention : chaque unité est partagée en ${denName(D, true)}, pas en ${denName(q.d, true)}.`), Dn(`${F(1, q.d)} = ${F(q.k, D)} : il faut ${q.k} petites parts pour faire ${F(1, q.d)}.`), M(`${F(q.n, q.d)}, c'est ${q.n} fois ${F(1, q.d)}, donc ${q.n} fois ${q.k} petites parts.`)]
         : [I(`Le dénominateur, ${q.d}, dit en combien de parts égales on partage l'unité.`), M(`Le numérateur, ${q.n}, dit combien de parts il faut ${droite ? 'compter depuis 0' : 'colorier'}${q.n > q.d ? ' : il faut plus d\'une unité' : ''}.`)];
+      animable = true;
       if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
       else viz = drawRep(q.rep, { d: D, u: q.u, fill: R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null), interactive: !R });
       if (st.checked && !R) {
@@ -1853,6 +1855,7 @@ function renderDefi() {
         ans = `<div class="pill">${good.map(f => F(f[0], f[1])).join(' = ')} = ${F(a, b)}</div>`;
         break;
       }
+      animable = true;
       prompt = `${F(a, b)} = ${q.miss === 'n' ? Fbox(R ? a * k : null, b * k) : Fbox(a * k, R ? b * k : null)}`;
       sub = 'Trouve le nombre qui manque.';
       if (R) viz = `<div class="cmp" style="width:100%">${AN ? egalesDecoupe(a, b, k) : cmpRows({ n: a, d: b }, { n: a * k, d: b * k }, 'barre', true)}</div>`;
@@ -1874,6 +1877,7 @@ function renderDefi() {
         ans = `<div class="pill">${F(d - a, d)} &nbsp;${fracWords(d - a, d)}</div><div class="pill">${F(a, d)} + ${F(d - a, d)} = ${F(d, d)} = 1</div>`;
         break;
       }
+      animable = true;
       if (q.d2) { // dénominateurs dont l'un est multiple de l'autre
         const { a, d, b, d2, k, sub: moins } = q, res = moins ? a * k - b : a * k + b;
         prompt = `${F(a, d)} ${moins ? '−' : '+'} ${F(b, d2)} = ${R ? F(res, d2) : BOX}`;
@@ -1904,7 +1908,7 @@ function renderDefi() {
     }
     case 'lire': {
       const { n, d, u } = q, st = q.st || 0, x = 60, L = 840, y = 170;
-      prompt = 'Quelle fraction est montrée par la flèche ?';
+      prompt = 'Quelle fraction est montrée par la flèche ?'; animable = true;
       sub = lvl === 1 ? "L'unité est la longueur de 0 à 1." : st ? `Attention : la droite commence à ${st}.` : '';
       const tx = lx(x, L, u, d, n - st * d);
       steps = [I(st ? 'Entre deux nombres entiers qui se suivent, en combien de parts égales est partagée l\'unité ?' : 'Entre 0 et 1, en combien de parts égales est partagée l\'unité ?'),
@@ -1937,6 +1941,7 @@ function renderDefi() {
     }
     case 'probleme': {
       prompt = `<span style="font-size:.78em;line-height:1.45;max-width:40em">${q.text}</span>`;
+      animable = !!(q.bar || q.tokens);
       if (R && q.bar) { const { d, u, segs } = q.bar, tot = segs.reduce((x, y) => x + y[0], 0);
         const pasS = 0.7;   // correction animée : chaque morceau de l'histoire arrive à son tour
         const fill = i => { let c0 = 0, t = 0; for (const [n, col] of segs) { if (i < c0 + n) return AN ? { c: col, from: '#fff', de: PAUSE + t * pasS } : col; c0 += n; t++; } return null; };
@@ -1962,6 +1967,7 @@ function renderDefi() {
       break;
     }
     case 'quantite': {
+      animable = true;
       if (q.grand) {
         const { Q, unit, obj, d, n } = q, QT = milliers(Q), txt = `${QT} ${unit}${obj ? ' ' + obj : ''}`;
         prompt = `${F(n, d)} de ${txt}, c'est combien ?`;
@@ -1983,7 +1989,7 @@ function renderDefi() {
       break;
     }
     case 'produit': {
-      const { m, a, d } = q, res = m * a;
+      const { m, a, d } = q, res = m * a; animable = true;
       prompt = `${m} × ${F(a, d)} = ${R ? F(res, d) : BOX}`;
       sub = `C'est ${words(m)} fois ${fracWords(a, d)}.`;
       if (R) viz = produitBarres(m, a, d, AN); // schéma en barres : m bandes, puis les mêmes bout à bout
@@ -1993,7 +1999,7 @@ function renderDefi() {
       break;
     }
     case 'encadrer': {
-      const { n, d, e } = q, x = 60, L = 840, u = e + 1;
+      const { n, d, e } = q, x = 60, L = 840, u = e + 1; animable = true;
       prompt = `${R ? e : BOX} &lt; ${F(n, d)} &lt; ${R ? e + 1 : BOX}`;
       sub = 'Entre quels nombres entiers qui se suivent ?';
       steps = [I(`Combien de ${denName(d, true)} faut-il pour faire 1 ? Et pour faire 2 ?`),
@@ -2025,6 +2031,7 @@ function renderDefi() {
         const m = q.to / q.from;
         prompt = q.rev ? `${Fbox(R ? q.a : null, q.from)} = ${F(q.a * m, q.to)}` : `${F(q.a, q.from)} = ${Fbox(R ? q.a * m : null, q.to)}`;
         sub = 'Trouve le nombre qui manque.';
+        animable = q.from === 10;
         if (R && q.from === 10) viz = squareSVG(1, i => i < q.a * 10 ? A : null, false, AN);
         ans = `<div class="pill">1 ${denName(q.from, false)} = 10 ${denName(q.to, true)}, donc ${F(q.a, q.from)} = ${F(q.a * m, q.to)}</div>`;
       } else if (k === 'decomp') {
@@ -2073,7 +2080,7 @@ function renderDefi() {
       break;
     }
     case 'decomposer': case 'recomposer': {
-      const { n, d, e, r } = q;
+      const { n, d, e, r } = q; animable = true;
       if (q.inverse) { prompt = `${e} + ${F(r, d)} = ${R ? F(n, d) : Fbox(null, d)}`; sub = `Combien de ${denName(d, true)} en tout ?`; }
       else { prompt = `${F(n, d)} = ${R ? e : BOX} + ${R ? F(r, d) : Fbox(null, d)}`; sub = 'Écris la fraction comme un entier plus une fraction plus petite que 1.'; }
       if (R) { const fill = AN ? fillUneAUne(n, A) : (i => i < n ? A : null);   // animation : les parts remplissent une unité, puis débordent sur la suivante
@@ -2101,7 +2108,7 @@ function renderDefi() {
     </div>`;
   // boutons de la question en bas de l'écran, à côté de « Nouvelle série » : plus de place pour la réponse
   $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
-    + toggle('Animations', 'danim', S.anim);   // corrections animées : actif par défaut, mémorisé
+    + (animable ? toggle('Animations', 'danim', S.anim) : '');   // corrections animées : actif par défaut, mémorisé ; absent s'il n'y a rien à animer
 }
 
 /* =========================================================
