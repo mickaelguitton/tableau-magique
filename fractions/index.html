@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.4 dans le portail « Le tableau magique » (20/8 = 2 + 1/2 ; barre « en tout » graduée)
+  v1.5 dans le portail « Le tableau magique » (affichage téléphone à l’horizontale)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -238,6 +238,25 @@ svg{user-select:none;-webkit-user-select:none}
 .feedback{text-align:center;font-size:clamp(1.3rem,3.8vh,2.1rem);font-weight:600;min-height:4.4em;display:flex;flex-direction:column;justify-content:flex-end}
 .feedback .ok{color:var(--ok)} .feedback .ko{color:var(--ko)}
 @media (max-width:900px){.topbar{grid-template-columns:auto 1fr}.topbar>div:last-child{display:none}}
+/* ---------- Téléphone à l'horizontale (écran bas) : la page défile au lieu de tout tasser ----------
+   Sur grand écran, tout tient sans défilement et les dessins se règlent sur la hauteur ;
+   sur un écran de moins de 520 px de haut, ce calcul ne laisse presque plus de place aux dessins. */
+@media (max-height:520px){
+  body{overflow:auto}
+  .screen{height:auto;min-height:100vh;padding:1.5vh 2vw 2.5rem}
+  .panel,#stage,.defi,.manip,.cmp,.dviz,#acts{flex:none;min-height:0}
+  .viz{flex:1 1 auto;min-height:0}   /* le dessin garde toute la largeur à côté de la carte */
+  #acts{overflow:visible}
+  .viz svg,.dviz svg,.defi.rev .dviz svg{max-height:72vh}
+  .viz.trio svg{max-height:40vh}
+  .dviz>svg{position:static;height:auto}
+  .cmprow svg,.defi.rev .dviz .cmprow svg{max-height:34vh}
+  .card{width:clamp(150px,24vw,220px);padding:.8rem .7rem}
+  .card .big{font-size:2.4rem}
+  .prompt{font-size:1.4rem}
+  .answer{font-size:1.25rem;min-height:3rem}
+  .signature-bas{position:static!important;display:block;text-align:right;margin:.4rem 1rem .6rem}
+}
 </style>
 </head>
 <body>
@@ -265,7 +284,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.4</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.5</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->

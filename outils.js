@@ -117,7 +117,7 @@ self.OUTILS = [
   {
     dossier: 'fractions',
     domaine: 'maths',
-    version: '1.4',
+    version: '1.5',
     nom: 'À parts égales',
     niveau: 'fractions · du CE1 au CM2',
     texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
