@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.0 dans le portail « Le tableau magique »
+  v1.1 dans le portail « Le tableau magique » (coups de pouce sans mot d'introduction)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -255,7 +255,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.0</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.1</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -279,7 +279,7 @@ svg{user-select:none;-webkit-user-select:none}
     <h3>Les défis, d’après les programmes</h3>
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
-      <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un coup de pouce en étapes (indice, dessin, méthode) avant la réponse.</li>
+      <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un coup de pouce en plusieurs étapes avant la réponse.</li>
       <li><b>La correction en images :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse.</li>
     </ul>
 
@@ -1998,7 +1998,7 @@ function renderDefi() {
   const nb = steps.length, vu = Math.min(D.st.aide || 0, nb);
   if (vu) { // la dernière étape demandée ; son dessin (ou celui d'une étape précédente) s'il n'y a rien d'autre à l'écran
     const st = steps[vu - 1];
-    sub = (sub ? sub + '<br>' : '') + `<span class="hint"><b>${{ i: 'Indice', d: 'Pour comprendre', m: 'Méthode' }[st.k]} :</b> ${st.t.replace(/^[A-ZÀÂÉÈÊ]/, c => c.toLowerCase())}</span>` // minuscule après les deux-points;
+    sub = (sub ? sub + '<br>' : '') + `<span class="hint">${st.t}</span>`;   // le texte seul, sans « Indice : », « Méthode : »…
     const v = steps.slice(0, vu).reverse().find(x => x.v);
     if (!viz && v) viz = v.v;
   }
