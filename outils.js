@@ -37,7 +37,7 @@ self.OUTILS = [
   {
     dossier: 'machine-conjugaison',
     domaine: 'francais',
-    version: '1.1',
+    version: '1.2',
     nom: 'Machine à conjuguer',
     niveau: 'cycles 2 et 3',
     texte: 'La machine tire au sort un sujet, un verbe et un temps. Les élèves conjuguent sur l’ardoise puis on affiche '

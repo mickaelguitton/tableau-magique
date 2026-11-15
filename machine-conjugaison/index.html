@@ -438,15 +438,19 @@ body.fs .topbar:hover{opacity:1}
 const DATA = {
   /* Pronoms personnels sujets.
      p = personne (0 je · 1 tu · 2 il/elle/on · 3 nous · 4 vous · 5 ils/elles)
-     g = genre pour l'accord avec « être » ('both' = il, elle / ils, elles) */
+     g = genre pour l'accord avec « être » ('m' masculin, 'f' féminin, 'x' inconnu : je, tu, nous, vous)
+     Au tirage, on choisit d'abord la personne, puis le sujet : il, elle et on se partagent la 3ᵉ personne
+     du singulier, ils et elles celle du pluriel. La 3ᵉ personne ne sort donc pas plus souvent que les autres. */
   pronoms: [
     {id:'je',       t:'je',         p:0, g:'x',    p3:false},
     {id:'tu',       t:'tu',         p:1, g:'x',    p3:false},
-    {id:'ilelle',   t:'il, elle',   p:2, g:'both', p3:true},
+    {id:'il',       t:'il',         p:2, g:'m',    p3:true},
+    {id:'elle',     t:'elle',       p:2, g:'f',    p3:true},
     {id:'on',       t:'on',         p:2, g:'m',    p3:true},
     {id:'nous',     t:'nous',       p:3, g:'x',    p3:false},
     {id:'vous',     t:'vous',       p:4, g:'x',    p3:false},
-    {id:'ilselles', t:'ils, elles', p:5, g:'both', p3:true}
+    {id:'ils',      t:'ils',        p:5, g:'m',    p3:true},
+    {id:'elles',    t:'elles',      p:5, g:'f',    p3:true}
   ],
   /* Groupes nominaux : [texte, genre 'm'|'f' (pour l'accord), nombre 's'|'p', 'a' si c'est un animal].
      Remplacez les prénoms par ceux de vos élèves si vous le souhaitez. */
@@ -511,6 +515,14 @@ const DATA = {
       'partir','sortir','mettre','lire','écrire','connaître','attendre','rendre',
       'courir','ouvrir','recevoir','tenir','boire','croire','vivre','suivre'
     ]},
+    /* Pour travailler l'accord du participe passé avec « être ». Un verbe déjà présent dans une autre
+       catégorie (aller, partir, entrer…) est le même verbe : le cocher ici le coche aussi là-bas.
+       Le 2ᵉ groupe n'a pas de verbe avec « être » hors des verbes pronominaux : on en met trois. */
+    {id:'etre', g:'mix', titre:'verbes conjugués avec « être »', verbes:[
+      'arriver*','entrer*','rentrer*','rester*','tomber*','monter*','retourner*','passer*',
+      'se réjouir','s’évanouir','se blottir',
+      'aller','venir','revenir','devenir','partir','sortir','naître','descendre'
+    ]},
     {id:'pro', g:'mix', titre:'verbes pronominaux', verbes:[
       'se laver','se coucher','se réveiller','s’habiller','se dépêcher','s’amuser','se reposer','se cacher','s’arrêter',
       ['se promener','e'],['se lever','e'],['s’appeler','l'],
@@ -528,8 +540,14 @@ const mkVerb = x => {
   if(m){ o.refl = true; o.inf = m[1]; o.aux = 'être'; }
   return o;
 };
-const groupOf = (v, g) => g!=='mix' ? g : (v.inf.endsWith('er') ? 'g1' : v.inf.endsWith('ir') ? 'g2' : 'g3');   // section mixte : le groupe se déduit de l’infinitif
-const ALL_VERBS = DATA.groupes.flatMap(s => s.verbes.map(x => { const o = mkVerb(x); return {...o, g:groupOf(o, s.g), sec:s.id}; }));
+/* Section mixte : le groupe se déduit de l’infinitif (aller est le seul verbe en -er du 3ᵉ groupe ;
+   les verbes en -ir du 3ᵉ groupe de la liste sont dans la table IRR) */
+const IRR_IR = ['venir','revenir','devenir','partir','sortir','courir','ouvrir','tenir'];
+const groupOf = (v, g) => { if(g!=='mix') return g; const inf = v.inf || v.v;
+  return inf==='aller' ? 'g3' : inf.endsWith('er') ? 'g1' : (inf.endsWith('ir') && !IRR_IR.includes(inf)) ? 'g2' : 'g3'; };
+/* Un verbe présent dans deux catégories n'est gardé qu'une fois (il ne sort pas deux fois plus souvent) */
+const ALL_VERBS = DATA.groupes.flatMap(s => s.verbes.map(x => { const o = mkVerb(x); return {...o, g:groupOf(o, s.g), sec:s.id}; }))
+  .filter((v, i, a) => a.findIndex(w => w.v===v.v)===i);
 
 /* Tous les sujets possibles du premier rouleau (pronoms, groupes nominaux, sujets multiples) */
 const SUBJECTS = [
@@ -594,7 +612,11 @@ const IRR = {
   'boire':    {pres:['bois','bois','boit','buvons','buvez','boivent'], impf:'buv', fut:'boir', ps:['b','us'], pp:'bu'},
   'croire':   {pres:['crois','crois','croit','croyons','croyez','croient'], impf:'croy', fut:'croir', ps:['cr','us'], pp:'cru'},
   'vivre':    {pres:['vis','vis','vit','vivons','vivez','vivent'], impf:'viv', fut:'vivr', ps:['véc','us'], pp:'vécu'},
-  'suivre':   {pres:['suis','suis','suit','suivons','suivez','suivent'], impf:'suiv', fut:'suivr', ps:['suiv','is'], pp:'suivi'}
+  'suivre':   {pres:['suis','suis','suit','suivons','suivez','suivent'], impf:'suiv', fut:'suivr', ps:['suiv','is'], pp:'suivi'},
+  'revenir':  {pres:['reviens','reviens','revient','revenons','revenez','reviennent'], impf:'reven', fut:'reviendr', ps:['rev','in'], pp:'revenu', aux:'être'},
+  'devenir':  {pres:['deviens','deviens','devient','devenons','devenez','deviennent'], impf:'deven', fut:'deviendr', ps:['dev','in'], pp:'devenu', aux:'être'},
+  'naître':   {pres:['nais','nais','naît','naissons','naissez','naissent'], impf:'naiss', fut:'naîtr', ps:['naqu','is'], pp:'né', aux:'être'},
+  'descendre':{pres:['descends','descends','descend','descendons','descendez','descendent'], impf:'descend', fut:'descendr', ps:['descend','is'], pp:'descendu', aux:'être'}
 };
 
 /* Modèle d'un verbe : 6 formes par temps simple + participe passé + auxiliaire.
@@ -709,18 +731,11 @@ const partHtml = vp => (vp.refl||'') + (vp.aux ? '<span class="aux">'+vp.aux[0]+
                      + (vp.iss && vp.main[0].endsWith(vp.iss) ? vp.main[0].slice(0,-vp.iss.length)+'<i class="iss">'+vp.iss+'</i>' : vp.main[0]) + hiEnd(vp.main[1]) + (vp.acc ? '<u class="acc">'+vp.acc+'</u>' : '');
 
 /* Correction complète, en texte et en HTML (null si inconnue) :
-   « j’ai chanté » · « il / elle mange » · « il est allé / elle est allée »
+   « j’ai chanté » · « elle mange » · « elle est allée »
    « les enfants (ils) mangent » · « toi et moi (nous) mangeons » */
 function build(s, v, tense){
   if(typeof s === 'string') s = SUBJ_BY_TEXT[s];
   if(!s) return null;
-  if(s.g==='both'){
-    const a = verbParts(s,v,tense,'m'), b = verbParts(s,v,tense,'f');
-    if(!a || !b) return null;
-    const [pm, pf] = s.t.split(', '), ta = partText(a), tb = partText(b);
-    if(ta===tb) return {text: pm+' / '+pf+' '+ta, html: pm+' / '+pf+' '+partHtml(a)};
-    return {text: pm+' '+ta+' / '+pf+' '+tb, html: pm+' '+partHtml(a)+' / '+pf+' '+partHtml(b)};
-  }
   const vp = verbParts(s,v,tense,s.g);
   if(!vp) return null;
   const t = partText(vp), hh = partHtml(vp);
@@ -770,6 +785,14 @@ if(!S.init4){
   if(!gnOn)    S.off.pron.push('gn');
   if(!multiOn) S.off.pron.push('multi');
   S.init3 = true; S.init4 = true; save();
+}
+/* v2.x : « il, elle » et « ils, elles » deviennent quatre cases ; nouveaux verbes avec « être » décochés au départ */
+if(!S.init5){
+  const P = S.off.pron, remplace = (vieux, nouveaux) => { const i = P.indexOf(vieux); if(i>-1){ P.splice(i,1); P.push(...nouveaux); } };
+  remplace('ilelle', ['il','elle']); remplace('ilselles', ['ils','elles']);
+  const autres = new Set(DATA.groupes.filter(g=>g.id!=='etre').flatMap(g=>g.verbes.map(x=>mkVerb(x).v)));
+  DATA.groupes.find(g=>g.id==='etre').verbes.map(x=>mkVerb(x).v).filter(v=>!autres.has(v) && !S.off.verbs.includes(v)).forEach(v=>S.off.verbs.push(v));
+  S.init5 = true; save();
 }
 const isOn  = (k,id) => !S.off[k].includes(id);
 function setOn(k,id,on){
@@ -931,7 +954,7 @@ const shortTitle = t => { t = t.replace(': verbes ', ': ').replace(/ verbes$/, '
    Sur chaque ligne : une case (coche ou décoche toute la catégorie), le titre (clic = déplier la liste), le compteur à droite. */
 function verbSection(){
   const groups = DATA.groupes.map(g=>({titre:g.titre, ids:g.verbes.map(x=>mkVerb(x).v)}));
-  const all = groups.flatMap(g=>g.ids);
+  const all = [...new Set(groups.flatMap(g=>g.ids))];   // un verbe présent dans deux catégories compte une fois
   const sec = document.createElement('div'); sec.className = 'sec';
   const h = document.createElement('h3'); h.textContent = 'Verbes ';
   const n = document.createElement('span'); n.className = 'n'; h.append(n,
@@ -1714,8 +1737,8 @@ document.getElementById('ppgo').onclick = ()=>{
     <h3>Ce qu’on peut choisir</h3>
     <ul>
       <li><b>Les temps :</b> présent, imparfait, futur, passé composé, passé simple, plus-que-parfait.</li>
-      <li><b>Les verbes :</b> 1er groupe (dont les verbes à particularité : manger, commencer, nettoyer, appeler, acheter…), 2e groupe, et 3e groupe (être, avoir, aller, faire, dire, venir, prendre, pouvoir, vouloir, voir…).</li>
-      <li><b>Les sujets :</b> pronoms personnels, groupes nominaux et sujets multiples. Pour un groupe nominal, le pronom correspondant est rappelé dans la correction.</li>
+      <li><b>Les verbes :</b> 1er groupe (dont les verbes à particularité : manger, commencer, nettoyer, appeler, acheter…), 2e groupe, et 3e groupe (être, avoir, aller, faire, dire, venir, prendre, pouvoir, vouloir, voir…). Une catégorie réunit les verbes conjugués avec « être », pour travailler l’accord du participe passé aux temps composés.</li>
+      <li><b>Les sujets :</b> pronoms personnels (il et elle, ils et elles séparés, pour l’accord avec « être »), groupes nominaux et sujets multiples. Chaque personne sort aussi souvent que les autres. Pour un groupe nominal, le pronom correspondant est rappelé dans la correction.</li>
     </ul>
 
     <h3>En classe</h3>
