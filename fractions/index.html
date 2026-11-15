@@ -446,10 +446,12 @@ function svgFrac(x, y, n, d, size, color) {
     <text x="${x}" y="${y + size * 0.8}">${d}</text></g>`;
 }
 
-const comma = v => { // 340 -> « 0,34 »
+const comma = v => { // 340 -> « 0,34 » ; 1000000 -> « 1 000 »
   const e = Math.floor(v / 1000), r = String(v % 1000).padStart(3, '0').replace(/0+$/, '');
-  return r ? `${e},${r}` : String(e);
+  return r ? `${milliers(e)},${r}` : milliers(e);
 };
+// Entier écrit à la française, avec une espace insécable entre les classes : 1000 -> « 1 000 »
+const milliers = x => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
 
 function deciBest(v) { // la fraction décimale la plus simple
   if (v % 100 === 0) return [v / 100, 10];
@@ -620,7 +622,7 @@ function tokensSVG(Q, d, k, n, grouped) {
 function grandeurSVG(Q, unit, d, k, n, shown) {
   const x = 60, W = 880, y = 70, h = 90, w = W / d;
   let s = `<path d="M ${x} ${y - 14} V ${y - 26} H ${x + W} V ${y - 14}" fill="none" stroke="${INK}" stroke-width="3"/>
-           <text x="${x + W / 2}" y="${y - 36}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${Q} ${unit}</text>`;
+           <text x="${x + W / 2}" y="${y - 36}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${milliers(Q)} ${unit}</text>`;
   for (let j = 0; j < d; j++) {
     s += `<rect x="${x + j * w}" y="${y}" width="${w}" height="${h}" fill="${j < n ? 'var(--a)' : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
     if (shown && w > 60) s += `<text x="${x + j * w + w / 2}" y="${y + h / 2 + 10}" text-anchor="middle" font-size="${Math.min(28, w / 3.2)}" font-weight="700" fill="${j < n ? '#fff' : INK}">${k} ${unit}</text>`;
@@ -1873,14 +1875,14 @@ function renderDefi() {
     }
     case 'quantite': {
       if (q.grand) {
-        const { Q, unit, obj, d, n } = q, txt = `${Q} ${unit}${obj ? ' ' + obj : ''}`;
+        const { Q, unit, obj, d, n } = q, QT = milliers(Q), txt = `${QT} ${unit}${obj ? ' ' + obj : ''}`;
         prompt = `${F(n, d)} de ${txt}, c'est combien ?`;
-        steps = [I(`${F(1, d)} de ${Q} ${unit}, c'est une part quand on partage ${Q} ${unit} en ${d} parts égales.`), null, M(n === 1 ? `Calcule ${Q} ÷ ${d}.` : `Calcule ${Q} ÷ ${d}, puis multiplie par ${n}.`)];
+        steps = [I(`${F(1, d)} de ${QT} ${unit}, c'est une part quand on partage ${QT} ${unit} en ${d} parts égales.`), null, M(n === 1 ? `Calcule ${QT} ÷ ${d}.` : `Calcule ${QT} ÷ ${d}, puis multiplie par ${n}.`)];
         // valeurs écrites à la française (2,5) ; calcul en centièmes pour éviter les arrondis
         const cent = Math.round(Q * 100 / d), dec = x => comma(x * 10);
         if (R) viz = grandeurSVG(Q, unit, d, dec(cent), n, true);
-        steps[1] = Dn(`On partage ${Q} ${unit} en ${d} parts égales.`, grandeurSVG(Q, unit, d, dec(cent), 0, false));
-        ans = `<div class="pill">${Q} ${unit} ÷ ${d} = ${dec(cent)} ${unit}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${unit}, c'est ${n} × ${dec(cent)} = ${dec(n * cent)} ${unit}</div>` : '') + autreUnite(n * cent, unit);
+        steps[1] = Dn(`On partage ${QT} ${unit} en ${d} parts égales.`, grandeurSVG(Q, unit, d, dec(cent), 0, false));
+        ans = `<div class="pill">${QT} ${unit} ÷ ${d} = ${dec(cent)} ${unit}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${QT} ${unit}, c'est ${n} × ${dec(cent)} = ${dec(n * cent)} ${unit}</div>` : '') + autreUnite(n * cent, unit);
         break;
       }
       const { d, k, n, obj } = q, Q = d * k;
@@ -1986,7 +1988,7 @@ function renderDefi() {
       else { prompt = `${F(n, d)} = ${R ? e : BOX} + ${R ? F(r, d) : Fbox(null, d)}`; sub = 'Écris la fraction comme un entier plus une fraction plus petite que 1.'; }
       if (R) viz = drawRep('barre', { d, u: Math.min(e + 1, C().maxU), fill: i => i < n ? A : null, bilan: n });
       steps = [I(`1 = ${F(d, d)}.`), Dn(`Une bande pour chaque unité, partagée en ${denName(d, true)} :`, drawRep('barre', { d, u: Math.min(e + 1, C().maxU), fill: () => null })),
-               M(q.inverse ? `${e} unités, c'est ${e} fois ${d} ${denName(d, true)} ; ajoute les ${r} qui restent.`
+               M(q.inverse ? `${e} ${e > 1 ? 'unités' : 'unité'}, c'est ${e} fois ${d} ${denName(d, true)} ; ajoute les ${r} qui restent.`
                            : `Combien de fois ${d} dans ${n} ? Ce sont les unités entières ; le reste, ce sont des ${denName(d, true)}.`)];
       ans = `<div class="pill">${e} = ${F(e * d, d)} &nbsp;et&nbsp; ${F(e * d, d)} + ${F(r, d)} = ${F(n, d)}</div>`;
       break;
