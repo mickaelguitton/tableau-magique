@@ -11,6 +11,8 @@
    4. ajouter son adresse dans sitemap.xml.
    (« donnees » : début du nom des données que l'outil enregistre dans le navigateur ; sert seulement à
    afficher le résumé d'une sauvegarde. Une donnée non listée est quand même sauvegardée.)
+   (« domaine » : les outils d'un même domaine, écrits à la suite, forment une rangée du portail
+   quand l'écran est assez large : français, puis maths, puis classe.)
 
    METTRE À JOUR UN OUTIL : modifier son index.html, puis changer son numéro « version » ci-dessous.
    Seul cet outil est retéléchargé par les applis installées ; son numéro s'affiche dans sa signature.
@@ -19,63 +21,8 @@
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
 self.OUTILS = [
   {
-    dossier: 'calcul-mental',
-    version: '1.3',                             // numéro de CET outil : à changer quand on le modifie
-    nom: 'Calculs en tête',
-    niveau: 'calcul mental · du CP au CM2',
-    texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
-         + 'Correction au tableau. Chrono. Différentes options. Impression de fiches personnalisées.',
-    donnees: ['rcm-'],   // début du nom de ses données dans le navigateur (résumé de la sauvegarde)
-    couleur: '#3D6FD9', ombre: '#B7D3FB'
-  },
-  {
-    dossier: 'geometrie',
-    version: '2.3',
-    nom: 'La fabrique à figures',
-    niveau: 'cycle 3',
-    texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
-         + 'Points, segments, droites, cercles et arcs de cercle, perpendiculaires, parallèles, milieu et symétrique. '
-         + 'Les instruments s’animent : l’équerre, la règle et le compas tracent sous les yeux des élèves. '
-         + 'Longueurs, codages, noms des points, sur quadrillage ou feuille blanche.',
-    donnees: ['fabrique-a-figures'],
-    couleur: '#D6336C', ombre: '#F8C3D5'
-  },
-  {
-    dossier: 'droites-graduees',
-    version: '1.7',
-    nom: 'La route des nombres',
-    niveau: 'droites graduées · du CP au CM2',
-    texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
-         + 'placer un nombre, ou explorer en zoomant de 10 en 10. Entiers, décimaux et fractions, trois niveaux de difficulté. '
-         + 'Fiches Word à imprimer, avec corrigé.',
-    donnees: ['route-des-nombres'],
-    couleur: '#F2662E', ombre: '#FFD0BC'
-  },
-  {
-    dossier: 'fractions',
-    version: '1.0',
-    nom: 'À parts égales',
-    niveau: 'fractions · du CE1 au CM2',
-    texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
-         + 'fractions à comparer, mur des fractions, fractions décimales sur le carré de 100. '
-         + 'Des défis d’après les programmes, avec coup de pouce et correction en images, et des fiches Word à imprimer.',
-    donnees: ['fractions-'],
-    couleur: '#23887C', ombre: '#B5E3DC'
-  },
-  {
-    dossier: 'lire-l-heure',
-    version: '1.5',
-    nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
-    niveau: 'lire l’heure · français et anglais',
-    texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure en français et en anglais, '
-         + 'du CP au CM2. Un clic sur le drapeau, et tout passe en anglais : o’clock, half past, quarter to… '
-         + 'Rituel sur ardoise avec 1, 4 ou 6 horloges, placer les aiguilles avec correction, heures dites à l’oral. '
-         + 'Fiches à imprimer avec corrigé.',
-    donnees: ['aiguilles-du-temps'],
-    couleur: '#2B4C8C', ombre: '#C3D2F0'
-  },
-  {
     dossier: 'nature-des-mots',
+    domaine: 'francais',
     version: '1.3',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
@@ -86,8 +33,10 @@ self.OUTILS = [
     couleur: '#E07B00', ombre: '#FFD69A',
     fichiers: ['lexique.js']                    // fichiers en plus de index.html, à garder pour le hors ligne
   },
+
   {
     dossier: 'machine-conjugaison',
+    domaine: 'francais',
     version: '1.1',
     nom: 'Machine à conjuguer',
     niveau: 'cycles 2 et 3',
@@ -96,8 +45,10 @@ self.OUTILS = [
     donnees: ['machine-conjugaison'],
     couleur: '#D9443C', ombre: '#F9B9B4'
   },
+
   {
     dossier: 'copie-guidee',
+    domaine: 'francais',
     version: '1.2',
     nom: 'La copie guidée',
     niveau: 'cycles 2 et 3',
@@ -109,8 +60,10 @@ self.OUTILS = [
     donnees: ['copieGuidee.'],
     couleur: '#2F9E44', ombre: '#B9E8C3'
   },
+
   {
     dossier: 'syllabes-en-couleur',
+    domaine: 'francais',
     version: '1.1',
     nom: 'Syllabes en couleur',
     niveau: 'adapter un texte · dys',
@@ -121,8 +74,76 @@ self.OUTILS = [
     donnees: ['syllabes-en-couleur'],
     couleur: '#0B7FB8', ombre: '#B5E0F5'
   },
+
+  {
+    dossier: 'calcul-mental',
+    domaine: 'maths',
+    version: '1.3',                             // numéro de CET outil : à changer quand on le modifie
+    nom: 'Calculs en tête',
+    niveau: 'calcul mental · du CP au CM2',
+    texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
+         + 'Correction au tableau. Chrono. Différentes options. Impression de fiches personnalisées.',
+    donnees: ['rcm-'],   // début du nom de ses données dans le navigateur (résumé de la sauvegarde)
+    couleur: '#3D6FD9', ombre: '#B7D3FB'
+  },
+
+  {
+    dossier: 'geometrie',
+    domaine: 'maths',
+    version: '2.3',
+    nom: 'La fabrique à figures',
+    niveau: 'cycle 3',
+    texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
+         + 'Points, segments, droites, cercles et arcs de cercle, perpendiculaires, parallèles, milieu et symétrique. '
+         + 'Les instruments s’animent : l’équerre, la règle et le compas tracent sous les yeux des élèves. '
+         + 'Longueurs, codages, noms des points, sur quadrillage ou feuille blanche.',
+    donnees: ['fabrique-a-figures'],
+    couleur: '#D6336C', ombre: '#F8C3D5'
+  },
+
+  {
+    dossier: 'droites-graduees',
+    domaine: 'maths',
+    version: '1.7',
+    nom: 'La route des nombres',
+    niveau: 'droites graduées · du CP au CM2',
+    texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
+         + 'placer un nombre, ou explorer en zoomant de 10 en 10. Entiers, décimaux et fractions, trois niveaux de difficulté. '
+         + 'Fiches Word à imprimer, avec corrigé.',
+    donnees: ['route-des-nombres'],
+    couleur: '#F2662E', ombre: '#FFD0BC'
+  },
+
+  {
+    dossier: 'fractions',
+    domaine: 'maths',
+    version: '1.0',
+    nom: 'À parts égales',
+    niveau: 'fractions · du CE1 au CM2',
+    texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
+         + 'fractions à comparer, mur des fractions, fractions décimales sur le carré de 100. '
+         + 'Des défis d’après les programmes, avec coup de pouce et correction en images, et des fiches Word à imprimer.',
+    donnees: ['fractions-'],
+    couleur: '#23887C', ombre: '#B5E3DC'
+  },
+
+  {
+    dossier: 'lire-l-heure',
+    domaine: 'maths',
+    version: '1.5',
+    nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
+    niveau: 'lire l’heure · français et anglais',
+    texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure en français et en anglais, '
+         + 'du CP au CM2. Un clic sur le drapeau, et tout passe en anglais : o’clock, half past, quarter to… '
+         + 'Rituel sur ardoise avec 1, 4 ou 6 horloges, placer les aiguilles avec correction, heures dites à l’oral. '
+         + 'Fiches à imprimer avec corrigé.',
+    donnees: ['aiguilles-du-temps'],
+    couleur: '#2B4C8C', ombre: '#C3D2F0'
+  },
+
   {
     dossier: 'cartes-a-la-carte',
+    domaine: 'classe',
     version: '1.1',
     nom: 'Cartes à la carte',
     niveau: 'du CP à la 6e',
@@ -132,8 +153,10 @@ self.OUTILS = [
     donnees: ['cartes-a-la-carte'],
     couleur: '#6A4BD1', ombre: '#CFC4F7'
   },
+
   {
     dossier: 'tirage-au-sort',
+    domaine: 'classe',
     version: '1.1',
     nom: 'À qui le tour ?',
     niveau: 'tous niveaux',
@@ -141,8 +164,10 @@ self.OUTILS = [
     donnees: ['dernier_liste_utilisee', 'son_actif', 'son_style', 'son_fin'],
     couleur: '#16A497', ombre: '#A6E6DF'
   },
+
   {
     dossier: 'minuteur-visuel',
+    domaine: 'classe',
     version: '1.0',
     nom: 'Le temps en couleur',
     niveau: 'minuteur visuel · tous niveaux',
@@ -152,8 +177,10 @@ self.OUTILS = [
     donnees: ['repere-temps'],
     couleur: '#A33EA1', ombre: '#EBC3EA'
   },
+
   {
     dossier: 'jeu-de-revision',
+    domaine: 'classe',
     version: '1.2',
     nom: 'À la poursuite des diamants',
     niveau: 'jeu de révision · tous niveaux',

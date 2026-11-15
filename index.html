@@ -396,6 +396,15 @@
     const ecart = Math.round(Math.min(40, Math.max(12, Math.min(W, H) * 0.035)));
     const ombre = 16;           // ombre colorée sous la carte
 
+    // Rangées par domaine : tailles des groupes de « domaine » consécutifs dans outils.js (ex. 4, 5, 4).
+    // Préférées aux rangées équilibrées tant qu'elles laissent des cartes presque aussi grandes (voir plus bas).
+    const groupes = [];
+    OUTILS.forEach((o, i) => { if(i && o.domaine && o.domaine === OUTILS[i - 1].domaine) groupes[groupes.length - 1]++; else groupes.push(1); });
+    const domainesPossibles = groupes.length > 1 && groupes.length < n;
+    let domaine = false;   // disposition en cours d'essai : par domaine ou équilibrée
+    const parDomaine = colonnes => domaine && colonnes >= Math.max(...groupes);
+    const nbLignes = colonnes => parDomaine(colonnes) ? groupes.length : Math.ceil(n / colonnes);
+
     // Applique une disposition : largeur des cartes, marges sur les côtés (chaque rangée contient
     // exactement « colonnes » cartes) et rangées équilibrées, les plus courtes en haut (7 outils = 3 + 4).
     const appliquer = (colonnes, l) => {
@@ -405,6 +414,11 @@
       zone.style.setProperty('--ecart', ecart + 'px');
       zone.style.setProperty('--police', Math.max(12, Math.min(34, l * 0.065)) + 'px');   // police plus petite sur téléphone : le nom reste entier
       zone.querySelectorAll('.saut-rangee').forEach(s => s.remove());
+      if(parDomaine(colonnes)){                     // une rangée par domaine (français, maths, classe)
+        let fin = 0;
+        groupes.slice(0, -1).forEach(g => { fin += g; const saut = document.createElement('span'); saut.className = 'saut-rangee'; cartes[fin - 1].after(saut); });
+        return;
+      }
       const lignes = Math.ceil(n / colonnes);
       if(lignes > 1 && n % lignes){
         const base = Math.floor(n / lignes), courtes = lignes - n % lignes;   // rangées de « base », puis de « base + 1 »
@@ -426,17 +440,29 @@
     // Au moins deux rangées dès 4 outils (3 + 3 pour 6 outils), sauf sur un écran très bas (téléphone
     // à l'horizontale) où une seule rangée laisse des cartes plus lisibles.
     const maxColonnes = (n >= 4 && H >= 260) ? Math.ceil(n / 2) : n;
-    let meilleur = { l:0, colonnes:1 };
-    for(let colonnes = 1; colonnes <= maxColonnes; colonnes++){
-      const lignes = Math.ceil(n / colonnes);
-      // largeur permise par la place en largeur, et par la place en hauteur (image 16/9 + texte ≈ « texte » × la largeur)
-      const parLargeur = (W - ecart * (colonnes - 1)) / colonnes;
-      const hTuile = (H - ecart * (lignes - 1)) / lignes - ombre;
-      let l = Math.floor(Math.min(parLargeur, (hTuile - marge) / (9/16 + texte) + 24));
-      if(l <= meilleur.l) continue;                        // ne peut pas faire mieux que la meilleure trouvée
-      appliquer(colonnes, l);
-      while(!tient() && l > meilleur.l && l > 50) appliquer(colonnes, l = Math.floor(l * 0.95));
-      if(tient() && l > meilleur.l) meilleur = { l, colonnes };
+    // Cherche le nombre de colonnes qui donne les plus grandes cartes, pour la disposition en cours d'essai
+    const chercher = () => {
+      let meilleur = { l:0, colonnes:1 };
+      for(let colonnes = domaine ? Math.max(...groupes) : 1; colonnes <= maxColonnes; colonnes++){
+        const lignes = nbLignes(colonnes);
+        // largeur permise par la place en largeur, et par la place en hauteur (image 16/9 + texte ≈ « texte » × la largeur)
+        const parLargeur = (W - ecart * (colonnes - 1)) / colonnes;
+        const hTuile = (H - ecart * (lignes - 1)) / lignes - ombre;
+        let l = Math.floor(Math.min(parLargeur, (hTuile - marge) / (9/16 + texte) + 24));
+        if(l <= meilleur.l) continue;                        // ne peut pas faire mieux que la meilleure trouvée
+        appliquer(colonnes, l);
+        while(!tient() && l > meilleur.l && l > 50) appliquer(colonnes, l = Math.floor(l * 0.95));
+        if(tient() && l > meilleur.l) meilleur = { l, colonnes };
+      }
+      return meilleur;
+    };
+    // Une rangée par domaine si les cartes y restent assez grandes (au moins 85 % de la meilleure
+    // disposition équilibrée) ; sinon (petit écran), rangées équilibrées comme avant.
+    let meilleur = chercher();
+    if(domainesPossibles){
+      domaine = true;
+      const parDom = chercher();
+      if(parDom.l >= meilleur.l * 0.85 && parDom.l >= 105) meilleur = parDom; else domaine = false;
     }
     /* Téléphone : si les cartes deviennent trop petites pour être lues, la page défile exceptionnellement,
        avec des cartes d'au moins 130 px (2 ou 3 par rangée en portrait). */
