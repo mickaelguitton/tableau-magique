@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.3 dans le portail « Le tableau magique » (bouton « Animations » seulement quand la correction est animée)
+  v1.4 dans le portail « Le tableau magique » (20/8 = 2 + 1/2 ; barre « en tout » graduée)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -265,7 +265,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.3</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.4</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -432,10 +432,12 @@ function mixed(n, d) { // 9/4 -> « 2 + 1/4 »
 }
 
 /* 9/4 -> « 9/4 = 8/4 + 1/4 = 2 + 1/4 » : on montre le passage par d/d = 1 */
-function decompTxt(n, d) {
+function decompTxt(n, d) {   // 20/8 = 16/8 + 4/8 = 2 + 4/8, et au CM : = 2 + 1/2 quand la fraction se simplifie
   const e = Math.floor(n / d), r = n % d;
   if (!e) return F(n, d);
-  return r ? `${F(n, d)} = ${F(e * d, d)} + ${F(r, d)} = ${e} + ${F(r, d)}` : `${F(n, d)} = ${e}`;
+  if (!r) return `${F(n, d)} = ${e}`;
+  const g = gcd(r, d), simple = g > 1 && C().lvl >= 2 ? ` = ${e} + ${F(r / g, d / g)}` : '';
+  return `${F(n, d)} = ${F(e * d, d)} + ${F(r, d)} = ${e} + ${F(r, d)}${simple}`;
 }
 
 function mixedWords(n, d) { // « deux unités et un quart »
@@ -780,25 +782,35 @@ const ALT = ['var(--c0)', 'var(--c3)', 'var(--c2)', 'var(--c4)', 'var(--c1)', 'v
 
 // 3 bandes de 5/4, puis les mêmes mises bout à bout (avec une règle graduée)
 function produitBarres(m, a, d, anim = false) {
-  const res = m * a, u = Math.max(1, Math.ceil(res / d - 1e-9)), x = 130, L = 1230, U = L / u, step = U / d, bh = Math.min(46, 260 / (m + 2));
+  // m bandes de a/d, puis les mêmes bout à bout sur la barre « en tout », graduée en 1/d
+  const res = m * a, u = Math.max(1, Math.ceil(res / d - 1e-9)), x = 170, L = 1180, U = L / u, step = U / d, bh = Math.min(46, 260 / (m + 2));
   let s = '', y = 10;
   const pas = Math.min(0.6, 2.4 / m);
   for (let j = 0; j < m; j++, y += bh + 10) {
     const col = ALT[j % ALT.length];
     if (anim) s += `<g${apparait(PAUSE + j * pas)}>`;
     for (let i = 0; i < a; i++) s += `<rect x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${col}" stroke="${INK}" stroke-width="2"/>`;
-    s += svgFrac(x - 60, y + bh / 2 + 2, a, d, Math.min(30, bh * 0.62), col);
+    s += svgFrac(x - 70, y + bh / 2 + 2, a, d, Math.min(30, bh * 0.62), col);
     if (anim) s += '</g>';
   }
   y += 18;
-  s += `<text x="${x - 60}" y="${y + bh / 2 + 10}" text-anchor="middle" font-size="28" font-weight="700" fill="${INK}">en tout</text>`;
-  for (let i = 0; i < res; i++) s += `<rect${anim ? vire('#fff', PAUSE + (m + Math.floor(i / a)) * pas) : ''} x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${ALT[Math.floor(i / a) % ALT.length]}" stroke="${INK}" stroke-width="2"/>`;   // chaque bande vient se poser à la suite
+  s += `<text x="${x - 70}" y="${y + bh / 2 + 10}" text-anchor="middle" font-size="28" font-weight="700" fill="${INK}">en tout</text>`;
+  for (let i = 0; i < u * d; i++) {   // toutes les parts de chaque unité, coloriées ou non
+    const pris = i < res;
+    s += `<rect${anim && pris ? vire('#fff', PAUSE + (m + Math.floor(i / a)) * pas) : ''} x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${pris ? ALT[Math.floor(i / a) % ALT.length] : '#fff'}" stroke="${INK}" stroke-width="2"/>`;   // chaque bande vient se poser à la suite
+  }
+  // graduation : un petit trait à chaque part, et sa fraction quand il y a de la place
+  const fracs = u * d <= 16;
+  for (let i = 1; i < u * d; i++) if (i % d) {
+    s += `<path d="M ${x + i * step} ${y + bh + 11} V ${y + bh + 25}" stroke="${INK}" stroke-width="2.5"/>`;
+    if (fracs) s += svgFrac(x + i * step, y + bh + 60, i, d, 22, '#5d6178');
+  }
   for (let k = 0; k <= u; k++) {
-    s += `<path d="M ${x + k * U} ${y + bh + 8} V ${y + bh + 28}" stroke="${INK}" stroke-width="4"/><text x="${x + k * U}" y="${y + bh + 60}" text-anchor="middle" font-size="32" font-weight="700" fill="${INK}">${k}</text>`;
+    s += `<path d="M ${x + k * U} ${y + bh + 8} V ${y + bh + 28}" stroke="${INK}" stroke-width="4"/><text x="${x + k * U}" y="${y + bh + 62}" text-anchor="middle" font-size="32" font-weight="700" fill="${INK}">${k}</text>`;
     if (k < u) s += `<rect x="${x + k * U}" y="${y - 2}" width="${U}" height="${bh + 4}" fill="none" stroke="${INK}" stroke-width="5"/>`;
   }
   s += `<path d="M ${x} ${y + bh + 18} H ${x + L}" stroke="${INK}" stroke-width="3"/>`;
-  return svg(1400, y + bh + 72, s);
+  return svg(1400, y + bh + (fracs ? 96 : 72), s);
 }
 
 /* =========================================================
@@ -1804,12 +1816,16 @@ function renderDefi() {
         : [I(`Le dénominateur, ${q.d}, dit en combien de parts égales on partage l'unité.`), M(`Le numérateur, ${q.n}, dit combien de parts il faut ${droite ? 'compter depuis 0' : 'colorier'}${q.n > q.d ? ' : il faut plus d\'une unité' : ''}.`)];
       animable = true;
       if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
-      else viz = drawRep(q.rep, { d: D, u: q.u, fill: R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null), interactive: !R });
+      else { const fill = R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null);
+        // plus d'une unité (barre) : le bilan « 1 + 1 + 4/8 » s'écrit sous les barres, à la fin de l'animation
+        const bilan = R && q.rep === 'barre' && N > D ? N : 0;
+        viz = drawRep(q.rep, { d: D, u: q.u, fill, interactive: !R, bilan, bilanDe: AN && bilan ? fill.fin : 0 }); }
       if (st.checked && !R) {
         ans = cnt === N ? `<div class="pill">Bravo ! C'est bien ${fracWords(q.n, q.d)}.</div>`
                         : `<div class="pill ko">${droite ? 'Ton point est à' : 'Tu as colorié'} ${fracWords(cnt, D)}. Il faut ${fracWords(q.n, q.d)}.</div>`;
       } else if (q.k > 1) ans = `<div class="pill">${F(q.n, q.d)} = ${F(N, D)} : ${droite ? 'on avance de' : 'on colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''}</div>`;
       else ans = `<div class="pill">${droite ? 'On avance de' : 'On colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''} : ${fracWords(q.n, q.d)}</div>`;
+      if (R && q.n > q.d) ans += `<div class="pill">${decompTxt(q.n, q.d)}</div>`;   // plus d'une unité : 20/8 = 2 + 4/8 = 2 + 1/2
       if (!R) extraBtn = BTN.verifier('dcheck');
       break;
     }
