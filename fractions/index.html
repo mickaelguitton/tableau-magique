@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.2 dans le portail « Le tableau magique » (réponses avec l'unité, correction animée des additions et soustractions)
+  v1.2 dans le portail « Le tableau magique » (réponses avec l'unité, corrections animées, bouton « Animations »)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -203,9 +203,13 @@ svg{user-select:none;-webkit-user-select:none}
 /* Correction animée d'une addition ou d'une soustraction : la part passe de --from à sa couleur, après --de secondes */
 .part-anim{animation:partFill .4s var(--de,0s) ease-out both}
 @keyframes partFill{from{fill:var(--from)}}
+.cadre-anim{animation-name:cadreFill}
+@keyframes cadreFill{from{fill:var(--from);stroke:var(--sfrom)}}
 .apparait{animation:apparait .4s var(--de,0s) ease-out both}
 @keyframes apparait{from{opacity:0}}
-@media (prefers-reduced-motion: reduce){ .part-anim,.apparait{animation:none} }
+.surgit{transform-box:fill-box;transform-origin:center;animation:surgit .35s var(--de,0s) cubic-bezier(.3,1.5,.6,1) both}
+@keyframes surgit{from{transform:scale(0);opacity:0}}
+@media (prefers-reduced-motion: reduce){ .part-anim,.apparait,.surgit{animation:none} }
 .mini{display:flex;align-items:center;gap:14px;justify-content:center;font-size:clamp(2rem,5vh,3rem);flex-wrap:wrap}
 .defi{flex:1;display:flex;flex-direction:column;min-height:0}
 .dtop{display:flex;align-items:center;justify-content:center;gap:14px}
@@ -286,7 +290,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un coup de pouce en plusieurs étapes avant la réponse.</li>
-      <li><b>La correction en images :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse.</li>
+      <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer (bouton « Animations » pour l’arrêter).</li>
     </ul>
 
     <h3>En classe</h3>
@@ -506,8 +510,9 @@ function diskG({ x = 0, cy, r, d, u, fill, interactive, gap = 40 }) {
   for (let k = 0; k < u; k++) {
     const cx = x + r + k * (2 * r + gap);
     for (let j = 0; j < d; j++) {
-      const i = k * d + j, c = fill(i) || '#fff';
-      const attrs = `${interactive ? `data-i="${i}" class="part"` : ''} fill="${c}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"`;
+      const i = k * d + j, f = fill(i), c = (f && f.c !== undefined ? f.c : f) || '#fff';
+      const anim = f && f.from ? vire(f.from, f.de) : '';
+      const attrs = `${interactive ? `data-i="${i}" class="part"` : ''}${anim} fill="${c}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"`;
       s += d === 1 ? `<circle cx="${cx}" cy="${cy}" r="${r}" ${attrs}/>` : `<path d="${sector(cx, cy, r, j * 360 / d, (j + 1) * 360 / d)}" ${attrs}/>`;
     }
     s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
@@ -549,12 +554,12 @@ function arrowG(X, y, col, lab) {
   return s;
 }
 
-function jumpsG(x, y, L, u, d, n, color) {
+function jumpsG(x, y, L, u, d, n, color, anim = false) {   // anim : les bonds apparaissent un à un depuis 0
   let s = '';
-  const step = L / (u * d), h = Math.min(46, 16 + step * 0.35);
+  const step = L / (u * d), h = Math.min(46, 16 + step * 0.35), pas = pasDe(n);
   for (let g = 0; g < n; g++) {
     const a = x + g * step, b = a + step;
-    s += `<path d="M ${a + 2} ${y - 4} Q ${(a + b) / 2} ${y - h} ${b - 2} ${y - 4}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" pointer-events="none"/>`;
+    s += `<path${anim ? apparait(PAUSE + g * pas) : ''} d="M ${a + 2} ${y - 4} Q ${(a + b) / 2} ${y - h} ${b - 2} ${y - 4}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" pointer-events="none"/>`;
   }
   return s;
 }
@@ -562,7 +567,7 @@ function jumpsG(x, y, L, u, d, n, color) {
 const svg = (w, h, inner, extra = '') => `<svg viewBox="0 0 ${w} ${h}" ${extra} xmlns="http://www.w3.org/2000/svg" font-family="Fredoka, Nunito, sans-serif">${inner}</svg>`;
 
 /* Une représentation complète prête à afficher */
-function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0, bilanDe = 0 }) {
+function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0, bilanDe = 0, anim = false }) {
   if (rep === 'barre') {
     const gap = 30, avail = W - 80;
     const unitW = u === 1 ? Math.min(820, avail) : (avail - (u - 1) * gap) / u;
@@ -595,9 +600,12 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
   // droite
   const x = 60, L = W - 160, y = 90;
   let s = lineG({ x, y, L, u, d, click });
-  if (sauts) s += jumpsG(x, y, L, u, d, n, color);
+  if (sauts || anim) s += jumpsG(x, y, L, u, d, n, color, anim);
+  const fin = anim ? `<g${apparait(PAUSE + n * pasDe(n))}>` : '';   // correction animée : le point arrive après les bonds
+  s += fin;
   if (n > 0) s += `<rect x="${x}" y="${y - 7}" width="${lx(x, L, u, d, n) - x}" height="14" rx="7" fill="${color}" opacity=".55" pointer-events="none"/>`;
   s += pointG(lx(x, L, u, d, n), y, n > 0 ? color : '#c9c2b5');
+  if (fin) s += '</g>';
   return svg(W, 150, s);
 }
 
@@ -606,7 +614,7 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
    ========================================================= */
 
 /* Jetons partagés en d groupes de k ; les n premiers groupes sont coloriés */
-function tokensSVG(Q, d, k, n, grouped) {
+function tokensSVG(Q, d, k, n, grouped, anim = false) {   // anim : on distribue les jetons un à un, comme des cartes
   const W = 1000;
   if (!grouped) { // tous les jetons en vrac, en lignes
     const per = Math.min(Q, 15), rows = Math.ceil(Q / per), r = 22, gx = 56;
@@ -617,31 +625,36 @@ function tokensSVG(Q, d, k, n, grouped) {
   const perRow = Math.min(d, 5), rowsG = Math.ceil(d / perRow), gw = (W - 40) / perRow, cols = Math.ceil(Math.sqrt(k)), lines = Math.ceil(k / cols);
   const r = Math.min(20, (gw - 40) / cols / 2.4), gh = lines * r * 2.6 + 30;
   let s = '';
+  const pas = pasDe(Q, 2.6, 0.15), fin = PAUSE + Q * pas + 0.3, jaune = soft('--c1', .6);
   for (let g = 0; g < d; g++) {
     const X = 20 + (g % perRow) * gw, Y = 10 + Math.floor(g / perRow) * (gh + 16), on = g < n;
-    s += `<rect x="${X + 6}" y="${Y}" width="${gw - 12}" height="${gh}" rx="18" fill="${on ? soft('--a', .18) : '#fff'}" stroke="${on ? 'var(--a)' : '#cfc6b6'}" stroke-width="3"/>`;
+    const cadre = anim && on ? ` class="part-anim cadre-anim" style="--from:#fff;--sfrom:#cfc6b6;--de:${fin.toFixed(2)}s"` : '';   // le groupe pris se colore à la fin (fond et bord)
+    s += `<rect${cadre} x="${X + 6}" y="${Y}" width="${gw - 12}" height="${gh}" rx="18" fill="${on ? soft('--a', .18) : '#fff'}" stroke="${on ? 'var(--a)' : '#cfc6b6'}" stroke-width="3"/>`;
     for (let i = 0; i < k; i++) {
       const cx = X + gw / 2 + ((i % cols) - (cols - 1) / 2) * r * 2.6, cy = Y + 15 + r * 1.3 + Math.floor(i / cols) * r * 2.6;
-      s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? 'var(--a)' : soft('--c1', .6)}" stroke="${INK}" stroke-width="2.5"/>`;
+      const rond = `<circle${anim && on ? vire(jaune, fin) : ''} cx="${cx}" cy="${cy}" r="${r}" fill="${on ? 'var(--a)' : jaune}" stroke="${INK}" stroke-width="2.5"/>`;
+      s += anim ? `<g${surgit(PAUSE + (i * d + g) * pas)}>${rond}</g>` : rond;   // tour à tour dans chaque groupe
     }
   }
   return svg(W, 20 + rowsG * (gh + 16), s);
 }
 
-function grandeurSVG(Q, unit, d, k, n, shown) {
+function grandeurSVG(Q, unit, d, k, n, shown, anim = false) {
   const x = 60, W = 880, y = 70, h = 90, w = W / d;
   let s = `<path d="M ${x} ${y - 14} V ${y - 26} H ${x + W} V ${y - 14}" fill="none" stroke="${INK}" stroke-width="3"/>
            <text x="${x + W / 2}" y="${y - 36}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${milliers(Q)} ${unit}</text>`;
+  const pas = pasDe(d, 2, 0.35), fin = PAUSE + d * pas + 0.2;
   for (let j = 0; j < d; j++) {
-    s += `<rect x="${x + j * w}" y="${y}" width="${w}" height="${h}" fill="${j < n ? 'var(--a)' : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
-    if (shown && w > 60) s += `<text x="${x + j * w + w / 2}" y="${y + h / 2 + 10}" text-anchor="middle" font-size="${Math.min(28, w / 3.2)}" font-weight="700" fill="${j < n ? '#fff' : INK}">${k} ${unit}</text>`;
+    s += `<rect${anim && j < n ? vire('#fff', fin) : ''} x="${x + j * w}" y="${y}" width="${w}" height="${h}" fill="${j < n ? 'var(--a)' : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
+    if (shown && w > 60) { const t = `<text${anim && j < n ? vire(INK, fin) : ''} x="${x + j * w + w / 2}" y="${y + h / 2 + 10}" text-anchor="middle" font-size="${Math.min(28, w / 3.2)}" font-weight="700" fill="${j < n ? '#fff' : INK}">${k} ${unit}</text>`;
+      s += anim ? `<g${apparait(PAUSE + j * pas)}>${t}</g>` : t; }   // la valeur de chaque part s'écrit l'une après l'autre
   }
   s += `<rect x="${x}" y="${y}" width="${W}" height="${h}" fill="none" stroke="${INK}" stroke-width="4"/>`;
   return svg(1000, y + h + 20, s);
 }
 
 /* Carré de 100 : index = unité × 100 + colonne × 10 + ligne (une colonne = un dixième) */
-function squareSVG(u, fill, interactive) {
+function squareSVG(u, fill, interactive, decoupe = false) {   // decoupe : les colonnes (dixièmes) se coupent en 10 sous les yeux des élèves
   const side = Math.min(360, (1000 - 80 - (u - 1) * 40) / u), cell = side / 10, gap = 40;
   const x0 = (1000 - (u * side + (u - 1) * gap)) / 2;
   let s = '';
@@ -649,8 +662,9 @@ function squareSVG(u, fill, interactive) {
     const X = x0 + k * (side + gap);
     for (let j = 0; j < 10; j++) for (let r = 0; r < 10; r++) {
       const i = k * 100 + j * 10 + r;
-      s += `<rect ${interactive ? `data-c="${i}" class="part"` : ''} x="${X + j * cell}" y="${10 + r * cell}" width="${cell}" height="${cell}" fill="${fill(i) || '#fff'}" stroke="#b9b3a8" stroke-width="1"/>`;
+      s += `<rect ${interactive ? `data-c="${i}" class="part"` : ''} x="${X + j * cell}" y="${10 + r * cell}" width="${cell}" height="${cell}" fill="${fill(i) || '#fff'}" stroke="${decoupe ? 'none' : '#b9b3a8'}" stroke-width="1"/>`;
     }
+    if (decoupe) for (let r = 1; r < 10; r++) s += `<path${apparait(PAUSE + 0.4 + r * 0.18)} d="M ${X} ${10 + r * cell} h ${side}" stroke="#8f887c" stroke-width="1.5" pointer-events="none"/>`;
     for (let j = 1; j < 10; j++) s += `<path d="M ${X + j * cell} 10 v ${side}" stroke="${INK}" stroke-width="2" pointer-events="none"/>`;
     s += `<rect x="${X}" y="10" width="${side}" height="${side}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
   }
@@ -765,17 +779,20 @@ function egalesSVG(a, b, list) {
 const ALT = ['var(--c0)', 'var(--c3)', 'var(--c2)', 'var(--c4)', 'var(--c1)', 'var(--c5)'];
 
 // 3 bandes de 5/4, puis les mêmes mises bout à bout (avec une règle graduée)
-function produitBarres(m, a, d) {
+function produitBarres(m, a, d, anim = false) {
   const res = m * a, u = Math.max(1, Math.ceil(res / d - 1e-9)), x = 130, L = 1230, U = L / u, step = U / d, bh = Math.min(46, 260 / (m + 2));
   let s = '', y = 10;
+  const pas = Math.min(0.6, 2.4 / m);
   for (let j = 0; j < m; j++, y += bh + 10) {
     const col = ALT[j % ALT.length];
+    if (anim) s += `<g${apparait(PAUSE + j * pas)}>`;
     for (let i = 0; i < a; i++) s += `<rect x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${col}" stroke="${INK}" stroke-width="2"/>`;
     s += svgFrac(x - 60, y + bh / 2 + 2, a, d, Math.min(30, bh * 0.62), col);
+    if (anim) s += '</g>';
   }
   y += 18;
   s += `<text x="${x - 60}" y="${y + bh / 2 + 10}" text-anchor="middle" font-size="28" font-weight="700" fill="${INK}">en tout</text>`;
-  for (let i = 0; i < res; i++) s += `<rect x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${ALT[Math.floor(i / a) % ALT.length]}" stroke="${INK}" stroke-width="2"/>`;
+  for (let i = 0; i < res; i++) s += `<rect${anim ? vire('#fff', PAUSE + (m + Math.floor(i / a)) * pas) : ''} x="${x + i * step}" y="${y}" width="${step}" height="${bh}" fill="${ALT[Math.floor(i / a) % ALT.length]}" stroke="${INK}" stroke-width="2"/>`;   // chaque bande vient se poser à la suite
   for (let k = 0; k <= u; k++) {
     s += `<path d="M ${x + k * U} ${y + bh + 8} V ${y + bh + 28}" stroke="${INK}" stroke-width="4"/><text x="${x + k * U}" y="${y + bh + 60}" text-anchor="middle" font-size="32" font-weight="700" fill="${INK}">${k}</text>`;
     if (k < u) s += `<rect x="${x + k * U}" y="${y - 2}" width="${U}" height="${bh + 4}" fill="none" stroke="${INK}" stroke-width="5"/>`;
@@ -797,7 +814,8 @@ const S = {
   mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null },
   placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, revealed: false, grads: true, sauts: false },
   deci: { view: 'carre', u: 1, set: new Set(), by: 'centieme', v: 340, s: 0, loupe: true, virgule: true, show: true },
-  defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} }
+  defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
+  anim: load('animations', true)   // corrections animées dans les défis
 };
 if (!CL[S.classe]) S.classe = 'CM2';
 
@@ -1662,11 +1680,56 @@ function autreUnite(cent, unit) {
   return '';
 }
 
+/* Corrections animées (bouton « Animations » des défis, actif par défaut).
+   Chaque élément animé reçoit un retard --de (secondes) : il apparaît, surgit ou change de couleur à ce moment. */
+const apparait = de => ` class="apparait" style="--de:${de.toFixed(2)}s"`;
+const surgit = de => ` class="surgit" style="--de:${de.toFixed(2)}s"`;
+const vire = (from, de) => ` class="part-anim" style="--from:${from};--de:${de.toFixed(2)}s"`;   // la couleur passe de « from » à la sienne
+const PAUSE = 0.6;   // on laisse voir le point de départ avant d'animer
+const pasDe = (n, total = 2.4, max = 0.3) => Math.min(max, total / Math.max(1, n));
+/* Parts coloriées une à une, de la première à la n-ième */
+const fillUneAUne = (n, col) => { const pas = pasDe(n), f = i => i < n ? { c: col, from: '#fff', de: PAUSE + i * pas } : null; f.fin = PAUSE + n * pas + 0.3; return f; };
+
+/* Fractions égales, animé : a/b sur la première barre ; sur la seconde, chaque part se coupe en k sous nos yeux */
+function egalesDecoupe(a, b, k) {
+  const c = C(), u = clamp(Math.ceil(Math.max(a / b, 1)), 1, c.maxU);
+  const haut = drawRep('barre', { d: b, u, fill: i => i < a ? 'var(--a)' : null, compact: true });
+  let bas = drawRep('barre', { d: b, u, fill: i => i < a ? 'var(--b)' : null, compact: true });
+  // même géométrie que drawRep('barre', compact) : W = 1000, écart 30, hauteur 90
+  const gap = 30, unitW = u === 1 ? 820 : (920 - (u - 1) * gap) / u, x0 = (1000 - (u * unitW + (u - 1) * gap)) / 2, w = unitW / b;
+  const sw = b * k > 30 ? 1 : b * k > 15 ? 1.5 : 2, pas = pasDe(u * b, 2.2, 0.35);
+  let traits = '';
+  for (let kk = 0; kk < u; kk++) for (let j = 0; j < b; j++) for (let t = 1; t < k; t++) {
+    const X = x0 + kk * (unitW + gap) + (j + t / k) * w;
+    traits += `<path${apparait(PAUSE + (kk * b + j) * pas)} d="M ${X} 10 v 90" stroke="${INK}" stroke-width="${sw}" pointer-events="none"/>`;
+  }
+  bas = bas.replace(/<\/svg>$/, traits + '</svg>');
+  return `<div class="cmprow"><div class="lab a">${F(a, b)}</div>${haut}</div>
+          <div class="cmprow"><div class="lab b">${F(a * k, b * k)}</div>${bas}</div>`;
+}
+
+/* Encadrer, animé : de grands bonds d'une unité depuis 0 (jusqu'à e), puis r petits bonds */
+function bondsUnites(x, y, L, u, d, e, r) {
+  const U = L / u, step = U / d, pas = 0.6, pasP = pasDe(r, 1.5, 0.3);
+  let s = '';
+  for (let kk = 0; kk < e; kk++) {
+    const a = x + kk * U, b = a + U;
+    s += `<path${apparait(PAUSE + kk * pas)} d="M ${a + 3} ${y - 6} Q ${(a + b) / 2} ${y - 70} ${b - 3} ${y - 6}" fill="none" stroke="var(--c4)" stroke-width="4" stroke-linecap="round" pointer-events="none"/>`;
+  }
+  for (let g = 0; g < r; g++) {
+    const a = x + e * U + g * step, b = a + step;
+    s += `<path${apparait(PAUSE + e * pas + g * pasP)} d="M ${a + 2} ${y - 4} Q ${(a + b) / 2} ${y - 30} ${b - 2} ${y - 4}" fill="none" stroke="var(--c4)" stroke-width="3" stroke-linecap="round" pointer-events="none"/>`;
+  }
+  return s;
+}
+
 /* Correction animée sur la barre : on montre d'abord le premier nombre (a parts),
    puis on enlève les parts une à une en partant de la fin (soustraction), ou on ajoute les b parts à la suite (addition). */
-function fillAnime(a, b, moins, A, B) {
+function fillAnime(a, b, moins, A, B, anim = true) {
   const pause = 0.8, pas = Math.min(0.35, 2.4 / Math.max(1, b));
   let f;
+  if (!anim) { const pale = soft('--a', .3), res = a - b;   // sans animation : l'état final
+    f = moins ? (i => i < res ? A : i < a ? pale : null) : (i => i < a ? A : i < a + b ? B : null); f.fin = 0; return f; }
   if (moins) { const pale = soft('--a', .3), res = a - b;
     f = i => i < res ? A : i < a ? { c: pale, from: A, de: pause + (a - 1 - i) * pas } : null; }
   else f = i => i < a ? A : i < a + b ? { c: B, from: '#fff', de: pause + (i - a) * pas } : null;
@@ -1693,7 +1756,7 @@ function renderDefi() {
     $('#stage').innerHTML = `<div class="end"><div>Série terminée, bravo !</div></div>`;
     return;
   }
-  const q = D.list[D.i], R = D.revealed, lvl = C().lvl;
+  const q = D.list[D.i], R = D.revealed, lvl = C().lvl, AN = R && S.anim;   // AN : correction animée
   const dots = D.list.map((_, i) => `<i class="${i < D.i ? 'done' : i === D.i ? 'cur' : ''}"></i>`).join('');
   let prompt = '', sub = '', viz = '', ans = '', extraBtn = '';
   // Coup de pouce en étapes, montrées une par une : un indice pour démarrer, un dessin pour comprendre, la méthode.
@@ -1738,8 +1801,8 @@ function renderDefi() {
       steps = q.k > 1
         ? [I(`Attention : chaque unité est partagée en ${denName(D, true)}, pas en ${denName(q.d, true)}.`), Dn(`${F(1, q.d)} = ${F(q.k, D)} : il faut ${q.k} petites parts pour faire ${F(1, q.d)}.`), M(`${F(q.n, q.d)}, c'est ${q.n} fois ${F(1, q.d)}, donc ${q.n} fois ${q.k} petites parts.`)]
         : [I(`Le dénominateur, ${q.d}, dit en combien de parts égales on partage l'unité.`), M(`Le numérateur, ${q.n}, dit combien de parts il faut ${droite ? 'compter depuis 0' : 'colorier'}${q.n > q.d ? ' : il faut plus d\'une unité' : ''}.`)];
-      if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R });
-      else viz = drawRep(q.rep, { d: D, u: q.u, fill: R ? (i => i < N ? A : null) : (i => st.set.has(i) ? A : null), interactive: !R });
+      if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
+      else viz = drawRep(q.rep, { d: D, u: q.u, fill: R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null), interactive: !R });
       if (st.checked && !R) {
         ans = cnt === N ? `<div class="pill">Bravo ! C'est bien ${fracWords(q.n, q.d)}.</div>`
                         : `<div class="pill ko">${droite ? 'Ton point est à' : 'Tu as colorié'} ${fracWords(cnt, D)}. Il faut ${fracWords(q.n, q.d)}.</div>`;
@@ -1792,7 +1855,7 @@ function renderDefi() {
       }
       prompt = `${F(a, b)} = ${q.miss === 'n' ? Fbox(R ? a * k : null, b * k) : Fbox(a * k, R ? b * k : null)}`;
       sub = 'Trouve le nombre qui manque.';
-      if (R) viz = `<div class="cmp" style="width:100%">${cmpRows({ n: a, d: b }, { n: a * k, d: b * k }, 'barre', true)}</div>`;
+      if (R) viz = `<div class="cmp" style="width:100%">${AN ? egalesDecoupe(a, b, k) : cmpRows({ n: a, d: b }, { n: a * k, d: b * k }, 'barre', true)}</div>`;
       steps = q.miss === 'n'
         ? [I("Des fractions égales, c'est la même quantité partagée autrement."), Dn(`${b} parts sont devenues ${b * k} parts : chaque part a été partagée en combien ?`, cmpBox({ n: a, d: b }, b * k)),
            M('Le dénominateur a été multiplié par un nombre : multiplie le numérateur par le même nombre.')]
@@ -1819,7 +1882,7 @@ function renderDefi() {
                  M(`${F(a, d)} = ${Fbox(null, d2)} ; puis ${moins ? 'enlève' : 'ajoute'} les ${denName(d2, true)}. Le dénominateur ne change pas.`)];
         if (R) {
           const u = Math.min(C().maxU, Math.max(1, Math.ceil(Math.max(a * k, res) / d2)));
-          const fill = fillAnime(a * k, b, moins, A, B);
+          const fill = fillAnime(a * k, b, moins, A, B, AN);
           viz = drawRep('barre', { d: d2, u, fill, bilan: res >= d2 ? res : 0, bilanDe: fill.fin });
         }
         ans = `<div class="pill">${F(a, d)} = ${F(a * k, d2)} &nbsp;donc&nbsp; ${F(a * k, d2)} ${moins ? '−' : '+'} ${F(b, d2)} = ${F(res, d2)}</div>` + finPill(res, d2);
@@ -1833,7 +1896,7 @@ function renderDefi() {
                M(moins ? `On enlève ${b} ${denName(d, b > 1)} aux ${a} : le dénominateur ne change pas.` : `On ajoute les numérateurs : ${a} ${denName(d, a > 1)} et ${b} ${denName(d, b > 1)}. Le dénominateur ne change pas.`)];
       const u = Math.max(1, Math.ceil(Math.max(a, res) / d));
       if (R) {
-        const fill = fillAnime(a, b, moins, A, B);
+        const fill = fillAnime(a, b, moins, A, B, AN);
         viz = drawRep('barre', { d, u: Math.min(u, C().maxU), fill, bilan: res >= d ? res : 0, bilanDe: fill.fin });
       }
       ans = `<div class="pill">${fracWords(a, d)} ${moins ? 'moins' : 'plus'} ${fracWords(b, d)}, ça fait ${fracWords(res, d)}</div>` + finPill(res, d);
@@ -1848,8 +1911,9 @@ function renderDefi() {
                M(lvl === 1 && n > d ? `Compte les unités entières, puis les ${denName(d, true)} qui restent.`
                  : st ? `Chaque petit intervalle vaut ${F(1, d)}, et ${st} = ${F(st * d, d)} : continue à compter à partir de là.` : `Chaque petit intervalle vaut ${F(1, d)}. Compte les intervalles depuis 0.`)];
       let s = lineG({ x, y, L, u, d, start: st });
-      if (R) s += jumpsG(x, y, L, u, d, n - st * d, 'var(--c4)');
-      s += arrowG(tx, y, 'var(--a)', R ? { n, d } : null);
+      if (R) s += jumpsG(x, y, L, u, d, n - st * d, 'var(--c4)', AN);
+      if (AN) s += arrowG(tx, y, 'var(--a)', '') + `<g${apparait(PAUSE + (n - st * d) * pasDe(n - st * d))}>${svgFrac(tx, y - 122, n, d, 34, 'var(--a)')}</g>`;   // la fraction s'écrit après les bonds
+      else s += arrowG(tx, y, 'var(--a)', R ? { n, d } : null);
       viz = svg(1000, 230, s);
       if (lvl === 1 && n > d) { // au CE2, on parle de mesure : « deux unités et un quart »
         prompt = 'Quelle longueur est montrée par la flèche ?';
@@ -1874,9 +1938,11 @@ function renderDefi() {
     case 'probleme': {
       prompt = `<span style="font-size:.78em;line-height:1.45;max-width:40em">${q.text}</span>`;
       if (R && q.bar) { const { d, u, segs } = q.bar, tot = segs.reduce((x, y) => x + y[0], 0);
-        viz = drawRep('barre', { d, u, fill: i => { let c0 = 0; for (const [n, col] of segs) { if (i < c0 + n) return col; c0 += n; } return null; }, bilan: tot >= d && q.kind !== 'reste' && q.kind !== 'gateau3' ? tot : 0 }); }
+        const pasS = 0.7;   // correction animée : chaque morceau de l'histoire arrive à son tour
+        const fill = i => { let c0 = 0, t = 0; for (const [n, col] of segs) { if (i < c0 + n) return AN ? { c: col, from: '#fff', de: PAUSE + t * pasS } : col; c0 += n; t++; } return null; };
+        viz = drawRep('barre', { d, u, fill, bilan: tot >= d && q.kind !== 'reste' && q.kind !== 'gateau3' ? tot : 0, bilanDe: AN ? PAUSE + segs.length * pasS : 0 }); }
       if (R && q.cmp) viz = `<div class="cmp" style="width:100%">${cmpRows(q.cmp[0], q.cmp[1], 'barre', true)}</div>`;
-      if (R && q.tokens) viz = tokensSVG(q.tokens[0], q.tokens[1], q.tokens[2], q.tokens[3], true);
+      if (R && q.tokens) viz = tokensSVG(q.tokens[0], q.tokens[1], q.tokens[2], q.tokens[3], true, AN);
       { const bande = q.bar ? Dn(`Dessine une bande partagée en ${q.bar.d} parts égales.`, drawRep('barre', { d: q.bar.d, u: q.bar.u, fill: () => null })) : null;
         const sg = q.bar && q.bar.segs, dd = q.bar && q.bar.d;
         steps = {
@@ -1902,7 +1968,7 @@ function renderDefi() {
         steps = [I(`${F(1, d)} de ${QT} ${unit}, c'est une part quand on partage ${QT} ${unit} en ${d} parts égales.`), null, M(n === 1 ? `Calcule ${QT} ÷ ${d}.` : `Calcule ${QT} ÷ ${d}, puis multiplie par ${n}.`)];
         // valeurs écrites à la française (2,5) ; calcul en centièmes pour éviter les arrondis
         const cent = Math.round(Q * 100 / d), dec = x => comma(x * 10);
-        if (R) viz = grandeurSVG(Q, unit, d, dec(cent), n, true);
+        if (R) viz = grandeurSVG(Q, unit, d, dec(cent), n, true, AN);
         steps[1] = Dn(`On partage ${QT} ${unit} en ${d} parts égales.`, grandeurSVG(Q, unit, d, dec(cent), 0, false));
         ans = `<div class="pill">${QT} ${unit} ÷ ${d} = ${dec(cent)} ${unit}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${QT} ${unit}, c'est ${n} × ${dec(cent)} = ${dec(n * cent)} ${unit}</div>` : '') + autreUnite(n * cent, unit);
         break;
@@ -1912,7 +1978,7 @@ function renderDefi() {
       steps = [I(`${F(1, d)} de ${Q} ${obj}, c'est une part quand on partage les ${Q} ${obj} en ${d} parts égales.`),
                Dn(`On partage les ${Q} ${obj} en ${d} parts égales.`, tokensSVG(Q, d, k, 0, false)),
                M(n === 1 ? `Compte les ${obj} d'une part : c'est ${Q} ÷ ${d}.` : `Compte les ${obj} d'une part (${Q} ÷ ${d}), puis prends ${words(n)} parts.`)];
-      if (R) viz = tokensSVG(Q, d, k, n, true);
+      if (R) viz = tokensSVG(Q, d, k, n, true, AN);
       ans = `<div class="pill">${Q} ÷ ${d} = ${k}, donc ${F(1, d)} de ${Q} ${obj}, c'est ${k} ${obj}</div>` + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n} × ${k} = ${n * k} ${obj}</div>` : '');
       break;
     }
@@ -1920,7 +1986,7 @@ function renderDefi() {
       const { m, a, d } = q, res = m * a;
       prompt = `${m} × ${F(a, d)} = ${R ? F(res, d) : BOX}`;
       sub = `C'est ${words(m)} fois ${fracWords(a, d)}.`;
-      if (R) viz = produitBarres(m, a, d); // schéma en barres : m bandes, puis les mêmes bout à bout
+      if (R) viz = produitBarres(m, a, d, AN); // schéma en barres : m bandes, puis les mêmes bout à bout
       steps = [I(`${m} × ${F(a, d)}, c'est ${Array(m).fill(F(a, d)).join(' + ')}.`),
                M(`On ajoute les numérateurs : ${m} fois ${a} ${denName(d, a > 1)}. Le dénominateur ne change pas.`)];
       ans = `<div class="pill">${Array(m).fill(F(a, d)).join(' + ')} = ${F(res, d)}</div>` + (res > d && res % d ? `<div class="pill">${decompTxt(res, d)}</div>` : res % d === 0 ? `<div class="pill">${F(res, d)} = ${res / d}</div>` : '');
@@ -1933,7 +1999,9 @@ function renderDefi() {
       steps = [I(`Combien de ${denName(d, true)} faut-il pour faire 1 ? Et pour faire 2 ?`),
                Dn(range(1, e + 1).map(j => `${j} = ${F(j * d, d)}`).join(' ; ') + ' …'),
                M(`Cherche les deux nombres entiers qui se suivent dont l'écriture en ${denName(d, true)} entoure ${F(n, d)}.`)];
-      if (R) { let s = lineG({ x, y: 170, L, u, d }); const tx = lx(x, L, u, d, n); s += arrowG(tx, 170, 'var(--a)', { n, d }); viz = svg(1000, 230, s); }
+      if (R) { let s = lineG({ x, y: 170, L, u, d }); const tx = lx(x, L, u, d, n);
+        if (AN) s += bondsUnites(x, 170, L, u, d, e, n - e * d);   // de 0, on avance d'unité en unité, puis par petits bonds
+        s += arrowG(tx, 170, 'var(--a)', { n, d }); viz = svg(1000, 230, s); }
       ans = `<div class="pill">${F(n, d)} = ${e} + ${F(n - e * d, d)} &nbsp;donc&nbsp; ${e} &lt; ${F(n, d)} &lt; ${e + 1}</div>`;
       break;
     }
@@ -1957,7 +2025,7 @@ function renderDefi() {
         const m = q.to / q.from;
         prompt = q.rev ? `${Fbox(R ? q.a : null, q.from)} = ${F(q.a * m, q.to)}` : `${F(q.a, q.from)} = ${Fbox(R ? q.a * m : null, q.to)}`;
         sub = 'Trouve le nombre qui manque.';
-        if (R && q.from === 10) viz = squareSVG(1, i => i < q.a * 10 ? A : null, false);
+        if (R && q.from === 10) viz = squareSVG(1, i => i < q.a * 10 ? A : null, false, AN);
         ans = `<div class="pill">1 ${denName(q.from, false)} = 10 ${denName(q.to, true)}, donc ${F(q.a, q.from)} = ${F(q.a * m, q.to)}</div>`;
       } else if (k === 'decomp') {
         const n = q.n, d = q.d, v = d === 100 ? n * 10 : n;
@@ -2008,7 +2076,8 @@ function renderDefi() {
       const { n, d, e, r } = q;
       if (q.inverse) { prompt = `${e} + ${F(r, d)} = ${R ? F(n, d) : Fbox(null, d)}`; sub = `Combien de ${denName(d, true)} en tout ?`; }
       else { prompt = `${F(n, d)} = ${R ? e : BOX} + ${R ? F(r, d) : Fbox(null, d)}`; sub = 'Écris la fraction comme un entier plus une fraction plus petite que 1.'; }
-      if (R) viz = drawRep('barre', { d, u: Math.min(e + 1, C().maxU), fill: i => i < n ? A : null, bilan: n });
+      if (R) { const fill = AN ? fillUneAUne(n, A) : (i => i < n ? A : null);   // animation : les parts remplissent une unité, puis débordent sur la suivante
+        viz = drawRep('barre', { d, u: Math.min(e + 1, C().maxU), fill, bilan: n, bilanDe: AN ? fill.fin : 0 }); }
       steps = [I(`1 = ${F(d, d)}.`), Dn(`Une bande pour chaque unité, partagée en ${denName(d, true)} :`, drawRep('barre', { d, u: Math.min(e + 1, C().maxU), fill: () => null })),
                M(q.inverse ? `${e} ${e > 1 ? 'unités' : 'unité'}, c'est ${e} fois ${d} ${denName(d, true)} ; ajoute les ${r} qui restent.`
                            : `Combien de fois ${d} dans ${n} ? Ce sont les unités entières ; le reste, ce sont des ${denName(d, true)}.`)];
@@ -2031,7 +2100,8 @@ function renderDefi() {
       <div class="answer ${R || D.st.checked ? 'on' : ''}">${ans}</div>
     </div>`;
   // boutons de la question en bas de l'écran, à côté de « Nouvelle série » : plus de place pour la réponse
-  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série');
+  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
+    + toggle('Animations', 'danim', S.anim);   // corrections animées : actif par défaut, mémorisé
 }
 
 /* =========================================================
@@ -2126,6 +2196,7 @@ const ACT = {
   drandom() { deciRandom(); render(); },
   dnew() { newSeries(); render(); },
   dreveal() { S.defis.revealed = true; render(); },
+  danim() { S.anim = !S.anim; save('animations', S.anim); render(); },
   dcheck() { S.defis.st.checked = true; render(); },
   daide() { S.defis.st.aide = (S.defis.st.aide || 0) + 1; render(); }, // une étape de plus à chaque clic
   info(v, el) { // bulle « i » : objectif et exemples de réussite ; un second clic la ferme
