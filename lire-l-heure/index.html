@@ -27,7 +27,7 @@
 <script src="../portail.js"></script>
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important;align-items:center;justify-content:center}</style>
 <!--
-  Les aiguilles du temps (Tic-Tac Time en anglais)  v3.8 (v1.0 dans le portail « Le tableau magique »)
+  Les aiguilles du temps (Tic-Tac Time en anglais)  v3.8 (v1.6 dans le portail « Le tableau magique »)
   Horloge à aiguilles à manipuler pour apprendre à lire l'heure (CP au CM2, français et anglais).
   Auteur : Mickaël Guitton  licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI.
@@ -447,7 +447,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.5</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.6</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -831,17 +831,21 @@ function randomTimes(count){
 }
 
 // Synthèse vocale (voix française ou anglaise de l'ordinateur)
+// text : une phrase, ou une liste de phrases lues l'une après l'autre
 function speak(text){
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = S.lang === 'en' ? 'en-GB' : 'fr-FR';
+  const lang = S.lang === 'en' ? 'en-GB' : 'fr-FR';
   const voices = speechSynthesis.getVoices();
-  const v = voices.find(v => v.lang.replace('_','-') === u.lang)
-         || voices.find(v => v.lang.slice(0,2) === u.lang.slice(0,2));
-  if (v) u.voice = v;
-  u.rate = .88;
-  speechSynthesis.speak(u);
+  const v = voices.find(v => v.lang.replace('_','-') === lang)
+         || voices.find(v => v.lang.slice(0,2) === lang.slice(0,2));
+  [].concat(text).forEach(t => {
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = lang;
+    if (v) u.voice = v;
+    u.rate = .88;
+    speechSynthesis.speak(u);
+  });
 }
 if ('speechSynthesis' in window) speechSynthesis.getVoices();
 
@@ -1274,7 +1278,7 @@ function renderLire(){
 $('lGrid').addEventListener('click', e => {
   const c = e.target.closest('.qcard'); if (!c) return;
   const i = +c.dataset.i; L.shown[i] = !L.shown[i];
-  if (L.shown[i] && S.lCount === 1 && S.lang === 'en') speak(expr(L.times[i]).say);   // voix seulement en anglais
+  if (L.shown[i] && S.lang === 'en') speak(expr(L.times[i]).say);   // voix seulement en anglais (1, 4 ou 6 horloges)
   renderLire();
 });
 // Choisit le nombre de colonnes qui donne les plus grandes horloges pour l'écran utilisé
@@ -1300,6 +1304,11 @@ $('lNew').onclick = newLire;
 $('lReveal').onclick = () => {
   const all = L.shown.every(Boolean);
   L.shown = L.shown.map(() => !all);
+  // En anglais, on entend toutes les heures dans l'ordre : « Number one. … Number two. … »
+  if (!all && S.lang === 'en'){
+    const NUM = ['one','two','three','four','five','six'];
+    speak(L.times.map((t, i) => (L.times.length > 1 ? `Number ${NUM[i]}. ` : '') + expr(t).say));
+  }
   renderLire();
 };
 
