@@ -2187,8 +2187,7 @@ const PROPS = {
     return { bonne: F(N, D), pieges: [
       [F(D, N), 'fraction retournée : le nombre de parts de l\'unité s\'écrit en bas.'],
       q.u === 1 ? [F(D - N, D), 'ce sont les parts non coloriées.'] : [F(N, q.u * D), `tu as compté les parts de toutes les unités : chaque unité est partagée en ${D}.`],
-      q.u * D > N ? [F(N, q.u * D - N), 'tu as comparé les parts coloriées aux parts blanches : en bas, c\'est le nombre de parts de l\'unité.'] : null,
-      [F(N, D + 1), 'compte bien les parts de l\'unité.'], [F(N + 1, D), 'compte bien les parts coloriées.']] };   // secours, si deux erreurs donnent la même réponse
+      q.u * D > N ? [F(N, q.u * D - N), 'tu as comparé les parts coloriées aux parts blanches : en bas, c\'est le nombre de parts de l\'unité.'] : null] };
   },
   ajouter(q) {
     if (q.comp || q.d2) return null;
@@ -2196,33 +2195,27 @@ const PROPS = {
     return sub ? { bonne: F(a - b, d), pieges: [
       [F(a + b, d), 'tu as additionné au lieu de soustraire.'],
       [F(b, d), 'c\'est ce qu\'on enlève, pas ce qui reste.'],
-      [F(a - b, 2 * d), 'le dénominateur ne change pas : on enlève des parts de même taille.'],
-      a - b > 1 ? [F(a - b - 1, d), 'presque : compte bien les parts.'] : [F(a - b + 1, d), 'presque : compte bien les parts.']] }
+      [`${a - b}`, 'le dénominateur est oublié.']] }
     : { bonne: F(a + b, d), pieges: [
       [F(a + b, 2 * d), 'tu as aussi additionné les dénominateurs : on ajoute des parts de même taille, le dénominateur ne change pas.'],
-      [F(a + b, d * d), 'tu as multiplié les dénominateurs : ils ne changent pas.'],
-      a !== b ? [F(Math.abs(a - b), d), 'tu as soustrait au lieu d\'additionner.'] : null,
-      [F(a + b + 1, d), 'presque : compte bien les parts.'], [F(a * b, d), 'tu as multiplié les numérateurs : on ajoute des parts.']] };
+      [`${a + b}`, 'le dénominateur est oublié.'],
+      a !== b ? [F(Math.abs(a - b), d), 'tu as soustrait au lieu d\'additionner.'] : null] };
   },
   produit(q) {
     const { m, a, d } = q;
     return { bonne: F(m * a, d), pieges: [
       [F(m * a, m * d), `tu as aussi multiplié le dénominateur : ${m} fois ${denName(d, a > 1)}, ce sont toujours des ${denName(d, true)}.`],
-      [F(m + a, d), `tu as ajouté ${m} au lieu de multiplier.`],
-      [F(a, m * d), 'tu as multiplié le dénominateur : les parts deviennent plus petites, alors qu\'on en prend plus.'],
-      [F(m * a + 1, d), 'presque : vérifie la multiplication.'], [F(m * a, d + m), `le dénominateur ne change pas : ce sont toujours des ${denName(d, true)}.`]] };
+      [F(m + a, d), `tu as ajouté ${m} au lieu de multiplier.`]] };
   },
   egales(q) {
     if (q.parmi) return null;
     const { a, b, k } = q;
     if (q.miss === 'd') return { bonne: `${F(a * k, b * k)}`, pieges: [
       [F(a * k, b + (a * k - a)), 'tu as ajouté le même nombre en haut et en bas : il faut multiplier par le même nombre.'],
-      [F(a * k, b), 'tu as recopié le dénominateur.'],
-      [F(a * k, b * k + 1), 'presque : vérifie la multiplication.'], [F(a * k, b * k - 1), 'presque : vérifie la multiplication.']] };
+      [F(a * k, b), 'tu as recopié le dénominateur.']] };
     return { bonne: F(a * k, b * k), pieges: [
       [F(a + (b * k - b), b * k), 'tu as ajouté le même nombre en haut et en bas : il faut multiplier par le même nombre.'],
-      [F(a, b * k), 'tu as recopié le numérateur : si les parts sont plus petites, il en faut plus.'],
-      [F(a * k + 1, b * k), 'presque : vérifie la multiplication.'], [F(a * k - 1 || a * k + 2, b * k), 'presque : vérifie la multiplication.'], [F(a * k + 2, b * k), 'presque : vérifie la multiplication.']] };
+      [F(a, b * k), 'tu as recopié le numérateur : si les parts sont plus petites, il en faut plus.']] };
   },
   lire(q) {
     const { n, d, st } = q;
@@ -2239,7 +2232,7 @@ const PROPS = {
       [ec(d, n), 'ce sont les nombres de la fraction, pas les entiers qui l\'entourent.'],
       [ec(0, 1), `une fraction peut être plus grande que 1 : ${F(n, d)} est plus grand que ${F(d, d)}.`],
       [ec(e + 1, e + 2), `décalé d'un cran : ${e + 1} = ${F((e + 1) * d, d)}, c'est plus que ${F(n, d)}.`],
-      e > 1 ? [ec(e - 1, e), `décalé d'un cran : ${e} = ${F(e * d, d)}, c'est moins que ${F(n, d)}.`] : [ec(e, e + 2), 'il faut deux nombres entiers qui se suivent.']] };
+      e > 1 ? [ec(e - 1, e), `décalé d'un cran : ${e} = ${F(e * d, d)}, c'est moins que ${F(n, d)}.`] : null] };
   },
   quantite(q) {
     if (q.grand) {
@@ -2247,14 +2240,13 @@ const PROPS = {
       return { bonne: v(n * cent), pieges: [
         [v(Q * d * 100), `tu as multiplié par ${d} au lieu de partager en ${d}.`],
         [v((Q - d) * 100), `tu as enlevé ${d} au lieu de partager en ${d}.`],
-        n > 1 ? [v(cent), `c'est une seule part : il en faut ${n}.`] : [`${d} ${unit}`, 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.'],
-        [v((Q + d) * 100), `tu as ajouté ${d} au lieu de partager en ${d}.`]] };
+        n > 1 ? [v(cent), `c'est une seule part : il en faut ${n}.`] : [`${d} ${unit}`, 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.']] };
     }
     const { d, k, n, obj } = q, Q = d * k, v = x => `${milliers(x)} ${obj}`;
     return { bonne: v(n * k), pieges: [
       [v(Q * d), `tu as multiplié par ${d} au lieu de partager en ${d}.`],
       n > 1 ? [v(k), `c'est une seule part : il en faut ${n}.`] : [v(Q - d), `tu as enlevé ${d} au lieu de partager en ${d}.`],
-      [v(d), 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.'], [v(n * k + 1), 'presque : vérifie le partage.'], [v(Q + d), `tu as ajouté ${d} au lieu de partager en ${d}.`]] };
+      [v(d), 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.']] };
   }
 };
 
@@ -2264,20 +2256,17 @@ PROPS.decimales = q => {
   if (k === 'carre') { const c = q.c; return { bonne: F(c, 100), pieges: [
     [`${c},100`, 'barre de fraction prise pour une virgule.'],
     [F(c, 10), 'des centièmes, pas des dixièmes : le carré a 100 petits carrés.'],
-    [F(100 - c, 100), 'ce sont les petits carrés non coloriés.'],
-    [F(c, 1000), 'des centièmes, pas des millièmes.']] }; }
+    [F(100 - c, 100), 'ce sont les petits carrés non coloriés.']] }; }
   if (k === 'conv') { const m = q.to / q.from, a = q.a;
-    return q.rev ? { bonne: F(a, q.from), pieges: [[F(a * m, q.from), 'recopié.'], [F(a * m * m, q.from), 'multiplié au lieu de diviser.'], [F(a * m > 10 ? a * m - 10 : a * m + 10, q.from), 'enlevé ou ajouté 10.']] }
-                 : { bonne: F(a * m, q.to), pieges: [[F(a, q.to), 'recopié.'], [F(a * m * m, q.to), 'multiplié par 100.'], [F(a + 10, q.to), 'ajouté 10.']] }; }
+    return q.rev ? { bonne: F(a, q.from), pieges: [[F(a * m, q.from), 'recopié.'], [F(a * m * m, q.from), 'multiplié au lieu de diviser.']] }
+                 : { bonne: F(a * m, q.to), pieges: [[F(a, q.to), 'recopié.'], [F(a * m * m, q.to), 'multiplié par 100.']] }; }
   if (k === 'decomp') {
     const v = q.d === 100 ? q.n * 10 : q.n, e = Math.floor(v / 1000), ch = [Math.floor(v % 1000 / 100), Math.floor(v % 100 / 10), v % 10];
     const dens = q.d === 1000 ? [10, 100, 1000] : [10, 100];
     const ecrit = (u, c) => [...(u ? [u] : []), ...dens.map((d, i) => F(c[i], d))].join(' + ');
     return { bonne: ecrit(e, ch), pieges: [
       [ecrit(e, [ch[1], ch[0], ch[2]]), 'dixièmes et centièmes inversés.'],
-      [[...(e ? [F(e, 10)] : []), ...dens.map((d, i) => F(ch[i], d * 10))].join(' + '), 'tout est décalé d\'un rang.'],
-      [ecrit(ch[0], [e, ch[1], ch[2]]), 'unités et dixièmes inversés.'],
-      [ecrit(e + 1, ch), 'une unité de trop.'], [ecrit(e, [ch[0] + 1, ch[1], ch[2]]), 'un dixième de trop.']] };   // secours
+      [ecrit(ch[0], [e, ch[1], ch[2]]), 'unités et dixièmes inversés.']] };
   }
   if (k === 'dcmp') { const real = q.v1 < q.v2 ? 0 : q.v1 > q.v2 ? 2 : 1, S3 = [lt, '=', '&gt;'];
     return { bonne: S3[real], pieges: S3.filter((_, i) => i !== real).map(x => [x, 'mauvais signe.']) }; }
@@ -2287,20 +2276,17 @@ PROPS.decimales = q => {
       [comma(w + (w - v)), `plus grand que ${comma(w)}.`],
       [comma(e * 1000 + (v % 1000) / 10), `plus petit que ${comma(v)}.`]] }; }
   if (k === 'encadrerDec') {
-    const pas = { unite: 1000, dixieme: 100, centieme: 10 }[q.prec], lo = Math.floor(q.v / pas) * pas, autre = q.prec === 'unite' ? 100 : q.prec === 'dixieme' ? 1000 : 100;
-    const ec = (a, b) => `${comma(a)} ${lt} ${comma(q.v)} ${lt} ${comma(b)}`, lo2 = Math.floor(q.v / autre) * autre;
+    const pas = { unite: 1000, dixieme: 100, centieme: 10 }[q.prec], lo = Math.floor(q.v / pas) * pas;
+    const ec = (a, b) => `${comma(a)} ${lt} ${comma(q.v)} ${lt} ${comma(b)}`;
     return { bonne: ec(lo, lo + pas), pieges: [
       [ec(lo + pas, lo + 2 * pas), 'décalé d\'un cran.'],
-      lo >= pas ? [ec(lo - pas, lo), 'décalé d\'un cran.'] : null,
-      [ec(lo2, lo2 + autre), 'pas la bonne précision.'],
-      [ec(lo, q.v + (q.v % 10 ? 1 : 10)), 'ce ne sont pas deux nombres qui se suivent à cette précision.']] };
+      lo >= pas ? [ec(lo - pas, lo), 'décalé d\'un cran.'] : null] };
   }
   if (k === 'arrondi') { const e = Math.floor(q.v / 1000), up = q.v % 1000 >= 500 ? e + 1 : e, et = (a, b) => `${a} et ${b}`;
     return { bonne: et(e, up), pieges: [
       [et(e, up === e ? e + 1 : e), 'l\'arrondi va au plus proche.'],
       [et(e + 1, e + 1), 'la partie entière, c\'est le nombre avant la virgule.'],
-      [et(e, comma(Math.round(q.v / 100) * 100)), 'arrondi au dixième, pas à l\'unité.'],
-      [et(up, e), 'les deux réponses inversées.'], e > 0 ? [et(e - 1, e), 'décalé d\'un cran.'] : null] }; }
+      [et(e, comma(Math.round(q.v / 100) * 100)), 'arrondi au dixième, pas à l\'unité.']] }; }
   // écriture à virgule (254/100 = 2,54) ou fraction décimale (2,54 = ?/100)
   const { n, d } = q, v = d === 100 ? n * 10 : n, e = Math.floor(n / d);
   if (q.rev) return { bonne: F(n, d), pieges: [
