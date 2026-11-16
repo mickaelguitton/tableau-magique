@@ -98,6 +98,7 @@
       const d = document.createElement('div');
       d.id = 'tourne-telephone';
       d.setAttribute('role', 'alert');
+      d.setAttribute('data-nosnippet', '');   // Google ne reprend pas ce message dans ses résultats
       d.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="18" y="6" width="28" height="52" rx="6" fill="#fff" stroke="#8E6CEF" stroke-width="4"/>'
         + '<rect x="23" y="13" width="18" height="34" rx="2" fill="#E9E3FF"/><circle cx="32" cy="52" r="2.5" fill="#8E6CEF"/></svg>'
         + '<div>Tourne ton téléphone<br><small>Le tableau magique s’utilise en mode paysage.</small></div>';
@@ -112,7 +113,10 @@
     const outil = (self.OUTILS || []).find(o => o.dossier === dossier);
     const version = outil ? outil.version : (typeof APP_VERSION !== 'undefined' ? APP_VERSION : null);
     if (!version) return;
-    document.querySelectorAll('.app-version').forEach(e => { e.textContent = ' – v' + version; });
+    document.querySelectorAll('.app-version').forEach(e => {
+      e.textContent = ' – v' + version;
+      e.parentElement.setAttribute('data-nosnippet', '');           // signature : pas reprise dans les résultats Google
+    });
     const vnum = document.getElementById('vnum');                    // ligne existante du calcul mental
     if (vnum) vnum.textContent = ' – v' + version;
   }
