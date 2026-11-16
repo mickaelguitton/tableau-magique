@@ -580,7 +580,9 @@ G.addSansInt=(lv,c)=>{const add=colOf(c)===0;                                   
     if(add?d+k>9:d<k)continue;
     const m=k*10**p;return I(`${fr(n)} ${add?'+':'−'} ${fr(m)} =`,fr(n+(add?m:-m)));}};
 const decLate=it=>{if(/,|<span/.test(it.t))it.x=6;return it;};     // les nombres décimaux viennent après les entiers
-G.addSans=(lv,c)=>decLate(rnd(0,1)?G.addSansInt(lv,c):G.addSansDec(lv,c));        // entiers et décimaux mêlés, classés du plus simple au plus difficile
+/* pastilles « entiers » (1) et « décimaux » (2) : les deux cochées = entiers et décimaux mêlés, classés du plus simple au plus difficile */
+const entDec=k=>{const T=POW[k]||[1,2];return T.length===1?T[0]:rnd(1,2);};
+G.addSans=(lv,c)=>decLate(entDec('as')===1?G.addSansInt(lv,c):G.addSansDec(lv,c));
 G.mulDec10=()=>{const n=mkDec(1,99,rnd(1,2),false);return I(`${sw(fr(n),10,'×')} =`,fr(n*10));};      // 72,41 × 10
 G.divDec10=()=>{let n,z=false;
   if(rnd(0,3)===0){z=true;n=pick([()=>rnd(1,9),()=>mkDec(1,9,1,false),()=>mkDec(0,0,1,false),()=>mkDec(0,0,2,false)])();}   // 7 : 10 ; 4,5 : 10 ; 0,6 : 10 ; 0,45 : 10
@@ -617,7 +619,7 @@ G.addAvecDec=(lv)=>{const Dm=lv==='CM2'?3:2;                          // 4,45 + 
     const above=j===1?ip%10:ds[j-2];if(above===9)continue;                                          // pas de retenue en cascade
     const val=rnd(0,1)?F(k,10**j):fr(k/10**j);
     return I(`${fr(H/S)} + ${val} =`,fr((H+k*S/10**j)/S));}};
-G.addAvec=(lv)=>decLate(rnd(0,1)?G.addAvecInt(lv):G.addAvecDec(lv));
+G.addAvec=(lv)=>decLate(entDec('aa')===1?G.addAvecInt(lv):G.addAvecDec(lv));     // pastilles « entiers » / « décimaux », comme addSans
 /* pastilles du menu : multiplicateurs / diviseurs travaillés (10, 100, 1 000) */
 let POW={};
 const setPow=o=>{POW={};for(const k in o)POW[k]=o[k]&&o[k].length?o[k].slice():null;};
@@ -744,14 +746,14 @@ const SK=[
  {id:'fracQteAutres',ic:'🍩',n:'Fraction d’une quantité (2/3, 3/4, 2/5, 3/5, 4/5, 2/10…)',h:'3/4 de 20 : un quart (5), puis 3 fois plus = 15',lv:['CM2']},
  {id:'fracQuarts',ic:'🍕',n:'Relations entre 1/4, 1/2, 3/4 et 1',nl:{CM1:'Relations entre 1/4, 1/2 et 1'},h:'Relations entre ½, ¼ et 1',lv:['CM1','CM2']},
  {id:'fracDixCM1',ic:'🔟',n:'Relations entre 1/10, 1/100 et 1, et écriture décimale',h:'1/10 = 0,1 ; 1/100 = 0,01 ; 1 = 10/10…',lv:['CM1']},
- {id:'addSans',ic:'🎯',n:'Ajouter ou soustraire sans retenue (entiers et décimaux)',h:'342 + 500 ; 4,45 + 0,3. '+LR,lv:['CM1','CM2'],split:true},
+ {id:'addSans',ic:'🎯',n:'Ajouter ou soustraire sans retenue',h:'342 + 500 ; 4,45 + 0,3. '+LR,lv:['CM1','CM2'],split:true},
  {id:'mulDec10',ic:'🔭',n:'Multiplier un nombre décimal par 10',h:'Chaque chiffre est 10 fois plus grand !',lv:['CM1']},
  {id:'divDec10',ic:'🔬',n:'Diviser un nombre décimal par 10',h:'Chaque chiffre est 10 fois plus petit !',lv:['CM1']},
  /* --- CM2 --- */
  {id:'fracDix',ic:'🔢',n:'Relations entre 1/10, 1/100, 1/1000 et 1',h:'1/100 = …/1000 ; 1 = …/10',lv:['CM2']},
  {id:'fracDecimales',ic:'🥧',n:'Relations entre 1/2, 1/4, 3/4 et les fractions décimales',h:'1/2 = …/10 ; 1/4 = …/100 ; 3/4 = …/100',lv:['CM2']},
  {id:'ecritureDec',ic:'🔄',n:'Écriture décimale de fractions usuelles',h:'Passe de la fraction au nombre décimal (et inversement) !',lv:['CM2']},
- {id:'addAvec',ic:'🎒',n:'Ajouter avec retenue (entiers et décimaux)',h:'746 + 80 ; 4,45 + 0,8',lv:['CM2']},
+ {id:'addAvec',ic:'🎒',n:'Ajouter avec retenue',h:'746 + 80 ; 4,45 + 0,8',lv:['CM2']},
  {id:'addDecimaux',ic:'🧮',n:'Additionner deux nombres décimaux',h:'Entiers d’un côté, dixièmes de l’autre !',lv:['CM2']},
  {id:'mulDec',ic:'🔭',n:'Multiplier un nombre décimal par 10, 100 ou 1 000',h:'Chaque chiffre devient 10, 100 ou 1 000 fois plus grand !',lv:['CM2']},
  {id:'divDec',ic:'🔬',n:'Diviser un nombre décimal par 10, 100 ou 1 000',h:'Chaque chiffre devient 10, 100 ou 1 000 fois plus petit !',lv:['CM2']},
@@ -1210,9 +1212,10 @@ const DOCX=(function(){
     const f=n=>n===1000?'1\u00a0000':String(n),L=S.length>1?S.slice(0,-1).map(f).join(', ')+' et '+f(S[S.length-1]):f(S[0]);
     return {multTab:S.length>1?'Tables de multiplication : '+L:'Table de multiplication de '+L,
       pmPlus:'Ajouter ou soustraire '+L,pmAdd:'Ajouter '+L,add91929:'Ajouter '+L,pmSub:'Soustraire '+L,div48:'Diviser un nombre entier par '+L,x5x50:'Multiplier un nombre décimal par '+L,
-      xDizCent:S.length===1?(S[0]===10?'Multiplier par un nombre entier de dizaines':'Multiplier par un nombre entier de centaines'):skName(s),mult48:'Multiplier un nombre entier par '+L,multPuiss:'Multiplier un nombre entier par '+L,mulDec:'Multiplier un nombre décimal par '+L,divDec:'Diviser un nombre décimal par '+L}[s.id]||skName(s);};
+      xDizCent:S.length===1?(S[0]===10?'Multiplier par un nombre entier de dizaines':'Multiplier par un nombre entier de centaines'):skName(s),mult48:'Multiplier un nombre entier par '+L,multPuiss:'Multiplier un nombre entier par '+L,mulDec:'Multiplier un nombre décimal par '+L,divDec:'Diviser un nombre décimal par '+L,
+      addSans:'Ajouter ou soustraire sans retenue (nombres '+ED(S[0])+')',addAvec:'Ajouter avec retenue (nombres '+ED(S[0])+')'}[s.id]||skName(s);};
   const pw={mp:{},md:{},dd:{}};const pwGet=k=>()=>pw[k][level]||(pw[k][level]=new Set(k==='mp'&&level==='CE2'?[10,100]:[10,100,1000]));
-  pw.dc={};pw.m48={};pw.pa={};pw.ps={};pw.a9={};
+  pw.dc={};pw.m48={};pw.pa={};pw.ps={};pw.a9={};pw.as={};pw.aa={};
   const pwLab=p=>n=>p+' '+(n===1000?'1\u00a0000':n);
   CHIPS.multPuiss={all:lv=>lv==='CE2'?[10,100]:[10,100,1000],get:pwGet('mp'),title:n=>'Multiplier par '+n,lab:pwLab('×')};
   CHIPS.xDizCent={all:()=>[10,100],get:(()=>{const g=()=>pw.dc[level]||(pw.dc[level]=new Set([10,100]));return g;})(),title:n=>n===10?'Multiplier par des dizaines':'Multiplier par des centaines',lab:n=>n===10?'dizaines':'centaines'};
@@ -1220,6 +1223,10 @@ const DOCX=(function(){
   CHIPS.pmAdd={all:()=>[8,9,18,19,28,29,38,39],get:()=>pw.pa[level]||(pw.pa[level]=new Set([8,9,18,19,28,29,38,39])),title:n=>'Ajouter '+n};
   CHIPS.add91929={all:()=>[9,19,29],get:()=>pw.a9[level]||(pw.a9[level]=new Set([9,19,29])),title:n=>'Ajouter '+n};
   CHIPS.pmSub={all:()=>[9,19,29,39],get:()=>pw.ps[level]||(pw.ps[level]=new Set([9,19,29,39])),title:n=>'Soustraire '+n};
+  /* « Ajouter ou soustraire sans retenue » et « Ajouter avec retenue » : pastilles entiers (1) / décimaux (2) */
+  const ED=n=>n===1?'entiers':'décimaux';
+  CHIPS.addSans={all:()=>[1,2],get:()=>pw.as[level]||(pw.as[level]=new Set([1,2])),title:n=>'Nombres '+ED(n),lab:ED};
+  CHIPS.addAvec={all:()=>[1,2],get:()=>pw.aa[level]||(pw.aa[level]=new Set([1,2])),title:n=>'Nombres '+ED(n),lab:ED};
   CHIPS.mulDec={all:()=>[10,100,1000],get:pwGet('md'),title:n=>'Multiplier par '+n,lab:pwLab('×')};
   CHIPS.divDec={all:()=>[10,100,1000],get:pwGet('dd'),title:n=>'Diviser par '+n,lab:pwLab(':')};
   /* ---------- 2. Options de l'écran (un seul réglage pour tous les niveaux, enregistré automatiquement) ---------- */
@@ -1230,7 +1237,7 @@ const DOCX=(function(){
   function applySeqClass(){document.body.classList.toggle('seq',!!O.seq);}
   const saveOpt=()=>{try{localStorage.setItem('rcm-options',JSON.stringify(O));}catch(e){}};
   /* pastilles mémorisées d'une séance à l'autre (si l'option est cochée) : toutes les sélections, niveau par niveau */
-  const chipStores={mt:mtSel,pm:pmSel,dv:dvSel,x5:x5Sel,mp:pw.mp,md:pw.md,dd:pw.dd,dc:pw.dc,m48:pw.m48,pa:pw.pa,ps:pw.ps,a9:pw.a9};
+  const chipStores={mt:mtSel,pm:pmSel,dv:dvSel,x5:x5Sel,mp:pw.mp,md:pw.md,dd:pw.dd,dc:pw.dc,m48:pw.m48,pa:pw.pa,ps:pw.ps,a9:pw.a9,as:pw.as,aa:pw.aa};
   function saveChips(){
     saveLim();
     try{if(!O.mem){localStorage.removeItem('rcm-chips');return;}
@@ -1248,7 +1255,7 @@ const DOCX=(function(){
   try{if(O.mem){const v=+localStorage.getItem('rcm-lim');if(LIMS.includes(v))LIMV=v;}}catch(e){}
   const saveLim=()=>{try{if(O.mem)localStorage.setItem('rcm-lim',LIMV);else localStorage.removeItem('rcm-lim');}catch(e){}};
   const limOn=()=>level==='CP'&&LIMV<100;
-  const applySel=()=>{setLim(level==='CP'?LIMV:100);setOpt(O);setMult([...mtGet()]);setPm([...pmGet()]);setDivs([...dvGet()]);setX5([...x5Get()]);setPow({mp:[...pwGet('mp')()],md:[...pwGet('md')()],dd:[...pwGet('dd')()],dc:[...CHIPS.xDizCent.get()],pa:[...CHIPS.pmAdd.get()],ps:[...CHIPS.pmSub.get()],m48:[...CHIPS.mult48.get()],a9:[...CHIPS.add91929.get()]});};
+  const applySel=()=>{setLim(level==='CP'?LIMV:100);setOpt(O);setMult([...mtGet()]);setPm([...pmGet()]);setDivs([...dvGet()]);setX5([...x5Get()]);setPow({mp:[...pwGet('mp')()],md:[...pwGet('md')()],dd:[...pwGet('dd')()],dc:[...CHIPS.xDizCent.get()],pa:[...CHIPS.pmAdd.get()],ps:[...CHIPS.pmSub.get()],m48:[...CHIPS.mult48.get()],a9:[...CHIPS.add91929.get()],as:[...CHIPS.addSans.get()],aa:[...CHIPS.addAvec.get()]});};
   try{const s=localStorage.getItem('rcm-level');if(s&&LV.some(l=>l.k===s))level=s;}catch(e){}
 
 
@@ -1320,9 +1327,9 @@ const DOCX=(function(){
     fracDix:{'*':`Relations entre 1/10, 1/100, 1/1 000 et 1 : 1/100 = ?/1 000 ; 1 = ?/100 ; 1 = ?/1 000.`},
     fracDecimales:{'*':`1/2, 1/4 et 3/4 en fractions décimales : 1/2 = ?/10 ; 1/4 = ?/100 ; 3/4 = ?/100 ; 1/2 = ?/1 000.`},
     ecritureDec:{'*':`Passer de la fraction à l'écriture décimale et inversement : 1/10 = 0,1 ; 1/4 = 0,25 ; 1/2 = 0,5 ; 3/4 = 0,75 ; 3/2 = 1,5 ; 5/2 = 2,5.`},
-    addSans:{'*':`Repérer le chiffre sur lequel agir, sans retenue : 4,452 + 0,03 ; 0,457 + 3/1 000 ; 21 462 + 3 000. Ici : entiers (jusqu'à 5 chiffres ± 4 chiffres), décimaux avec 1 à 3 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles. Gauche : additions ; droite : soustractions.`,
-      CM1:`Repérer le chiffre sur lequel agir, sans retenue : 4,45 + 0,3 ; 0,45 + 3/100 ; 1 462 + 300. Ici : entiers de 3 chiffres au plus, décimaux avec 1 ou 2 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles. Gauche : additions ; droite : soustractions.`},
-    addAvec:{'*':`Repérer le chiffre sur lequel agir, avec retenue : 4,45 + 0,8 ; 0,457 + 7/1 000 ; 47 530 + 6 000. Ici : entiers (jusqu'à 5 chiffres ± 4 chiffres), décimaux avec 1 à 3 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles.`},
+    addSans:{'*':`Repérer le chiffre sur lequel agir, sans retenue : 4,452 + 0,03 ; 0,457 + 3/1 000 ; 21 462 + 3 000. Ici : entiers (jusqu'à 5 chiffres ± 4 chiffres), décimaux avec 1 à 3 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles. Les pastilles choisissent entiers et/ou décimaux. Gauche : additions ; droite : soustractions.`,
+      CM1:`Repérer le chiffre sur lequel agir, sans retenue : 4,45 + 0,3 ; 0,45 + 3/100 ; 1 462 + 300. Ici : entiers de 3 chiffres au plus, décimaux avec 1 ou 2 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles. Les pastilles choisissent entiers et/ou décimaux. Gauche : additions ; droite : soustractions.`},
+    addAvec:{'*':`Repérer le chiffre sur lequel agir, avec retenue : 4,45 + 0,8 ; 0,457 + 7/1 000 ; 47 530 + 6 000. Ici : entiers (jusqu'à 5 chiffres ± 4 chiffres), décimaux avec 1 à 3 chiffres après la virgule et fractions décimales, des plus simples aux plus difficiles. Les pastilles choisissent entiers et/ou décimaux.`},
     mulDec:{'*':`Multiplier un nombre décimal par 10, 100 ou 1 000 : chaque chiffre prend une valeur 10, 100 ou 1 000 fois plus grande (72,4 × 100 = 7 240). Ici : × 10, × 100 et × 1 000 mêlés, des plus simples aux plus difficiles. Les pastilles choisissent les multiplicateurs travaillés. Par série : 2 nombres avec trois chiffres après la virgule (avec × 100 ou × 1 000).`},
     divDec:{'*':`Diviser un nombre décimal par 10, 100 ou 1 000 : chaque chiffre prend une valeur 10, 100 ou 1 000 fois plus petite (724 : 100 = 7,24). Ici : : 10, : 100 et : 1 000 mêlés, des plus simples aux plus difficiles. Les pastilles choisissent les diviseurs travaillés.`},
     mulDec10:{'*':`Multiplier un nombre décimal par 10 : chaque chiffre devient 10 fois plus grand (72,41 × 10 = 724,1). Par série : 3 calculs au plus du type 10 × ….`},

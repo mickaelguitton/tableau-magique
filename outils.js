@@ -23,7 +23,7 @@ self.OUTILS = [
   {
     dossier: 'nature-des-mots',
     domaine: 'francais',
-    version: '1.3',
+    version: '1.4',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de la grammaire gym du blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
@@ -78,7 +78,7 @@ self.OUTILS = [
   {
     dossier: 'calcul-mental',
     domaine: 'maths',
-    version: '1.3',                             // numéro de CET outil : à changer quand on le modifie
+    version: '1.4',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calculs en tête',
     niveau: 'calcul mental · du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
