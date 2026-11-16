@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.8 dans le portail « Le tableau magique » (menu à pastilles repliées, « Pas à pas », défis à manipuler, propositions de réponses)
+  v1.9 dans le portail « Le tableau magique » (interrupteur « Propositions », décoché à chaque nouvelle compétence)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -306,7 +306,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.8</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.9</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -871,7 +871,8 @@ const S = {
   deci: { view: 'carre', u: 1, set: new Set(), by: 'centieme', v: 340, s: 0, loupe: true, virgule: true, show: true },
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
   anim: load('animations', true),   // corrections animées dans les défis
-  manipOn: load('manipuler', true)  // défis à manipuler (glisser des objets) quand la question s'y prête
+  manipOn: load('manipuler', true), // défis à manipuler (glisser des objets) quand la question s'y prête
+  propsOn: false                    // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
 };
 if (!CL[S.classe]) S.classe = 'CM2';
 
@@ -2694,7 +2695,7 @@ function renderDefi() {
   // Propositions de réponses (une fois le bouton cliqué) : la réponse choisie devient verte ou rouge, sans explication
   const PR = !qm && propositions(q);   // pas de propositions quand on manipule
   let propsHTML = '';
-  if (PR && D.st.props) {
+  if (PR && S.propsOn) {
     const ch = D.st.choix, L = 'ABCD';
     propsHTML = `<div class="props">${PR.map((p, i) => `<button class="prop ${R ? (p.ok ? 'ok' : 'eteint') : ch === i ? (p.ok ? 'ok' : 'ko') : ''}" data-act="dprop" data-v="${i}"><b>${L[i]}</b>${p.html}</button>`).join('')}</div>`;
   }
@@ -2708,9 +2709,10 @@ function renderDefi() {
   const pr = $('#stage .props');
   if (pr && pr.offsetHeight > pr.firstElementChild.offsetHeight * 1.6) pr.classList.add(pr.children.length === 4 ? 'deux' : 'col');
   // boutons de la question en bas de l'écran, à côté de « Nouvelle série » : plus de place pour la réponse
-  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + (!R && PR && !D.st.props ? `<button class="btn aide" data-act="dprops">${ICON.liste}Propositions</button>` : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
+  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
     + (animable ? toggle('Animations', 'danim', S.anim) : '')
-    + (q.type !== 'trier' && manipDe(q, false) ? toggle('Manipuler', 'dmanip', S.manipOn) : '');   // glisser des objets : actif par défaut, mémorisé ; seulement si la question s'y prête   // corrections animées : actif par défaut, mémorisé ; absent s'il n'y a rien à animer
+    + (q.type !== 'trier' && manipDe(q, false) ? toggle('Manipuler', 'dmanip', S.manipOn) : '')
+    + (PR ? toggle('Propositions', 'dprops', S.propsOn) : '');   // seulement si la question a des propositions (et qu'on ne la manipule pas)   // glisser des objets : actif par défaut, mémorisé ; seulement si la question s'y prête   // corrections animées : actif par défaut, mémorisé ; absent s'il n'y a rien à animer
 }
 
 /* =========================================================
@@ -2739,8 +2741,8 @@ const ACT = {
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
   go(v) { S.mode = v; save('mode', v); S.screen = 'game'; render(); },
-  solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; newSeries(); render(); },
-  gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; newSeries(); render(); },
+  solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },   // une compétence ouverte depuis le menu : propositions décochées
+  gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },
   fs() { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); },
   classe(v) { S.classe = v; save('classe', v); fitClass(); render(); },
   rep(v) { S.manip.rep = v; render(); },
@@ -2817,7 +2819,7 @@ const ACT = {
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + 'px';
   },
-  dprops() { S.defis.st.props = true; render(); },                                     // afficher les propositions A, B, C, D
+  dprops() { S.propsOn = !S.propsOn; delete S.defis.st.choix; render(); },              // afficher ou masquer les propositions A, B, C, D
   dprop(v) { if (!S.defis.revealed) { S.defis.st.choix = +v; render(); } },             // une proposition choisie : juste ou l'explication de l'erreur
   tournee() {   // partage : une bille dans chaque assiette, tant qu'il en reste
     const q = S.defis.list[S.defis.i], st = S.defis.st;
