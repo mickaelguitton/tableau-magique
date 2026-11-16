@@ -27,7 +27,7 @@
 <script src="../portail.js"></script>
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important;align-items:center;justify-content:center}</style>
 <!--
-  Les aiguilles du temps (Tic-Tac Time en anglais)  v3.8 (v1.6 dans le portail « Le tableau magique »)
+  Les aiguilles du temps (Tic-Tac Time en anglais)  v3.8 (v1.7 dans le portail « Le tableau magique »)
   Horloge à aiguilles à manipuler pour apprendre à lire l'heure (CP au CM2, français et anglais).
   Auteur : Mickaël Guitton  licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI.
@@ -447,7 +447,7 @@ svg.paper .rim{fill:#fff;stroke:#1f2a44;stroke-width:4}
       <button class="btn" id="hidePanel">Masquer les réglages</button>
     </aside>
   </main>
-  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.6</span></div>
+  <div class="signature"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.7</span></div>
 </div>
 
 <div id="printOnly"></div>
@@ -1342,7 +1342,8 @@ function renderPlacer(){
   else if (P.fmt === 'lettres') tg.textContent = e.usual;
   else tg.textContent = e.digital;
   $('pSub').textContent = (P.fmt === 'chiffres' && S.h24) ? e.period : '';
-  $('pListen').style.display = P.fmt === 'oral' ? '' : 'none';
+  // « Écouter » : toujours à l'oral ; en anglais, aussi quand l'heure est écrite (entendre la prononciation)
+  $('pListen').style.display = P.fmt === 'oral' || S.lang === 'en' ? '' : 'none';
   $('pScore').innerHTML = P.history.slice(-20).map(ok => `<i class="${ok ? 'ok' : 'ko'}"></i>`).join('');
 }
 
