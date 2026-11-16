@@ -2254,6 +2254,62 @@ const PROPS = {
   }
 };
 
+// Fractions décimales : 8 formes, chacune avec ses erreurs (valeurs en millièmes, écrites avec comma)
+PROPS.decimales = q => {
+  const k = q.k, lt = '&lt;';
+  if (k === 'carre') { const c = q.c; return { bonne: F(c, 100), pieges: [
+    [`${c},100`, 'barre de fraction prise pour une virgule.'],
+    [F(c, 10), 'des centièmes, pas des dixièmes : le carré a 100 petits carrés.'],
+    [F(100 - c, 100), 'ce sont les petits carrés non coloriés.'],
+    [F(c, 1000), 'des centièmes, pas des millièmes.']] }; }
+  if (k === 'conv') { const m = q.to / q.from, a = q.a;
+    return q.rev ? { bonne: F(a, q.from), pieges: [[F(a * m, q.from), 'recopié.'], [F(a * m * m, q.from), 'multiplié au lieu de diviser.'], [F(a * m > 10 ? a * m - 10 : a * m + 10, q.from), 'enlevé ou ajouté 10.']] }
+                 : { bonne: F(a * m, q.to), pieges: [[F(a, q.to), 'recopié.'], [F(a * m * m, q.to), 'multiplié par 100.'], [F(a + 10, q.to), 'ajouté 10.']] }; }
+  if (k === 'decomp') {
+    const v = q.d === 100 ? q.n * 10 : q.n, e = Math.floor(v / 1000), ch = [Math.floor(v % 1000 / 100), Math.floor(v % 100 / 10), v % 10];
+    const dens = q.d === 1000 ? [10, 100, 1000] : [10, 100];
+    const ecrit = (u, c) => [...(u ? [u] : []), ...dens.map((d, i) => F(c[i], d))].join(' + ');
+    return { bonne: ecrit(e, ch), pieges: [
+      [ecrit(e, [ch[1], ch[0], ch[2]]), 'dixièmes et centièmes inversés.'],
+      [[...(e ? [F(e, 10)] : []), ...dens.map((d, i) => F(ch[i], d * 10))].join(' + '), 'tout est décalé d\'un rang.'],
+      [ecrit(ch[0], [e, ch[1], ch[2]]), 'unités et dixièmes inversés.'],
+      [ecrit(e + 1, ch), 'une unité de trop.'], [ecrit(e, [ch[0] + 1, ch[1], ch[2]]), 'un dixième de trop.']] };   // secours
+  }
+  if (k === 'dcmp') { const real = q.v1 < q.v2 ? 0 : q.v1 > q.v2 ? 2 : 1, S3 = [lt, '=', '&gt;'];
+    return { bonne: S3[real], pieges: S3.filter((_, i) => i !== real).map(x => [x, 'mauvais signe.']) }; }
+  if (k === 'intercaler') { const v = q.v, w = q.w, e = Math.floor(v / 1000);
+    return { bonne: comma((v + w) / 2), pieges: [
+      [comma(v) + (comma(v).includes(',') ? '0' : ',0'), `c'est le même nombre que ${comma(v)}.`],
+      [comma(w + (w - v)), `plus grand que ${comma(w)}.`],
+      [comma(e * 1000 + (v % 1000) / 10), `plus petit que ${comma(v)}.`]] }; }
+  if (k === 'encadrerDec') {
+    const pas = { unite: 1000, dixieme: 100, centieme: 10 }[q.prec], lo = Math.floor(q.v / pas) * pas, autre = q.prec === 'unite' ? 100 : q.prec === 'dixieme' ? 1000 : 100;
+    const ec = (a, b) => `${comma(a)} ${lt} ${comma(q.v)} ${lt} ${comma(b)}`, lo2 = Math.floor(q.v / autre) * autre;
+    return { bonne: ec(lo, lo + pas), pieges: [
+      [ec(lo + pas, lo + 2 * pas), 'décalé d\'un cran.'],
+      lo >= pas ? [ec(lo - pas, lo), 'décalé d\'un cran.'] : null,
+      [ec(lo2, lo2 + autre), 'pas la bonne précision.'],
+      [ec(lo, q.v + (q.v % 10 ? 1 : 10)), 'ce ne sont pas deux nombres qui se suivent à cette précision.']] };
+  }
+  if (k === 'arrondi') { const e = Math.floor(q.v / 1000), up = q.v % 1000 >= 500 ? e + 1 : e, et = (a, b) => `${a} et ${b}`;
+    return { bonne: et(e, up), pieges: [
+      [et(e, up === e ? e + 1 : e), 'l\'arrondi va au plus proche.'],
+      [et(e + 1, e + 1), 'la partie entière, c\'est le nombre avant la virgule.'],
+      [et(e, comma(Math.round(q.v / 100) * 100)), 'arrondi au dixième, pas à l\'unité.'],
+      [et(up, e), 'les deux réponses inversées.'], e > 0 ? [et(e - 1, e), 'décalé d\'un cran.'] : null] }; }
+  // écriture à virgule (254/100 = 2,54) ou fraction décimale (2,54 = ?/100)
+  const { n, d } = q, v = d === 100 ? n * 10 : n, e = Math.floor(n / d);
+  if (q.rev) return { bonne: F(n, d), pieges: [
+    [F(Math.floor(n / 10) || n * 10, d), 'pas le bon nombre de chiffres.'],
+    [F(n * 10, d), 'pas le bon nombre de chiffres.'],
+    e ? [F(n % d, d), 'les unités sont oubliées.'] : [F(n + d, d), 'une unité en trop.']] };
+  return { bonne: comma(v), pieges: [
+    [`${n},${d}`, 'barre de fraction prise pour une virgule.'],
+    [comma(v * 10), 'virgule mal placée.'],
+    d === 100 ? [comma(n), 'des millièmes au lieu de centièmes.'] : [comma(v * 100), 'virgule mal placée.'],
+    [`${e},${n % d}`, 'il manque un zéro après la virgule.']] };
+};
+
 // Les propositions d'une question, mélangées une fois pour toutes (A, B, C, D ne changent pas quand on redessine)
 function propositions(q) {
   if (q._props !== undefined) return q._props;
