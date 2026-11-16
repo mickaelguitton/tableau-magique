@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.7 dans le portail « Le tableau magique » (défis plus variés, sans question répétée)
+  v1.8 dans le portail « Le tableau magique » (menu à pastilles repliées, « Pas à pas »)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -85,11 +85,13 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 /* espaces qui ne prennent que la place libre : le menu s'aère sur un grand écran sans jamais défiler sur un petit */
 #acts>.space{flex:1 1 0;min-height:0;max-height:3.2rem}
 /* une grille par partie : une tuile ne peut pas remonter dans la partie du dessus */
-.sec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:1.1vh .9vw;grid-auto-flow:row dense}
+.sec-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1.5vh 1.2vw}   /* 6 tuiles identiques par rangée, comme Calculs en tête ; le menu peut défiler */
 .domhead{margin-top:.3vh;padding:.2rem 1.1rem;border-radius:999px;color:#fff;
   font-size:clamp(1rem,1.7vw,1.5rem);font-weight:700;text-shadow:0 2px 0 rgba(0,0,0,.2);box-shadow:0 .25rem 0 rgba(0,0,0,.15);background:var(--col)}
 .skill{display:flex;align-items:center;gap:.6rem;text-align:left;background:#fff;border:.3rem solid var(--col);border-radius:1.4rem;
-  padding:.25rem .7rem;font-size:clamp(.85rem,min(1.25vw,2.3vh),1.25rem);font-weight:600;box-shadow:0 .35rem 0 var(--col);transition:transform .15s}
+  padding:.55rem .9rem;min-height:clamp(5.2rem,13vh,7.6rem);position:relative;
+  font-size:clamp(.85rem,min(1.25vw,2.3vh),1.25rem);font-weight:600;box-shadow:0 .35rem 0 var(--col);transition:transform .15s}
+.skgo>span:first-child{font-weight:700}
 .skill:hover{transform:translateY(-2px)}
 .skgo{flex:1;display:flex;flex-direction:column;gap:0;text-align:left;padding:.1rem 0;min-width:0;line-height:1.2}
 .skgo .sub{font-size:.78em;font-weight:500;opacity:.8}
@@ -97,11 +99,15 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .skill.mix .skgo,.skill.mix .sub{color:#fff;opacity:1}
 .skill.mix{background:var(--mix);color:#fff;border-color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);box-shadow:0 .35rem 0 rgba(0,0,0,.18)}
 .skill.withchips{flex-wrap:wrap;row-gap:.25rem}
-.skill.wide{grid-column:span 2} /* beaucoup de pastilles : la tuile prend deux ou trois colonnes */
-.skill.wide3{grid-column:span 3}
-@media (max-width:1100px){#menu .sec-grid{gap:.4rem}#menu .space{max-height:.6rem}.skinfo,.skside .chk{transform:scale(.85)}}
-.tchips{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:.2rem}
-.tchip{padding:0 .45em;line-height:1.35;border-radius:999px;border:.12rem solid var(--col);background:#fff;font-size:.72em;font-weight:700}
+@media (max-width:1100px){#menu .sec-grid{gap:.6rem;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))}#menu .space{max-height:.6rem}.skinfo,.skside .chk{transform:scale(.85)}}
+/* Pastilles repliées : la tuile affiche « tout ▾ » ou « 3 sur 7 ▾ » ; un clic ouvre la liste juste dessous */
+.reglages{flex:0 0 100%;align-self:flex-end;text-align:left;padding:0;font-size:.7em;font-weight:700;color:var(--col)}
+.reglages:hover{text-decoration:underline}
+.tchips{display:none}
+.skill.ouvert{z-index:30}
+.skill.ouvert .tchips{display:flex;flex-wrap:wrap;gap:.3rem;position:absolute;left:-.3rem;right:-.3rem;top:calc(100% + .3rem);
+  background:#fff;border:.25rem solid var(--col);border-radius:1rem;padding:.5rem;box-shadow:0 .4rem 1rem rgba(0,0,0,.2)}
+.tchip{flex:1 1 auto;text-align:center;padding:.1em .5em;line-height:1.35;border-radius:999px;border:.12rem solid var(--col);background:#fff;font-size:.8em;font-weight:700}
 .tchip.on{background:var(--col);color:#fff}
 .skside{flex:none;display:flex;flex-direction:row-reverse;align-items:center;gap:.2rem}
 .dh-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
@@ -130,7 +136,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .btn.small{background:#fff;color:var(--ink);font-size:clamp(.9rem,1.4vw,1.2rem);padding:.45rem 1rem}
 .btn.green{background:var(--c2)}
 /* Code des boutons, le même dans toute l'appli :
-   blanc = manipuler (partager, effacer) ; jaune = coup de pouce ; bleu nuit + œil = montre la réponse ;
+   blanc = manipuler (partager, effacer) ; jaune = pas à pas ; bleu nuit + œil = montre la réponse ;
    vert + flèche = question suivante ; corail + flèches tournantes = nouvelle situation */
 .btn svg.ic{width:1.15em;height:1.15em;flex:none}
 .tools .btn.bmanip{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 .16rem var(--col,var(--c3)),0 .2rem 0 rgba(0,0,0,.14)}
@@ -284,7 +290,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.7</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.8</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -308,7 +314,7 @@ svg{user-select:none;-webkit-user-select:none}
     <h3>Les défis, d’après les programmes</h3>
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
-      <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un coup de pouce en plusieurs étapes avant la réponse.</li>
+      <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
       <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer (bouton « Animations » pour l’arrêter).</li>
     </ul>
 
@@ -331,7 +337,7 @@ svg{user-select:none;-webkit-user-select:none}
      5-6   dessins (barres, disques, droites, flèches, jetons, carré de 100, réponses des défis)
      7-9   état, tirages au hasard, menu, barre d'outils et boutons communs (même code couleur partout)
      10-14 activités : Manipuler, Comparer, Mur, Sur la droite, Fractions décimales
-     15    défis (pastilles, questions, petits problèmes, coup de pouce)
+     15    défis (pastilles, questions, petits problèmes, pas à pas)
      16    affichage général et actions
      17    fiche Word à imprimer (exercices insécables, dessins réduits si une page restait presque vide)
    Mis au point avec l'aide de Claude AI. */
@@ -363,7 +369,7 @@ function save(k, v) { try { localStorage.setItem('fractions-' + k, JSON.stringif
 const CL = {
   CE1: { lvl: 0, dens: [2, 3, 4, 5, 6, 8, 10], maxU: 1, draw: 10,
          modes: ['manip', 'comparer', 'mur', 'defis'],
-         defis: ['nommer', 'colorier', 'comparer', 'egales', 'ajouter', 'probleme'],   // egales : première approche (programme : début du CE2)
+         defis: ['nommer', 'colorier', 'comparer', 'ajouter', 'probleme'],
          wall: [1, 2, 3, 4, 5, 6, 8, 10] },
   CE2: { lvl: 1, dens: range(2, 12), maxU: 1, draw: 12,
          modes: ['manip', 'comparer', 'mur', 'placer', 'defis'],
@@ -947,8 +953,10 @@ const DEFI_SUB = {
 };
 
 /* ----- Écran 1 : le menu ----- */
+let ouvert = null;   // défi dont la liste de pastilles est ouverte (une seule à la fois)
 function renderMenu() {
   const c = C();
+  if (!c.defis.includes(ouvert)) ouvert = null;
   const card = (col, act, v, name, sub, extra = '') =>
     `<div class="skill ${col}${extra}"><button class="skgo" data-act="${act}" data-v="${v}"><span>${name}</span><span class="sub">${sub}</span></button></div>`;
   let h = `<div class="menu-head">
@@ -961,11 +969,12 @@ function renderMenu() {
       <div class="sec-grid">${c.modes.filter(m => m !== 'defis').map(m => card(MODE_COL[m], 'go', m, MODES[m], MODE_SUB[m])).join('')}</div>
       <div class="space"></div><div class="domhead dh-row" style="--col:var(--c5)"><span>Défis</span><button class="mixbtn" data-act="gomix">Toutes les compétences cochées</button></div>
       <div class="sec-grid">
-      ${c.defis.map((k, i) => { const subs = subList(k);
-        return `<div class="skill c${i % 6} ${defiOn(k) ? 'sel' : ''} ${subs.length ? 'withchips' : ''} ${(n => n > 95 ? 'wide3' : n > 44 ? 'wide' : '')(subs.reduce((n, x) => n + x[1].length + 3, 0))}"><button class="skgo" data-act="solo" data-v="${k}"><span>${DEFIS[k]}</span>${subs.length ? '' : `<span class="sub">${DEFI_SUB[k]}</span>`}</button><div class="skside"><label class="chk" title="Inclure dans « Toutes les compétences cochées »"><input type="checkbox" data-chk="${k}" ${defiOn(k) ? 'checked' : ''}></label>${INFOS[k] && INFOS[k][S.classe] ? `<button class="skinfo" data-act="info" data-v="${k}" aria-label="Le programme">i</button>` : ''}</div>` +
-          (subs.length ? `<div class="tchips">${subs.map(([v, lab]) => `<button class="tchip ${subOn(k, v) ? 'on' : ''}" data-act="subchip" data-v="${k}:${v}" title="${k === 'ajouter' && v === 'comp' ? '3/10 + ? = 1' : SUB_EX[v] || ''}">${lab}</button>`).join('')}</div>` : '') + `</div>`; }).join('')}</div>
+      ${c.defis.map((k, i) => { const subs = subList(k), nOn = subs.filter(([v]) => subOn(k, v)).length;
+        return `<div class="skill c${i % 6} ${defiOn(k) ? 'sel' : ''} ${subs.length ? 'withchips' : ''} ${ouvert === k ? 'ouvert' : ''}"><button class="skgo" data-act="solo" data-v="${k}"><span>${DEFIS[k]}</span>${subs.length ? '' : `<span class="sub">${DEFI_SUB[k]}</span>`}</button><div class="skside"><label class="chk" title="Inclure dans « Toutes les compétences cochées »"><input type="checkbox" data-chk="${k}" ${defiOn(k) ? 'checked' : ''}></label>${INFOS[k] && INFOS[k][S.classe] ? `<button class="skinfo" data-act="info" data-v="${k}" aria-label="Le programme">i</button>` : ''}</div>` +
+          (subs.length ? `<button class="reglages" data-act="reglages" data-v="${k}" aria-expanded="${ouvert === k}">${nOn === subs.length ? 'tout' : nOn + ' sur ' + subs.length} ${ouvert === k ? '▴' : '▾'}</button><div class="tchips">${subs.map(([v, lab]) => `<button class="tchip ${subOn(k, v) ? 'on' : ''}" data-act="subchip" data-v="${k}:${v}" title="${k === 'ajouter' && v === 'comp' ? '3/10 + ? = 1' : SUB_EX[v] || ''}">${lab}</button>`).join('')}</div>` : '') + `</div>`; }).join('')}</div>
     </div>`;
   $('#menu').innerHTML = h;
+  $('#menu .skill.ouvert .tchips')?.scrollIntoView({ block: 'nearest' });   // liste ouverte en bas d'écran : on la fait voir
 }
 
 /* ----- Écran 2 : la barre d'outils sous l'activité ----- */
@@ -981,7 +990,7 @@ const ICON = {
 /* Boutons communs à toutes les activités (même nom, même couleur, même place) */
 const BTN = {
   effacer: act => `<button class="btn small" data-act="${act}">${ICON.gomme}Effacer</button>`,
-  aide: (i, n) => `<button class="btn aide" data-act="daide">${ICON.ampoule}Coup de pouce${n > 1 ? ` ${i}/${n}` : ''}</button>`,
+  aide: (i, n) => `<button class="btn aide" data-act="daide">${ICON.ampoule}Pas à pas${n > 1 ? ` ${i}/${n}` : ''}</button>`,
   verifier: act => `<button class="btn voir" data-act="${act}">${ICON.coche}Vérifier</button>`,
   voir: act => `<button class="btn voir" data-act="${act}">${ICON.oeil}Voir la réponse</button>`,
   suivant: () => `<button class="btn suite" data-act="dnext">${ICON.suite}Suivant</button>`,
@@ -1333,7 +1342,6 @@ const INFOS = {
     CM1: ['Comparer, encadrer, intercaler et ordonner des fractions décimales et des nombres décimaux.', 'Ranger 2 ; 14/10 ; 120/100 ; 9/10. Ranger 2,12 ; 209/100 et 2,6.'],
     CM2: ['Comparer, encadrer, intercaler et ordonner des nombres décimaux, jusqu\'aux millièmes.', 'Ranger 2 ; 140/100 ; 1 200/1 000 ; 9/10. Comparer 4,592 et 4,71.'] },
   egales: {
-    CE1: ['Première approche par la manipulation (les égalités de fractions sont au programme du début du CE2) : voir que c\'est la même quantité, partagée en plus de parts.', '1/2 = 2/4 = 4/8 ; 1 = 2/2 = 4/4 ; 3/4 = 6/8 ; 1/3 = 2/6.'],
     CE2: ['Établir des égalités entre fractions inférieures ou égales à 1.', '6/8 = 3/4 ; ?/8 = 1/2 ; parmi 1/3, 2/4, 3/4, 2/6, 3/6, trouver celles égales à 1/2.'],
     CM1: ['Établir des égalités de fractions en justifiant.', 'Parmi 2/3, 5/4, 9/6, 15/10 et 6/4, trouver celles égales à 3/2 ; ?/8 = 7/2.'],
     CM2: ['Établir des égalités de fractions en justifiant.', '8/3 = 16/6 ; trouver les fractions égales à 5/6 ; 21/? = 7/3.'] },
@@ -1411,6 +1419,7 @@ const GEN = {
       .concat(c.lvl >= 2 ? [[3, 2], [7, 2], [5, 4], [7, 4], [4, 3], [8, 3]] : []).filter(b => c.dens.includes(b[1]));
     let base = pick(bases.slice(0, Math.max(3, Math.ceil(bases.length * (0.4 + 0.6 * t)))));
     // CE1 : 1/2 et 1 pour commencer, puis aussi les quarts, les tiers et les cinquièmes (2/8, 4/6, 4/10… : dénominateurs du CE1)
+    // (CE1 : défi retiré du menu ; ces réglages servent si on le remet)
     if (c.lvl === 0) base = pick(t < 0.25 ? [[1, 2], [1, 1]] : [[1, 2], [1, 1], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5]]);
     const ks = [2, 3, 4, 5, 10].filter(k => base[1] * k <= maxD && c.dens.includes(base[1] * k) && base[1] * k * Math.ceil(base[0] / base[1]) <= 36);
     const k = pick(ks.length ? ks : [2]);
@@ -1646,7 +1655,7 @@ function makeProbleme(t) {
   const k = pick(ks.slice(0, nb));
   const A = 'var(--a)', B = 'var(--b)', Cc = 'var(--c1)';
   const r = enonce(k, t, lvl, P, P1, P2, il, A, B, Cc);
-  return r.kind ? r : { kind: k === 'perimetre' || !k ? 'perimetre' : k, ...r }; // le type sert aux coups de pouce
+  return r.kind ? r : { kind: k === 'perimetre' || !k ? 'perimetre' : k, ...r }; // le type sert au pas à pas
 }
 
 function enonce(k, t, lvl, P, P1, P2, il, A, B, Cc) {
@@ -1802,7 +1811,7 @@ function renderDefi() {
   const dots = D.list.map((_, i) => `<i class="${i < D.i ? 'done' : i === D.i ? 'cur' : ''}"></i>`).join('');
   let prompt = '', sub = '', viz = '', ans = '', extraBtn = '';
   let animable = false;   // cette question a une correction animée : on montre alors le bouton « Animations »
-  // Coup de pouce en étapes, montrées une par une : un indice pour démarrer, un dessin pour comprendre, la méthode.
+  // Pas à pas en étapes, montrées une par une : un indice pour démarrer, un dessin pour comprendre, la méthode.
   // La réponse complète reste derrière « Voir la réponse ».
   let steps = [];
   const I = t => ({ k: 'i', t }), Dn = (t, v) => ({ k: 'd', t, v }), M = t => ({ k: 'm', t });
@@ -2267,6 +2276,7 @@ const ACT = {
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + 'px';
   },
+  reglages(k) { ouvert = ouvert === k ? null : k; renderMenu(); },   // ouvrir / fermer la liste des pastilles
   subchip(v) { // pastille d'une tuile : on garde toujours au moins une pastille cochée
     const [k, key] = v.split(':'), on = subList(k).filter(([x]) => subOn(k, x));
     if (subOn(k, key) && on.length <= 1) return;
@@ -2277,6 +2287,8 @@ const ACT = {
 
 document.addEventListener('click', e => {
   if (!e.target.closest('#tip, [data-act=info]')) $('#tip').hidden = true;
+  // clic en dehors de la liste de pastilles ouverte : on la referme
+  if (ouvert && !e.target.closest('.skill.ouvert, [data-act=reglages]')) { ouvert = null; renderMenu(); }
   const a = e.target.closest('[data-act]');
   if (a) { ACT[a.dataset.act]?.(a.dataset.v, a); return; }
   const w = e.target.closest('[data-w]');
@@ -2331,6 +2343,7 @@ document.addEventListener('change', e => { // cases à cocher des défis (menu)
 });
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && ouvert) { ouvert = null; renderMenu(); return; }   // Échap referme la liste de pastilles
   if (S.screen !== 'game' || S.mode !== 'defis') return;
   if (e.key === 'ArrowRight' || e.key === 'Enter') ACT.dnext();
   if (e.key === ' ') { e.preventDefault(); ACT.dreveal(); }
