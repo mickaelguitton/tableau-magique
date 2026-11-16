@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.6 dans le portail « Le tableau magique » (fractions égales dès le CE1)
+  v1.7 dans le portail « Le tableau magique » (défis plus variés, sans question répétée)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -284,7 +284,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.6</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.7</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1333,7 +1333,7 @@ const INFOS = {
     CM1: ['Comparer, encadrer, intercaler et ordonner des fractions décimales et des nombres décimaux.', 'Ranger 2 ; 14/10 ; 120/100 ; 9/10. Ranger 2,12 ; 209/100 et 2,6.'],
     CM2: ['Comparer, encadrer, intercaler et ordonner des nombres décimaux, jusqu\'aux millièmes.', 'Ranger 2 ; 140/100 ; 1 200/1 000 ; 9/10. Comparer 4,592 et 4,71.'] },
   egales: {
-    CE1: ['Première approche par la manipulation (les égalités de fractions sont au programme du début du CE2) : voir que c\'est la même quantité, partagée en plus de parts.', '1/2 = 2/4 = 4/8 ; 1 = 2/2 = 4/4 ; 3/4 = 6/8.'],
+    CE1: ['Première approche par la manipulation (les égalités de fractions sont au programme du début du CE2) : voir que c\'est la même quantité, partagée en plus de parts.', '1/2 = 2/4 = 4/8 ; 1 = 2/2 = 4/4 ; 3/4 = 6/8 ; 1/3 = 2/6.'],
     CE2: ['Établir des égalités entre fractions inférieures ou égales à 1.', '6/8 = 3/4 ; ?/8 = 1/2 ; parmi 1/3, 2/4, 3/4, 2/6, 3/6, trouver celles égales à 1/2.'],
     CM1: ['Établir des égalités de fractions en justifiant.', 'Parmi 2/3, 5/4, 9/6, 15/10 et 6/4, trouver celles égales à 3/2 ; ?/8 = 7/2.'],
     CM2: ['Établir des égalités de fractions en justifiant.', '8/3 = 16/6 ; trouver les fractions égales à 5/6 ; 21/? = 7/3.'] },
@@ -1410,7 +1410,8 @@ const GEN = {
     const bases = [[1, 2], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5], [1, 6], [5, 6], [3, 5], [4, 5]]
       .concat(c.lvl >= 2 ? [[3, 2], [7, 2], [5, 4], [7, 4], [4, 3], [8, 3]] : []).filter(b => c.dens.includes(b[1]));
     let base = pick(bases.slice(0, Math.max(3, Math.ceil(bases.length * (0.4 + 0.6 * t)))));
-    if (c.lvl === 0) base = pick(t < 0.4 ? [[1, 2], [1, 1]] : [[1, 2], [1, 2], [1, 1], [1, 4], [3, 4]]); // CE1 : 1/2, 1, puis 1/4 et 3/4
+    // CE1 : 1/2 et 1 pour commencer, puis aussi les quarts, les tiers et les cinquièmes (2/8, 4/6, 4/10… : dénominateurs du CE1)
+    if (c.lvl === 0) base = pick(t < 0.25 ? [[1, 2], [1, 1]] : [[1, 2], [1, 1], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5]]);
     const ks = [2, 3, 4, 5, 10].filter(k => base[1] * k <= maxD && c.dens.includes(base[1] * k) && base[1] * k * Math.ceil(base[0] / base[1]) <= 36);
     const k = pick(ks.length ? ks : [2]);
     const out = { a: base[0], b: base[1], k, miss: c.lvl === 3 && t > 0.6 && Math.random() < 0.5 ? 'd' : 'n' };
@@ -1573,8 +1574,14 @@ function newSeries() {
     const t = i / 9;
     let k; let tries = 0;
     do k = pick(ks); while (k === last && ks.length > 1 && tries++ < 5);
+    // Variété : on retire une question déjà posée dans la série, et (fractions égales) la même fraction de départ deux fois de suite
+    const prev = D.list[D.list.length - 1], cle = q => JSON.stringify(q, (c, v) => c === 't' || c === 'parmi' ? undefined : v);
+    let q, essais = 0;
+    do q = { type: k, t, ...GEN[k](t) };
+    while (essais++ < 12 && (D.list.some(o => cle(o) === cle(q))
+           || (k === 'egales' && last === 'egales' && prev && prev.a * q.b === prev.b * q.a)));
     last = k;
-    D.list.push({ type: k, t, ...GEN[k](t) });
+    D.list.push(q);
   }
 }
 
