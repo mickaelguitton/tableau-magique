@@ -122,7 +122,7 @@ self.OUTILS = [
     niveau: 'fractions · du CE1 au CM2',
     texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
          + 'fractions à comparer, mur des fractions, fractions décimales sur le carré de 100. '
-         + 'Des défis d’après les programmes, avec pas à pas et correction en images, et des fiches Word à imprimer.',
+         + 'Des défis d’après les programmes, à manipuler au doigt, avec pas à pas, propositions de réponses et correction en images, et des fiches Word à imprimer.',
     donnees: ['fractions-'],
     couleur: '#23887C', ombre: '#B5E3DC'
   },
