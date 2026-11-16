@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.8 dans le portail « Le tableau magique » (menu à pastilles repliées, « Pas à pas »)
+  v1.8 dans le portail « Le tableau magique » (menu à pastilles repliées, « Pas à pas », défis à manipuler, propositions de réponses)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -120,6 +120,19 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .pop .pt{font-weight:800;margin-bottom:.25rem}
 .pop .pex{margin-top:.45rem;font-size:.92em;opacity:.9}
 .chk{flex:none;display:grid;place-items:center;width:2em;height:2em;cursor:pointer}
+/* Propositions de réponses A, B, C, D */
+.props{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem 1.1rem;margin:.5rem 0 .2rem}
+.prop{display:flex;align-items:center;gap:.6rem;background:#fff;border:.25rem solid var(--c3);border-radius:1rem;padding:.25rem 1rem;
+  font-size:clamp(1.1rem,min(2vw,3.4vh),1.9rem);font-weight:700;box-shadow:0 .25rem 0 rgba(0,0,0,.12);transition:transform .15s}
+.prop:hover{transform:translateY(-2px)}
+.prop>b{color:var(--c3);font-size:.85em}
+.prop.ok{border-color:var(--c2);background:#dff5ec}.prop.ok>b{color:var(--c2)}
+.prop.ko{border-color:var(--c5);background:#fde3e6}.prop.ko>b{color:var(--c5)}
+.prop.eteint{opacity:.45}
+/* Défis à manipuler : objets à faire glisser */
+.dviz svg.glissable{touch-action:none;user-select:none;-webkit-user-select:none}
+#stage [data-drag]{cursor:grab}
+#stage .glisse{cursor:grabbing;filter:drop-shadow(0 8px 8px rgba(0,0,0,.28))}
 .chk input{width:1.45em;height:1.45em;margin:0;accent-color:var(--col);cursor:pointer}
 
 /* ============ Écran d'activité ============ */
@@ -315,6 +328,8 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
+      <li><b>Des défis à manipuler au tableau :</b> partager des billes dans des assiettes, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts.</li>
+      <li><b>Des propositions de réponses,</b> si on le souhaite : la bonne et des erreurs fréquentes (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
       <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer (bouton « Animations » pour l’arrêter).</li>
     </ul>
 
@@ -373,15 +388,15 @@ const CL = {
          wall: [1, 2, 3, 4, 5, 6, 8, 10] },
   CE2: { lvl: 1, dens: range(2, 12), maxU: 1, draw: 12,
          modes: ['manip', 'comparer', 'mur', 'placer', 'defis'],
-         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'egales', 'ajouter', 'lire', 'probleme'],
+         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'trier', 'egales', 'ajouter', 'lire', 'probleme'],
          wall: range(1, 12) },
   CM1: { lvl: 2, dens: [...range(2, 20), 100], maxU: 3, draw: 12, deciMax: 100,
          modes: ['manip', 'comparer', 'mur', 'placer', 'deci', 'defis'],
-         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'egales', 'ajouter', 'lire', 'encadrer', 'decomposer', 'quantite', 'probleme', 'decimales'],
+         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'trier', 'egales', 'ajouter', 'lire', 'encadrer', 'decomposer', 'quantite', 'probleme', 'decimales'],
          wall: range(1, 12) },
   CM2: { lvl: 3, dens: [...range(2, 60), 100], maxU: 4, draw: 20, deciMax: 1000,
          modes: ['manip', 'comparer', 'mur', 'placer', 'deci', 'defis'],
-         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'egales', 'ajouter', 'produit', 'lire', 'encadrer', 'decomposer', 'quantite', 'probleme', 'decimales'],
+         defis: ['nommer', 'colorier', 'comparer', 'ranger', 'trier', 'egales', 'ajouter', 'produit', 'lire', 'encadrer', 'decomposer', 'quantite', 'probleme', 'decimales'],
          wall: range(1, 12) }
 };
 
@@ -393,7 +408,7 @@ const MODES = {
 
 const DEFIS = {
   nommer: 'Lire une fraction', colorier: 'Représenter une fraction', comparer: 'Comparer deux fractions',
-  egales: 'Trouver des fractions égales', ajouter: 'Ajouter et retrancher', lire: 'Lire sur la droite graduée',
+  trier: 'Trier des fractions', egales: 'Trouver des fractions égales', ajouter: 'Ajouter et retrancher', lire: 'Lire sur la droite graduée',
   encadrer: 'Encadrer entre deux entiers', decomposer: 'Décomposer, recomposer', quantite: "Fraction d'une quantité", ranger: "Ranger dans l'ordre", probleme: 'Petits problèmes', produit: 'Entier × fraction', decimales: 'Fractions décimales'
 };
 
@@ -949,7 +964,7 @@ const MODE_SUB = {
 const DEFI_SUB = {
   nommer: 'quelle fraction est coloriée ?', colorier: 'colorie 2/3', comparer: '2/5 ? 3/5', egales: '?/8 = 1/2', ajouter: '1/5 + 2/5',
   produit: '3 × 5/4', lire: 'une flèche sur la droite', encadrer: '? < 7/4 < ?', decomposer: '7/4 = 1 + 3/4 et 2 + 2/3 = 8/3',
-  quantite: '1/3 de 12 billes, 1/5 de 10 m', decimales: '34/100 = 0,34', ranger: '9/10 < 14/10 < 2', probleme: 'des histoires à résoudre'
+  quantite: '1/3 de 12 billes, 1/5 de 10 m', decimales: '34/100 = 0,34', ranger: '9/10 < 14/10 < 2', trier: 'plus petit, égal ou plus grand que 1', probleme: 'des histoires à résoudre'
 };
 
 /* ----- Écran 1 : le menu ----- */
@@ -985,6 +1000,7 @@ const ICON = {
   ampoule: IC('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>'),
   suite: IC('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   neuf: IC('<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'),
+  liste: IC('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>'),
   gomme: IC('<path d="M8 20h12M5.5 14.5l8-8a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 18H8.5z"/><path d="M9.5 10.5l5 5"/>')
 };
 /* Boutons communs à toutes les activités (même nom, même couleur, même place) */
@@ -1292,15 +1308,17 @@ function deciRandom() {
 /* Pastilles des tuiles : les variantes d'une compétence, toutes cochées par défaut.
    SUBS[compétence](niveau) -> [[clé, étiquette], ...] ; les générateurs tirent seulement parmi les pastilles cochées. */
 const SUBS = {
-  nommer: l => [['barre', 'barre'], ['disque', 'disque'], ...(l >= 1 ? [['droite', 'droite graduée']] : [])],
+  nommer: l => [['barre', 'barre'], ['disque', 'disque'], ...(l >= 1 ? [['droite', 'droite graduée']] : []), ['associer', 'associer (glisser)']],
   colorier: l => [['barre', 'barre'], ['disque', 'disque'], ...(l >= 1 ? [['droite', 'droite graduée']] : [])],
   comparer: l => [['memeDen', 'même dénominateur'], ['unit', 'numérateur 1'], ...(l >= 1 ? [['memeNum', 'même numérateur'], ['multiple', 'dénominateur multiple'], ['egal', 'fractions égales']] : []),
                   ...(l >= 2 ? [['un', 'comparer à 1']] : []), ...(l >= 3 ? [['commun', 'dénominateurs différents']] : [])],
   ranger: l => l >= 2 ? [['fr', 'fractions'], ['dec', 'nombres décimaux']] : [],
+  trier: l => [['tri1', 'par rapport à 1'], ['tri2', 'égal à 1/2 ou pas']],
   egales: l => [['comp', 'nombre manquant'], ['parmi', 'choisir parmi plusieurs']],
   ajouter: l => [['plus', 'additions'], ['moins', 'soustractions'], ...(l <= 1 ? [['comp', 'complément à 1']] : []), ...(l >= 1 ? [['diff', 'dénominateurs différents']] : [])],
-  decomposer: l => [['dec', 'décomposer'], ['rec', 'recomposer']],
-  quantite: l => [['obj', 'objets'], ['gr', 'grandeurs (g, m, L…)']],
+  encadrer: l => [['ecrire', 'écrire les entiers'], ['glisser', 'glisser sur la droite']],
+  decomposer: l => [['dec', 'décomposer'], ['rec', 'recomposer'], ['constr', 'construire (glisser)']],
+  quantite: l => [['obj', 'objets'], ['gr', 'grandeurs (g, m, L…)'], ['partage', 'partager (glisser)']],
   decimales: l => [['carre', 'carré de 100'], ['conv', 'dixièmes, centièmes'], ['decomp', 'décomposer'], ['virgule', 'écriture à virgule'], ['dcmp', 'comparer'], ['intercaler', 'intercaler'], ['encadrerDec', 'encadrer'], ['arrondi', 'arrondir']]
 };
 /* Un exemple pour chaque pastille (bulle d'aide au survol) */
@@ -1308,6 +1326,8 @@ const SUB_EX = {
   memeDen: '2/5 et 3/5', unit: '1/5 et 1/3', memeNum: '5/12 et 5/8', multiple: '3/4 et 5/8', egal: '1/2 et 3/6', un: '5/4 et 1', commun: '7/4 et 17/10',
   fr: '9/10 ; 14/10 ; 2', dec: '1,8 ; 1,54 ; 128/100', comp: '3/4 = ?/8', parmi: 'Lesquelles sont égales à 1/2 ?', plus: '2/5 + 1/5', moins: '4/5 − 1/5',
   diff: '2/3 − 1/6', rec: '2 + 2/3 = ?/3', obj: '1/3 de 12 billes', gr: '1/4 de 10 m', carre: 'quelle fraction du carré ?', conv: '3/10 = ?/100',
+  associer: 'relier dessins et fractions', tri1: '3/4 ; 5/5 ; 7/4', tri2: '2/4 ; 3/8 ; 5/10', ecrire: '? < 7/4 < ?', glisser: 'poser 7/4 entre 1 et 2',
+  constr: '7/4 avec des unités et des quarts', partage: '12 billes dans 3 assiettes',
   virgule: '254/100 = 2,54', dcmp: '67/10 et 6,07', intercaler: '1,4 < ? < 1,5', encadrerDec: '17,4 < 17,48 < 17,5', arrondi: '5,78 → 6'
 };
 
@@ -1341,6 +1361,10 @@ const INFOS = {
     CE2: ['Positionner des fractions dans l\'ordre croissant sur la règle graduée.', 'Placer 1/4, 3/4 et 1/2 sur une règle graduée en quarts.'],
     CM1: ['Comparer, encadrer, intercaler et ordonner des fractions décimales et des nombres décimaux.', 'Ranger 2 ; 14/10 ; 120/100 ; 9/10. Ranger 2,12 ; 209/100 et 2,6.'],
     CM2: ['Comparer, encadrer, intercaler et ordonner des nombres décimaux, jusqu\'aux millièmes.', 'Ranger 2 ; 140/100 ; 1 200/1 000 ; 9/10. Comparer 4,592 et 4,71.'] },
+  trier: {
+    CE2: ['Comparer des fractions à 1, ou à 1/2, en les triant dans des boîtes.', 'Plus petit que 1 : 3/4 ; égal à 1 : 5/5 ; plus grand que 1 : 7/4.'],
+    CM1: ['Comparer des fractions à 1, ou à 1/2, en les triant dans des boîtes.', 'Plus petit que 1 : 3/4 ; égal à 1 : 5/5 ; plus grand que 1 : 7/4.'],
+    CM2: ['Comparer des fractions à 1, ou à 1/2, en les triant dans des boîtes.', 'Égal à 1/2 : 3/6, 5/10 ; pas égal à 1/2 : 3/8, 4/6.'] },
   egales: {
     CE2: ['Établir des égalités entre fractions inférieures ou égales à 1.', '6/8 = 3/4 ; ?/8 = 1/2 ; parmi 1/3, 2/4, 3/4, 2/6, 3/6, trouver celles égales à 1/2.'],
     CM1: ['Établir des égalités de fractions en justifiant.', 'Parmi 2/3, 5/4, 9/6, 15/10 et 6/4, trouver celles égales à 3/2 ; ?/8 = 7/2.'],
@@ -1384,6 +1408,11 @@ function defiOn(k) { return S.defis.on[S.classe + k] === true; } // par défaut,
 
 const GEN = {
   nommer(t, comp = 'nommer', tries = 0) {
+    // pastille « associer » : plusieurs dessins et leurs étiquettes à faire glisser
+    if (comp === 'nommer' && !PAPIER && !tries) {
+      const so = subPick('nommer', ['barre', 'disque', ...(C().lvl >= 1 ? ['droite'] : []), 'associer']);
+      if (so.includes('associer') && Math.random() < 1 / so.length) return genAssocier(t);
+    }
     // Une fraction n/d ; la figure peut être partagée plus finement (k parts pour une) : 3/4 sur des huitièmes.
     const c = C(), lvl = c.lvl;
     let d = pickDen(t, 12), n = t < 0.2 ? 1 : ri(1, d - 1), k = 1;
@@ -1410,9 +1439,26 @@ const GEN = {
     if (c.lvl >= 2 && Math.random() < 0.45 && (q.u + 1) * q.d * q.k <= 40) q.u = Math.min(c.maxU, q.u + 1); // sans rendre les parts trop fines
     if (q.n === q.u * q.d && q.u < c.maxU && (q.u + 1) * q.d * q.k <= 40) q.u++;
     q.scatter = false;
+    if (q.rep === 'droite' && !PAPIER) q.manip = 'placer';   // l'étiquette se fait glisser sur la droite
     return q;
   },
   comparer(t) { return comparePair(t, true); },
+  trier(t) { // des étiquettes à trier dans des boîtes : par rapport à 1, ou égales à 1/2 ou pas
+    const c = C(), sorte = pick(subPick('trier', ['tri1', 'tri2'])) === 'tri1' ? 'un' : 'demi';
+    const dens = c.dens.filter(d => d >= 2 && d <= 10), vus = new Set(), items = [];
+    const ajoute = f => { if (!vus.has(f.join('/'))) { vus.add(f.join('/')); items.push(f); } };
+    const combien = test => items.filter(test).length;
+    if (sorte === 'un') {   // 7 étiquettes : une ou deux égales à 1, trois plus petites, le reste plus grandes
+      const nEg = ri(1, 2);
+      for (let i = 0; i < 99 && combien(f => f[0] === f[1]) < nEg; i++) { const d = pick(dens); ajoute([d, d]); }
+      for (let i = 0; i < 99 && combien(f => f[0] < f[1]) < 3; i++) { const d = pick(dens); ajoute([ri(1, d - 1), d]); }
+      for (let i = 0; i < 99 && combien(f => f[0] > f[1]) < 4 - nEg + 1; i++) { const d = pick(dens); ajoute([ri(d + 1, 2 * d - 1 + (t > 0.5 ? d : 0)), d]); }
+    } else {                // 3 égales à 1/2, 4 qui lui ressemblent
+      melange([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]].filter(f => dens.includes(f[1]))).slice(0, 3).forEach(ajoute);
+      melange([[1, 3], [2, 3], [1, 4], [3, 4], [2, 5], [3, 5], [2, 6], [4, 6], [3, 8], [5, 8], [4, 10], [6, 10], [3, 10], [1, 5]].filter(f => dens.includes(f[1]))).slice(0, 4).forEach(ajoute);
+    }
+    return { sorte, items: melange(items), boites: sorte === 'un' ? ['plus petit que 1', 'égal à 1', 'plus grand que 1'] : ['égal à 1/2', 'pas égal à 1/2'], manip: 'trier' };
+  },
   egales(t) {
     const c = C(), maxD = [10, 12, 20, 30][c.lvl];
     const bases = [[1, 2], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5], [1, 6], [5, 6], [3, 5], [4, 5]]
@@ -1472,10 +1518,15 @@ const GEN = {
   },
   encadrer(t) {
     const c = C(), d = pickDen(t, 10), e = ri(1, Math.min(3, c.maxU) - 1 + (t > 0.6 ? 1 : 0));
-    return { n: e * d + ri(1, d - 1), d, e };
+    const q = { n: e * d + ri(1, d - 1), d, e };
+    // pastille « glisser » : la fraction se pose sur une droite où seuls les entiers sont écrits (pas trop courte, pour ne rien souffler)
+    if (pick(subPick('encadrer', PAPIER ? ['ecrire'] : ['ecrire', 'glisser'])) === 'glisser') Object.assign(q, { manip: 'glisse', U: e + 2 + (Math.random() < 0.5 ? 1 : 0) });
+    return q;
   },
   quantite(t) { // 1/3 de 12 billes, 1/4 de 100 m (CM1 : fractions unitaires ; CM2 : toutes)
     const c0 = C();
+    // pastille « partager » : on fait glisser les billes dans les assiettes
+    if (!PAPIER) { const so = subPick('quantite', ['obj', 'gr', 'partage']); if (so.includes('partage') && Math.random() < 1 / so.length) return genPartage(t); }
     const sortesQ = subPick('quantite', ['obj', 'gr']);
     if (sortesQ.includes('gr') && (!sortesQ.includes('obj') || Math.random() < 0.5)) { // une grandeur : masse, longueur, prix, durée
       const G = [[500, 'g', 'de farine'], [1000, 'g', 'de pâte'], [10, 'm', 'de ficelle'], [100, 'm', 'de course'], [60, 'kg', 'de sable'],
@@ -1569,8 +1620,9 @@ const GEN = {
     const c = C(), d = pickDen(t, 10), e = ri(1, Math.min(3, c.maxU - 1));
     const r = ri(1, d - 1);
     // décomposer (7/4 = 1 + 3/4) ou recomposer (2 + 2/3 = 8/3), selon les pastilles de la tuile
-    const sens = subPick('decomposer', t > 0.3 ? ['dec', 'rec'] : ['dec']);
-    return { n: e * d + r, d, e, r, inverse: pick(sens) === 'rec' };
+    const sens = pick(subPick('decomposer', [...(t > 0.3 ? ['dec', 'rec'] : ['dec']), ...(PAPIER ? [] : ['constr'])]));
+    if (sens === 'constr' && d <= 8) return { n: e * d + r, d, e, r, inverse: false, manip: 'construire' };   // construire avec des pièces
+    return { n: e * d + r, d, e, r, inverse: sens === 'rec' };
   }
 };
 
@@ -1800,6 +1852,424 @@ function scatterIdx(n, total) { // parts coloriées dispersées (pas forcément 
   return new Set(idx);
 }
 
+/* =========================================================
+   15 bis. Défis à manipuler : on fait glisser des objets au tableau (au doigt ou à la souris)
+   - Fraction d'une quantité : partager des billes dans des assiettes          (manip « partage »)
+   - Représenter sur la droite : glisser l'étiquette sur la bonne graduation  (manip « placer »)
+   - Encadrer entre deux entiers : glisser la fraction sur la droite          (manip « glisse »)
+   - Trier des fractions : ranger des étiquettes dans des boîtes              (défi « trier »)
+   - Lire une fraction : associer dessins et étiquettes                       (manip « associer »)
+   - Décomposer : construire la fraction avec des unités et des parts         (manip « construire »)
+   Dans les dessins SVG, chaque objet déplaçable est un <g data-drag="…">, chaque zone d'arrivée a data-drop="…".
+   Au lâcher, LACHER[q.manip](q, st, objet, zone, point) met à jour S.defis.st, puis on redessine.
+   ========================================================= */
+
+let PAPIER = false;   // pendant la fabrication de la fiche Word : pas de manipulation (on ne glisse pas sur du papier)
+let glisse = null;    // objet en cours de déplacement : { el, sv, p0, bouge, id }
+
+// position du pointeur dans les coordonnées du dessin SVG
+const ptSVG = (sv, e) => { const p = sv.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(sv.getScreenCTM().inverse()); };
+
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest('#stage [data-drag]');
+  if (!el || S.defis.revealed || S.mode !== 'defis') return;
+  e.preventDefault();
+  const sv = el.ownerSVGElement;
+  sv.appendChild(el);                       // passe au-dessus des autres dessins pendant le déplacement
+  el.classList.add('glisse');
+  glisse = { el, sv, p0: ptSVG(sv, e), bouge: false, id: e.pointerId };
+});
+document.addEventListener('pointermove', e => {
+  if (!glisse || e.pointerId !== glisse.id) return;
+  const p = ptSVG(glisse.sv, e), dx = p.x - glisse.p0.x, dy = p.y - glisse.p0.y;
+  if (Math.hypot(dx, dy) > 6) glisse.bouge = true;
+  glisse.el.setAttribute('transform', `translate(${dx} ${dy})`);
+});
+function finGlisse(e) {
+  if (!glisse || e.pointerId !== glisse.id) return;
+  const g = glisse; glisse = null;
+  g.el.style.display = 'none';              // pour voir ce qu'il y a sous le pointeur
+  // la première zone d'arrivée sous le pointeur (les billes ou étiquettes déjà posées ne la cachent pas)
+  const zone = document.elementsFromPoint(e.clientX, e.clientY).find(x => x.matches('[data-drop]'));
+  const q = S.defis.list[S.defis.i];
+  if (e.type === 'pointerup' && q && LACHER[q.manip]) LACHER[q.manip](q, S.defis.st, g.el.dataset.drag, zone ? zone.dataset.drop : null, ptSVG(g.sv, e), g.bouge);
+  render();
+}
+document.addEventListener('pointerup', finGlisse);
+document.addEventListener('pointercancel', finGlisse);
+
+/* Petits dessins communs */
+const GLISSABLE = 'class="glissable"';   // dessin où l'on fait glisser : pas de défilement de la page au doigt
+// étiquette d'une fraction, centrée en (x, y) ; etat : 'ok' (vert), 'ko' (rouge) ou rien
+function etiquette(x, y, n, d, id, etat = '', w = 78) {
+  const bord = etat === 'ok' ? 'var(--c2)' : etat === 'ko' ? 'var(--c5)' : 'var(--a)', fond = etat === 'ok' ? soft('--c2', .2) : etat === 'ko' ? soft('--c5', .18) : '#fff';
+  const forme = `<rect x="${x - w / 2}" y="${y - 44}" width="${w}" height="84" rx="14" fill="${fond}" stroke="${bord}" stroke-width="4"/>${svgFrac(x, y, n, d, 32, INK)}`;
+  return id === null ? `<g>${forme}</g>` : `<g data-drag="${id}" class="etiq">${forme}</g>`;
+}
+const melange = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// trier : la boîte où va une fraction
+const boiteDe = (sorte, [n, d]) => sorte === 'un' ? (n < d ? 0 : n === d ? 1 : 2) : (2 * n === d ? 0 : 1);
+const BTN_TOURNEE = `<button class="btn small" data-act="tournee">Une tournée</button>`;
+
+/* Ce que fait chaque lâcher d'objet */
+const LACHER = {
+  // billes : de la réserve (r) vers une assiette (p0, p1…), d'une assiette à l'autre, ou retour à la réserve
+  partage(q, st, de, vers) {
+    if (!vers || vers === de) return;
+    const Q = q.d * q.k, reste = Q - st.p.reduce((a, b) => a + b, 0);
+    if (de === 'r') { if (reste <= 0) return; } else { const i = +de.slice(1); if (!st.p[i]) return; st.p[i]--; }
+    if (vers !== 'r') st.p[+vers.slice(1)]++;
+  },
+  // étiquette de la fraction : elle s'accroche à la graduation la plus proche
+  placer(q, st, de, vers, p) {
+    const D = q.d * q.k, N = q.u * D, pas = 840 / N;
+    st.g = Math.max(0, Math.min(N, Math.round((p.x - 60) / pas))); st.checked = false;
+  },
+  // fraction posée entre deux entiers : l'intervalle sous le pointeur
+  glisse(q, st, de, vers, p) {
+    const v = (p.x - 60) / (840 / q.U);
+    st.e = Math.max(0, Math.min(q.U - 1, Math.floor(v))); st.checked = false;
+  },
+  // étiquette i : dans une boîte (b0, b1…) ou retour à la réserve (r)
+  trier(q, st, de, vers) {
+    if (!vers) return;
+    const i = +de;
+    if (vers === 'r') delete st.pos[i]; else if (vers[0] === 'b') st.pos[i] = +vers.slice(1);
+    st.checked = false;
+  },
+  // étiquette i : sous un dessin (s0, s1…) ; une étiquette déjà là retourne à la réserve
+  associer(q, st, de, vers) {
+    if (!vers) return;
+    const i = +de;
+    if (vers === 'r') delete st.pos[i];
+    else if (vers[0] === 's') { const j = +vers.slice(1); for (const k in st.pos) if (st.pos[k] === j) delete st.pos[k]; st.pos[i] = j; }
+    st.checked = false;
+  },
+  // pièces : une unité (u) ou une part (p) prise dans la boîte à pièces et posée sur la bande (z) ;
+  // une pièce de la bande (bu, bp) posée ailleurs est retirée
+  construire(q, st, de, vers) {
+    const tot = st.u * q.d + st.p, max = (q.e + 2) * q.d;
+    if ((de === 'u' || de === 'p') && vers === 'z') {
+      const ajout = de === 'u' ? q.d : 1;
+      if (tot + ajout <= max) de === 'u' ? st.u++ : st.p++;
+    }
+    if ((de === 'bu' || de === 'bp') && vers !== 'z') de === 'bu' ? st.u = Math.max(0, st.u - 1) : st.p = Math.max(0, st.p - 1);
+  }
+};
+
+/* Le dessin de chaque défi à manipuler. Renvoie { prompt, sub, viz, ans, steps, boutons } ;
+   revele : ce dessin sert aussi pour la réponse (sinon, la réponse est celle du défi ordinaire). */
+const MANIP = {
+  partage: {
+    dessin(q, st, R, { I, M }) {
+      const { d, k, n, obj } = q, Q = d * k;
+      if (!st.p) st.p = Array(d).fill(0);
+      const dans = st.p.reduce((a, b) => a + b, 0), reste = Q - dans, egal = reste === 0 && st.p.every(x => x === k);
+      st.checked = reste === 0;   // tout est partagé : on dit si les parts sont égales
+      const r = 21, gx = 54, jaune = soft('--c1', .6);
+      const bille = (cx, cy, id, on) => `<g data-drag="${id}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? 'var(--a)' : jaune}" stroke="${INK}" stroke-width="2.5"/></g>`;
+      // la réserve : toujours de la même taille, pour que rien ne saute pendant qu'on vide
+      const parLigne = Math.min(Q, 16), lignesR = Math.ceil(Q / parLigne), hR = 26 + lignesR * gx;
+      let s = `<rect data-drop="r" x="20" y="8" width="960" height="${hR}" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>`;
+      for (let i = 0; i < reste; i++) s += bille(500 - (parLigne - 1) * gx / 2 + (i % parLigne) * gx, 8 + 13 + gx / 2 + Math.floor(i / parLigne) * gx, 'r', false);
+      // les assiettes : assez hautes pour la plus remplie
+      const ecart = 16, gw = (960 - (d - 1) * ecart) / d, cols = Math.max(1, Math.floor((gw - 16) / gx)), plein = Math.max(k, ...st.p);
+      const hA = 30 + Math.ceil(plein / cols) * gx, y0 = hR + 40;
+      for (let j = 0; j < d; j++) {
+        const X = 20 + j * (gw + ecart), on = egal && j < n;
+        const rouge = st.checked && !egal;   // tout est partagé mais les parts ne sont pas égales : en rouge, sans explication
+        s += `<rect data-drop="p${j}" x="${X}" y="${y0}" width="${gw}" height="${hA}" rx="34" fill="${on ? soft('--a', .2) : rouge ? '#fde3e6' : '#fff'}" stroke="${on ? 'var(--a)' : rouge ? 'var(--c5)' : '#b9b0a0'}" stroke-width="4"/>`;
+        const c = Math.min(cols, Math.max(1, st.p[j]));
+        for (let i = 0; i < st.p[j]; i++) s += bille(X + gw / 2 + ((i % cols) - (c - 1) / 2) * gx, y0 + 15 + gx / 2 + Math.floor(i / cols) * gx, 'p' + j, on);
+        s += `<text x="${X + gw / 2}" y="${y0 + hA + 40}" text-anchor="middle" font-size="32" font-weight="700" fill="${on ? 'var(--a)' : INK}">${st.p[j]}</text>`;
+      }
+      const viz = svg(1000, y0 + hA + 56, s, GLISSABLE);
+      const ans = !st.checked ? ''
+        : egal ? `<div class="pill">Chaque assiette a ${k} ${obj} : ${F(1, d)} de ${Q} ${obj}, c'est ${k} ${obj}.</div>`
+                 + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n} assiettes : ${n} × ${k} = ${n * k} ${obj}.</div>` : '')
+        : '';
+      return {
+        prompt: `${F(n, d)} de ${Q} ${obj}, c'est combien ?`,
+        sub: `Partage les ${Q} ${obj} en ${d} parts égales : fais-les glisser dans les assiettes, ou fais une tournée.`,
+        viz, ans,
+        steps: [I(`${F(1, d)} de ${Q} ${obj}, c'est une part quand on partage les ${Q} ${obj} en ${d} parts égales.`),
+                M(n === 1 ? `Quand tout est partagé, compte les ${obj} d'une assiette.` : `Compte les ${obj} d'une assiette, puis prends ${words(n)} assiettes.`)],
+        boutons: BTN_TOURNEE + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  glisse: {   // encadrer : la droite n'a que les entiers ; la fraction se pose entre deux d'entre eux
+    dessin(q, st, R, { I, Dn, M }) {
+      const { n, d, e, U } = q, x = 60, L = 840, y = 170, pas = L / U, place = st.e !== undefined;
+      let s = `<rect data-drop="droite" x="0" y="0" width="1000" height="250" fill="transparent"/>` + lineG({ x, y, L, u: U, d: 1 });
+      if (place) s += `<rect x="${x + st.e * pas + 4}" y="${y - 12}" width="${pas - 8}" height="24" rx="12" fill="${soft('--a', .45)}"/>`;
+      const cx = place ? x + (st.e + 0.5) * pas : 500;
+      if (place) s += `<path d="M ${cx} ${y - 66} V ${y - 18}" stroke="var(--a)" stroke-width="3" stroke-dasharray="6 5"/>`;
+      s += etiquette(cx, place ? 66 : 56, n, d, 'f', st.checked ? (st.e === e ? 'ok' : 'ko') : '');
+      const val = v => place ? `<span style="color:var(--a)">${v}</span>` : BOX;
+      return {
+        prompt: `${val(st.e)} &lt; ${F(n, d)} &lt; ${val(place ? st.e + 1 : 0)}`,
+        sub: 'Fais glisser la fraction entre deux nombres entiers qui se suivent.',
+        viz: svg(1000, 250, s, GLISSABLE),
+        ans: !st.checked ? '' : st.e === e ? `<div class="pill">Bravo ! ${F(n, d)} = ${e} + ${F(n - e * d, d)} &nbsp;donc&nbsp; ${e} &lt; ${F(n, d)} &lt; ${e + 1}</div>`
+                                           : '',
+        steps: [I(`Combien de ${denName(d, true)} faut-il pour faire 1 ? Et pour faire 2 ?`),
+                Dn(range(1, e + 1).map(j => `${j} = ${F(j * d, d)}`).join(' ; ') + ' …'),
+                M(`Cherche les deux nombres entiers qui se suivent dont l'écriture en ${denName(d, true)} entoure ${F(n, d)}.`)],
+        boutons: place ? BTN.verifier('dcheck') : ''
+      };
+    }
+  },
+
+  trier: {
+    revele: true,
+    dessin(q, st, R, { I, M }) {
+      if (!st.pos) st.pos = {};
+      const { items, boites } = q, nb = boites.length, bonne = i => boiteDe(q.sorte, items[i]);
+      const pos = R ? Object.fromEntries(items.map((_, i) => [i, bonne(i)])) : st.pos;
+      // réserve en haut : les étiquettes pas encore triées
+      const hR = 120, libres = items.map((_, i) => i).filter(i => pos[i] === undefined), pasR = 960 / items.length;
+      let s = `<rect data-drop="r" x="20" y="6" width="960" height="${hR}" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>`;
+      libres.forEach((i, j) => { s += etiquette(20 + pasR * (j + 0.5) + (items.length - libres.length) * pasR / 2, 6 + hR / 2 + 4, ...items[i], i); });
+      // les boîtes : assez grandes pour toutes les étiquettes
+      const ecart = 20, bw = (960 - (nb - 1) * ecart) / nb, cols = Math.max(1, Math.floor((bw - 10) / 96)), y0 = hR + 36;
+      const plusPleine = Math.max(1, ...boites.map((_, b) => items.filter((_, i) => pos[i] === b).length)), hB = 70 + Math.ceil(plusPleine / cols) * 100;
+      boites.forEach((titre, b) => {
+        const X = 20 + b * (bw + ecart), dedans = items.map((_, i) => i).filter(i => pos[i] === b);
+        s += `<rect data-drop="b${b}" x="${X}" y="${y0}" width="${bw}" height="${hB}" rx="24" fill="#fff" stroke="var(--c${[3, 2, 0][b]})" stroke-width="5"/>
+              <text x="${X + bw / 2}" y="${y0 + 42}" text-anchor="middle" font-size="28" font-weight="700" fill="var(--c${[3, 2, 0][b]})">${titre}</text>`;
+        const c = Math.min(cols, Math.max(1, dedans.length));
+        dedans.forEach((i, j) => {
+          const etat = R ? 'ok' : st.checked ? (bonne(i) === b ? 'ok' : 'ko') : '';
+          s += etiquette(X + bw / 2 + ((j % cols) - (c - 1) / 2) * 96, y0 + 112 + Math.floor(j / cols) * 100, ...items[i], R ? null : i, etat);
+        });
+      });
+      const nMal = Object.keys(st.pos).filter(i => bonne(+i) !== st.pos[i]).length, nLibres = items.length - Object.keys(st.pos).length;
+      const ans = R ? boites.map((t, b) => `<div class="pill">${t} : ${items.filter(f => boiteDe(q.sorte, f) === b).map(f => F(...f)).join(' ; ')}</div>`).join('')
+        : !st.checked ? ''
+        : !nMal && !nLibres ? `<div class="pill">Bravo ! Tout est bien trié.</div>`
+        : '';
+      const un = q.sorte === 'un';
+      return {
+        prompt: un ? 'Trie les fractions : plus petites que 1, égales à 1 ou plus grandes que 1.' : `Trie les fractions : égales à ${F(1, 2)} ou pas.`,
+        sub: R ? '' : 'Fais glisser chaque étiquette dans la bonne boîte.',
+        viz: svg(1000, y0 + hB + 10, s, R ? '' : GLISSABLE), ans,
+        steps: un ? [I('Une fraction est égale à 1 quand le numérateur et le dénominateur sont égaux, comme 4/4.'),
+                     M('Numérateur plus petit que le dénominateur : plus petite que 1. Numérateur plus grand : plus grande que 1.')]
+                  : [I(`Une fraction est égale à ${F(1, 2)} quand le numérateur est la moitié du dénominateur.`),
+                     M('Double le numérateur : si tu trouves le dénominateur, la fraction est égale à 1/2.')],
+        boutons: R ? '' : BTN.verifier('dcheck') + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  associer: {
+    revele: true,
+    dessin(q, st, R, { I, M }) {
+      if (!st.pos) st.pos = {};
+      const { items, labels } = q, m = items.length, juste = (i, j) => labels[i][0] === items[j].n && labels[i][1] === items[j].d;
+      const pos = R ? Object.fromEntries(items.map((it, j) => [labels.findIndex(l => l[0] === it.n && l[1] === it.d), j])) : st.pos;
+      const ecart = 24, w = (960 - (m - 1) * ecart) / m, hD = 150, yS = hD + 30;
+      let s = '';
+      items.forEach((it, j) => {
+        const X = 20 + j * (w + ecart);
+        const fill = i => i < it.n ? 'var(--a)' : null;
+        s += it.rep === 'disque' ? diskG({ x: X + w / 2 - 66, cy: 10 + hD / 2, r: 66, d: it.d, u: 1, fill })
+                                 : barG({ x: X + 6, y: 10 + hD / 2 - 40, unitW: w - 12, h: 80, d: it.d, u: 1, fill });
+        s += `<rect data-drop="s${j}" x="${X + w / 2 - 55}" y="${yS}" width="110" height="104" rx="16" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="8 6"/>`;
+      });
+      for (const i in pos) { const j = pos[i], X = 20 + j * (w + ecart);
+        s += etiquette(X + w / 2, yS + 56, ...labels[i], R ? null : i, R ? 'ok' : st.checked ? (juste(+i, j) ? 'ok' : 'ko') : ''); }
+      // réserve : les étiquettes pas encore posées (à la correction : les pièges, en gris)
+      const yR = yS + 140, libres = labels.map((_, i) => i).filter(i => pos[i] === undefined), pasR = 960 / labels.length;
+      s += `<rect data-drop="r" x="20" y="${yR}" width="960" height="120" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>`;
+      libres.forEach((i, j) => { const x = 20 + pasR * (j + 0.5) + (labels.length - libres.length) * pasR / 2;
+        s += R ? `<g opacity=".45">${etiquette(x, yR + 64, ...labels[i], null)}</g>` : etiquette(x, yR + 64, ...labels[i], i); });
+      const nMal = Object.keys(st.pos).filter(i => !juste(+i, st.pos[i])).length, nVides = m - Object.keys(st.pos).length;
+      const ans = R ? ''
+        : !st.checked ? ''
+        : !nMal && !nVides ? `<div class="pill">Bravo ! Chaque dessin a la bonne fraction.</div>`
+        : '';
+      return {
+        prompt: 'Place la bonne fraction sous chaque dessin.',
+        sub: R ? '' : 'Attention : il y a des étiquettes en trop.',
+        viz: svg(1000, yR + 130, s, R ? '' : GLISSABLE), ans,
+        steps: [I("Le nombre du bas (dénominateur) dit en combien de parts égales l'unité est partagée."),
+                M('Le nombre du haut (numérateur) dit combien de parts sont coloriées. Méfie-toi des étiquettes pièges.')],
+        boutons: R ? '' : BTN.verifier('dcheck') + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  construire: {
+    dessin(q, st, R, { I, M }) {
+      if (st.u === undefined) { st.u = 0; st.p = 0; }
+      const { n, d, e, r } = q, tot = st.u * d + st.p;
+      const uw = Math.min(250, 840 / (e + 2)), x0 = 70, yB = 70, h = 80;
+      // la bande à construire : sa longueur est celle de la fraction
+      let s = `<rect data-drop="z" x="20" y="${yB - 50}" width="960" height="${h + 110}" fill="transparent"/>`
+            + `<rect x="${x0}" y="${yB}" width="${n / d * uw}" height="${h}" rx="6" fill="${soft('--c1', .12)}" stroke="${INK}" stroke-width="3" stroke-dasharray="10 7"/>`
+            + (tot > n || (tot === n && st.u !== e) ? `<rect x="${x0 - 6}" y="${yB - 6}" width="${tot / d * uw + 12}" height="${h + 12}" rx="10" fill="none" stroke="var(--c5)" stroke-width="5"/>` : '')   // pas encore ça : cadre rouge
+            + svgFrac(x0 + n / d * uw / 2, yB - 28, n, d, 30, INK).replace('<g ', '<g opacity=".8" ');
+      let X = x0;
+      for (let i = 0; i < st.u; i++, X += uw) s += `<g data-drag="bu"><rect x="${X}" y="${yB}" width="${uw}" height="${h}" fill="${soft('--c3', .55)}" stroke="${INK}" stroke-width="3"/><text x="${X + uw / 2}" y="${yB + h / 2 + 13}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">1</text></g>`;
+      for (let i = 0; i < st.p; i++, X += uw / d) s += `<g data-drag="bp"><rect x="${X}" y="${yB}" width="${uw / d}" height="${h}" fill="${soft('--a', .6)}" stroke="${INK}" stroke-width="2.5"/></g>`;
+      // ce qu'on a construit, écrit sous la bande : 1 + 3/4
+      const ecrit = [...Array(st.u).fill('1'), ...(st.p ? [`${st.p}/${d}`] : [])].join(' + ');
+      if (ecrit) s += `<text x="${x0}" y="${yB + h + 50}" font-size="34" font-weight="700" fill="${INK}">${ecrit}</text>`;
+      // la boîte à pièces, en bas : on y prend des unités et des parts (et on y jette celles en trop)
+      const yP = yB + h + 90;
+      s += `<rect data-drop="pal" x="20" y="${yP}" width="960" height="130" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>
+            <g data-drag="u"><rect x="${x0}" y="${yP + 25}" width="${uw}" height="${h}" fill="${soft('--c3', .55)}" stroke="${INK}" stroke-width="3"/><text x="${x0 + uw / 2}" y="${yP + 25 + h / 2 + 13}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">1</text></g>
+            <g data-drag="p"><rect x="${x0 + uw + 60}" y="${yP + 25}" width="${Math.max(uw / d, 34)}" height="${h}" fill="${soft('--a', .6)}" stroke="${INK}" stroke-width="2.5"/></g>
+            ${svgFrac(x0 + uw + 60 + Math.max(uw / d, 34) + 50, yP + 25 + h / 2 + 4, 1, d, 30, INK)}`;
+      st.checked = tot >= n;
+      const ans = tot === n && st.u === e ? `<div class="pill">Bravo ! ${F(n, d)} = ${e} + ${F(r, d)}</div>` : '';
+      const fini = tot === n && st.u === e;
+      return {
+        prompt: `${F(n, d)} = ${fini ? e : BOX} + ${fini ? F(r, d) : Fbox(null, d)}`,
+        sub: `Construis ${F(n, d)} avec des unités et des ${denName(d, true)} : fais glisser les pièces sur la bande.`,
+        viz: svg(1000, yP + 140, s, GLISSABLE), ans,
+        steps: [I(`1 = ${F(d, d)} : une unité, c'est ${d} ${denName(d, true)}.`),
+                M(`Mets d'abord le plus d'unités possible, puis complète avec des ${denName(d, true)}.`)],
+        boutons: BTN.effacer('dvider')
+      };
+    }
+  }
+};
+
+/* Générateurs des défis à manipuler */
+function genPartage(t) {   // 1/3 de 12 billes : pas trop de billes, pour les faire glisser
+  const c = C(), d = pick(t < 0.4 ? [2, 3, 4] : [2, 3, 4, 5, 6]), k = ri(2, d >= 5 ? 4 : 5);
+  const n = c.lvl === 3 && t > 0.3 && Math.random() < 0.7 ? ri(2, Math.max(2, d - 1)) : 1;
+  return { d, k, n: Math.min(n, d - 1) || 1, obj: pick(['billes', 'œufs', 'jetons', 'bonbons', 'images', 'crayons']), manip: 'partage' };
+}
+function genAssocier(t) {   // 3 ou 4 dessins, leurs fractions, et deux étiquettes pièges
+  const c = C(), m = c.lvl === 0 ? 3 : 4, reps = subPick('nommer', ['barre', 'disque']).filter(r => r !== 'droite');
+  const items = [], vu = new Set(), val = (n, d) => n / d;
+  for (let essai = 0; items.length < m && essai < 200; essai++) {
+    const d = pickDen(t, 10), n = ri(1, d - 1), rep = pick(reps.length ? reps : ['barre']);
+    if (rep === 'disque' && d > 8) continue;
+    if ([...vu].some(v => Math.abs(v - val(n, d)) < 1e-9)) continue;   // deux dessins de même valeur : ambigu
+    vu.add(val(n, d)); items.push({ n, d, rep });
+  }
+  // pièges : l'inverse (5/3 pour 3/5) et les parts non coloriées (2/5 pour 3/5)
+  const pieges = [], prend = (n, d, pourquoi) => {
+    if (n < 1 || [...items.map(i => [i.n, i.d]), ...pieges].some(([a, b]) => a === n && b === d) || [...vu].some(v => Math.abs(v - n / d) < 1e-9)) return false;
+    pieges.push([n, d, pourquoi]); return true;
+  };
+  for (const it of melange(items)) { if (prend(it.d, it.n, 'le piège de la fraction retournée : le nombre de parts en tout s\'écrit en bas.')) break; }
+  for (const it of melange(items)) { if (prend(it.d - it.n, it.d, 'le piège des parts non coloriées : on compte les parts coloriées.')) break; }
+  return { items, labels: melange([...items.map(i => [i.n, i.d]), ...pieges.map(p => [p[0], p[1]])]), pieges, manip: 'associer' };
+}
+
+/* =========================================================
+   15 ter. Propositions de réponses (bouton « Propositions », à côté de « Pas à pas »)
+   La bonne réponse et des erreurs que font souvent les élèves ; la réponse choisie devient verte ou rouge.
+   Le texte de chaque erreur n'est pas affiché : il dit seulement pourquoi ce piège a été choisi.
+   Les élèves peuvent répondre A, B, C ou D sur l'ardoise.
+   PROPS[type](q) -> { bonne: html, pieges: [[html, explication], ...] } ou null (pas de propositions pour cette question).
+   ========================================================= */
+const PROPS = {
+  nommer(q) {
+    const D = q.d * q.k, N = q.n * q.k;
+    if (q.rep === 'droite') return { bonne: F(N, D), pieges: [
+      [F(N + 1, D), 'tu as compté les traits, avec celui du 0 : on compte les intervalles.'],
+      [F(N, D + 1), 'tu as compté les traits entre 0 et 1 : on compte les intervalles.'],
+      [F(D, N), 'fraction retournée : le nombre de parts de l\'unité s\'écrit en bas.']] };
+    return { bonne: F(N, D), pieges: [
+      [F(D, N), 'fraction retournée : le nombre de parts de l\'unité s\'écrit en bas.'],
+      q.u === 1 ? [F(D - N, D), 'ce sont les parts non coloriées.'] : [F(N, q.u * D), `tu as compté les parts de toutes les unités : chaque unité est partagée en ${D}.`],
+      q.u * D > N ? [F(N, q.u * D - N), 'tu as comparé les parts coloriées aux parts blanches : en bas, c\'est le nombre de parts de l\'unité.'] : null,
+      [F(N, D + 1), 'compte bien les parts de l\'unité.'], [F(N + 1, D), 'compte bien les parts coloriées.']] };   // secours, si deux erreurs donnent la même réponse
+  },
+  ajouter(q) {
+    if (q.comp || q.d2) return null;
+    const { a, b, d, sub } = q;
+    return sub ? { bonne: F(a - b, d), pieges: [
+      [F(a + b, d), 'tu as additionné au lieu de soustraire.'],
+      [F(b, d), 'c\'est ce qu\'on enlève, pas ce qui reste.'],
+      [F(a - b, 2 * d), 'le dénominateur ne change pas : on enlève des parts de même taille.'],
+      a - b > 1 ? [F(a - b - 1, d), 'presque : compte bien les parts.'] : [F(a - b + 1, d), 'presque : compte bien les parts.']] }
+    : { bonne: F(a + b, d), pieges: [
+      [F(a + b, 2 * d), 'tu as aussi additionné les dénominateurs : on ajoute des parts de même taille, le dénominateur ne change pas.'],
+      [F(a + b, d * d), 'tu as multiplié les dénominateurs : ils ne changent pas.'],
+      a !== b ? [F(Math.abs(a - b), d), 'tu as soustrait au lieu d\'additionner.'] : null,
+      [F(a + b + 1, d), 'presque : compte bien les parts.'], [F(a * b, d), 'tu as multiplié les numérateurs : on ajoute des parts.']] };
+  },
+  produit(q) {
+    const { m, a, d } = q;
+    return { bonne: F(m * a, d), pieges: [
+      [F(m * a, m * d), `tu as aussi multiplié le dénominateur : ${m} fois ${denName(d, a > 1)}, ce sont toujours des ${denName(d, true)}.`],
+      [F(m + a, d), `tu as ajouté ${m} au lieu de multiplier.`],
+      [F(a, m * d), 'tu as multiplié le dénominateur : les parts deviennent plus petites, alors qu\'on en prend plus.'],
+      [F(m * a + 1, d), 'presque : vérifie la multiplication.'], [F(m * a, d + m), `le dénominateur ne change pas : ce sont toujours des ${denName(d, true)}.`]] };
+  },
+  egales(q) {
+    if (q.parmi) return null;
+    const { a, b, k } = q;
+    if (q.miss === 'd') return { bonne: `${F(a * k, b * k)}`, pieges: [
+      [F(a * k, b + (a * k - a)), 'tu as ajouté le même nombre en haut et en bas : il faut multiplier par le même nombre.'],
+      [F(a * k, b), 'tu as recopié le dénominateur.'],
+      [F(a * k, b * k + 1), 'presque : vérifie la multiplication.'], [F(a * k, b * k - 1), 'presque : vérifie la multiplication.']] };
+    return { bonne: F(a * k, b * k), pieges: [
+      [F(a + (b * k - b), b * k), 'tu as ajouté le même nombre en haut et en bas : il faut multiplier par le même nombre.'],
+      [F(a, b * k), 'tu as recopié le numérateur : si les parts sont plus petites, il en faut plus.'],
+      [F(a * k + 1, b * k), 'presque : vérifie la multiplication.'], [F(a * k - 1 || a * k + 2, b * k), 'presque : vérifie la multiplication.'], [F(a * k + 2, b * k), 'presque : vérifie la multiplication.']] };
+  },
+  lire(q) {
+    const { n, d, st } = q;
+    if (C().lvl === 1 && n > d) return null;   // au CE2, la réponse s'écrit « 2 unités et 1 quart »
+    const pieges = [[F(n + 1, d), 'tu as compté les traits, avec le premier : on compte les intervalles.'],
+                    [F(n, d + 1), 'tu as compté les traits entre deux entiers : on compte les intervalles.']];
+    pieges.push(st ? [F(n - st * d, d), `tu as compté depuis le début de la droite : elle commence à ${st}, pas à 0.`]
+                   : [F(d, n), 'fraction retournée : le nombre de parts de l\'unité s\'écrit en bas.']);
+    return { bonne: F(n, d), pieges };
+  },
+  encadrer(q) {
+    if (q.manip) return null;
+    const { n, d, e } = q, ec = (x, y) => `${x} &lt; ${F(n, d)} &lt; ${y}`;
+    return { bonne: ec(e, e + 1), pieges: [
+      [ec(d, n), 'ce sont les nombres de la fraction, pas les entiers qui l\'entourent.'],
+      [ec(0, 1), `une fraction peut être plus grande que 1 : ${F(n, d)} est plus grand que ${F(d, d)}.`],
+      [ec(e + 1, e + 2), `décalé d'un cran : ${e + 1} = ${F((e + 1) * d, d)}, c'est plus que ${F(n, d)}.`],
+      e > 1 ? [ec(e - 1, e), `décalé d'un cran : ${e} = ${F(e * d, d)}, c'est moins que ${F(n, d)}.`] : [ec(e, e + 2), 'il faut deux nombres entiers qui se suivent.']] };
+  },
+  quantite(q) {
+    if (q.manip) return null;
+    if (q.grand) {
+      const { Q, unit, d, n } = q, cent = Math.round(Q * 100 / d), v = x => `${comma(x * 10)} ${unit}`;
+      return { bonne: v(n * cent), pieges: [
+        [v(Q * d * 100), `tu as multiplié par ${d} au lieu de partager en ${d}.`],
+        [v((Q - d) * 100), `tu as enlevé ${d} au lieu de partager en ${d}.`],
+        n > 1 ? [v(cent), `c'est une seule part : il en faut ${n}.`] : [`${d} ${unit}`, 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.'],
+        [v((Q + d) * 100), `tu as ajouté ${d} au lieu de partager en ${d}.`]] };
+    }
+    const { d, k, n, obj } = q, Q = d * k, v = x => `${milliers(x)} ${obj}`;
+    return { bonne: v(n * k), pieges: [
+      [v(Q * d), `tu as multiplié par ${d} au lieu de partager en ${d}.`],
+      n > 1 ? [v(k), `c'est une seule part : il en faut ${n}.`] : [v(Q - d), `tu as enlevé ${d} au lieu de partager en ${d}.`],
+      [v(d), 'c\'est le nombre de parts, pas ce qu\'il y a dans une part.'], [v(n * k + 1), 'presque : vérifie le partage.'], [v(Q + d), `tu as ajouté ${d} au lieu de partager en ${d}.`]] };
+  }
+};
+
+// Les propositions d'une question, mélangées une fois pour toutes (A, B, C, D ne changent pas quand on redessine)
+function propositions(q) {
+  if (q._props !== undefined) return q._props;
+  const P = !q.manip && PROPS[q.type] ? PROPS[q.type](q) : null;
+  if (!P) return (q._props = null);
+  const texte = h => h.replace(/<[^>]+>/g, '|').replace(/\|+/g, '|');   // pour reconnaître deux réponses écrites pareil
+  const vus = new Set([texte(P.bonne)]), liste = [{ html: P.bonne, ok: true }];
+  for (const [html, pourquoi] of P.pieges.filter(Boolean)) {
+    if (liste.length >= 4 || /NaN|undefined|Infinity/.test(html)) continue;
+    const t = texte(html);
+    if (vus.has(t)) continue;
+    vus.add(t); liste.push({ html, pourquoi });
+  }
+  return (q._props = liste.length >= 3 ? melange(liste) : null);
+}
+
 function renderDefi() {
   const D = S.defis;
   if (!D.list.length) { $('#stage').innerHTML = `<div class="end" style="font-size:1.6rem">Coche au moins une compétence dans le menu.</div>`; return; }
@@ -1819,7 +2289,11 @@ function renderDefi() {
     .replace('<div class="lab b"><span class="frac"><span class="n">0</span>', '<div class="lab b"><span class="frac"><span class="n">?</span>');
   const A = 'var(--a)', B = 'var(--b)';
 
-  switch (q.type) {
+  const MAN = q.manip && MANIP[q.manip];
+  if (MAN && (!R || MAN.revele)) {   // défi à manipuler (glisser des objets) : son dessin, ses messages, ses boutons
+    const o = MAN.dessin(q, D.st, R, { I, Dn, M });
+    ({ prompt, sub, viz, ans, steps } = o); extraBtn = o.boutons || '';
+  } else switch (q.type) {
     case 'nommer': {
       const D = q.d * q.k, N = q.n * q.k, unite = q.rep === 'disque' ? 'disque' : q.rep === 'droite' ? 'intervalle de 0 à 1' : 'barre';
       if (q.rep === 'droite') {
@@ -1854,7 +2328,16 @@ function renderDefi() {
         ? [I(`Attention : chaque unité est partagée en ${denName(D, true)}, pas en ${denName(q.d, true)}.`), Dn(`${F(1, q.d)} = ${F(q.k, D)} : il faut ${q.k} petites parts pour faire ${F(1, q.d)}.`), M(`${F(q.n, q.d)}, c'est ${q.n} fois ${F(1, q.d)}, donc ${q.n} fois ${q.k} petites parts.`)]
         : [I(`Le dénominateur, ${q.d}, dit en combien de parts égales on partage l'unité.`), M(`Le numérateur, ${q.n}, dit combien de parts il faut ${droite ? 'compter depuis 0' : 'colorier'}${q.n > q.d ? ' : il faut plus d\'une unité' : ''}.`)];
       animable = true;
-      if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
+      if (droite && q.manip === 'placer' && !R) {   // l'étiquette de la fraction se fait glisser sur la droite (on peut aussi cliquer une graduation)
+        const x = 60, L = 840, y = 160, place = st.g !== undefined, X = place ? lx(x, L, q.u, D, st.g) : 500;
+        let s2 = `<rect data-drop="droite" x="0" y="0" width="1000" height="230" fill="transparent"/>` + lineG({ x, y, L, u: q.u, d: D, click: true });
+        if (cnt > 0) s2 += `<rect x="${x}" y="${y - 7}" width="${lx(x, L, q.u, D, cnt) - x}" height="14" rx="7" fill="var(--a)" opacity=".55" pointer-events="none"/>`;
+        if (place) s2 += pointG(X, y, 'var(--a)') + `<path d="M ${X} ${y - 62} V ${y - 20}" stroke="var(--a)" stroke-width="3" stroke-dasharray="6 5" pointer-events="none"/>`;
+        s2 += etiquette(X, place ? 58 : 52, q.n, q.d, 'f', st.checked ? (cnt === N ? 'ok' : 'ko') : '');
+        viz = svg(1000, 230, s2, GLISSABLE);
+        sub += ' Fais glisser l\'étiquette sur la droite.';
+      }
+      else if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
       else { const fill = R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null);
         // plus d'une unité (barre) : le bilan « 1 + 1 + 4/8 » s'écrit sous les barres, à la fin de l'animation
         const bilan = R && q.rep === 'barre' && N > D ? N : 0;
@@ -2162,14 +2645,21 @@ function renderDefi() {
     const v = steps.slice(0, vu).reverse().find(x => x.v);
     if (!viz && v) viz = v.v;
   }
+  // Propositions de réponses (une fois le bouton cliqué) : la réponse choisie devient verte ou rouge, sans explication
+  const PR = propositions(q);
+  let propsHTML = '';
+  if (PR && D.st.props) {
+    const ch = D.st.choix, L = 'ABCD';
+    propsHTML = `<div class="props">${PR.map((p, i) => `<button class="prop ${R ? (p.ok ? 'ok' : 'eteint') : ch === i ? (p.ok ? 'ok' : 'ko') : ''}" data-act="dprop" data-v="${i}"><b>${L[i]}</b>${p.html}</button>`).join('')}</div>`;
+  }
   $('#stage').innerHTML = `<div class="defi ${R ? 'rev' : ''}">
       <div class="dtop"><div class="dots">${dots}</div><span style="color:var(--muted);font-weight:700">${D.i + 1} / ${D.list.length}</span></div>
-      <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}
+      <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}${propsHTML}
       <div class="dviz">${viz}</div>
       <div class="answer ${R || D.st.checked ? 'on' : ''}">${ans}</div>
     </div>`;
   // boutons de la question en bas de l'écran, à côté de « Nouvelle série » : plus de place pour la réponse
-  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
+  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + (!R && PR && !D.st.props ? `<button class="btn aide" data-act="dprops">${ICON.liste}Propositions</button>` : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
     + (animable ? toggle('Animations', 'danim', S.anim) : '');   // corrections animées : actif par défaut, mémorisé ; absent s'il n'y a rien à animer
 }
 
@@ -2276,6 +2766,15 @@ const ACT = {
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + 'px';
   },
+  dprops() { S.defis.st.props = true; render(); },                                     // afficher les propositions A, B, C, D
+  dprop(v) { if (!S.defis.revealed) { S.defis.st.choix = +v; render(); } },             // une proposition choisie : juste ou l'explication de l'erreur
+  tournee() {   // partage : une bille dans chaque assiette, tant qu'il en reste
+    const q = S.defis.list[S.defis.i], st = S.defis.st;
+    let reste = q.d * q.k - st.p.reduce((a, b) => a + b, 0);
+    for (let j = 0; j < q.d && reste > 0; j++, reste--) st.p[j]++;
+    render();
+  },
+  dvider() { S.defis.st = { aide: S.defis.st.aide }; render(); },   // défi à manipuler : on recommence (le pas à pas reste)
   reglages(k) { ouvert = ouvert === k ? null : k; renderMenu(); },   // ouvrir / fermer la liste des pastilles
   subchip(v) { // pastille d'une tuile : on garde toujours au moins une pastille cochée
     const [k, key] = v.split(':'), on = subList(k).filter(([x]) => subOn(k, x));
@@ -2508,7 +3007,9 @@ async function creerFicheWord() {
     // chaque compétence cochée revient autant de fois que possible, dans un ordre mélangé (et pas deux fois de suite)
     const ordre = [];
     while (ordre.length < N) { const tour = [...ks].sort(() => Math.random() - .5); if (ordre.length && tour[0] === ordre.at(-1) && tour.length > 1) tour.push(tour.shift()); ordre.push(...tour); }
-    for (let i = 0; i < N; i++) { const t = N > 1 ? i / (N - 1) : 0, k = ordre[i]; liste.push({ type: k, t, ...GEN[k](t) }); }
+    PAPIER = true;   // sur papier, pas de défi à manipuler (sauf le tri, qui s'écrit aussi)
+    try { for (let i = 0; i < N; i++) { const t = N > 1 ? i / (N - 1) : 0, k = ordre[i]; liste.push({ type: k, t, ...GEN[k](t) }); } }
+    finally { PAPIER = false; }
     const images = [];
     let corps = (FICHE.prenom ? paraTxt('Prénom : ……………………………………………', { size: 13, apres: 10 }) : '') +
                 paraTxt(`Les fractions  ·  ${S.classe}`, { size: 16, b: true, col: '2B2D42', apres: 6 });
