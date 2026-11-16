@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.9 dans le portail « Le tableau magique » (interrupteur « Propositions », décoché à chaque nouvelle compétence)
+  v2.0 dans le portail « Le tableau magique » (téléphone : pas à pas et propositions lisibles)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -292,6 +292,9 @@ svg{user-select:none;-webkit-user-select:none}
   .card .big{font-size:2.4rem}
   .prompt{font-size:1.4rem}
   .answer{font-size:1.25rem;min-height:3rem}
+  .zone-aide,.answer{height:auto}   /* téléphone : la page défile, la zone d'aide et la réponse prennent la place qu'il leur faut (rien n'est réduit) */
+  .prop{font-size:1.25rem}
+  .tools .barre-r{border-left:none;margin-left:0;padding-left:0}   /* les réglages passent à la ligne : pas de trait de séparation */
   .signature-bas{position:static!important;display:block;text-align:right;margin:.4rem 1rem .6rem}
 }
 </style>
@@ -321,7 +324,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.9</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.0</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
