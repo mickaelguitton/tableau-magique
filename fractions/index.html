@@ -166,6 +166,14 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 #stage{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .tools{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.8vh .7vw;margin-top:1.6vh;min-height:2.6rem;font-size:clamp(.78rem,1.05vw,1.05rem)}
 .tools .btn{font-size:1em;padding:.4rem .9rem;border-radius:999px;box-shadow:0 .2rem 0 rgba(0,0,0,.18)}
+/* défis : deux groupes de boutons à places fixes (un bouton absent garde sa place, invisible) */
+.tools .barre-q,.tools .barre-r{display:flex;align-items:center;gap:.7vw}
+.tools .barre-r{margin-left:1.8vw;padding-left:1.8vw;border-left:.2rem solid rgba(0,0,0,.12)}
+.tools .vide{visibility:hidden}
+.tools .btn.aide{min-width:9.6em}
+/* boutons propres à une question (Vérifier, Une tournée, Effacer), juste sous le dessin */
+.dactions{flex:none;display:flex;justify-content:center;gap:.8rem;margin:.3rem 0 .1rem;font-size:clamp(.85rem,1.15vw,1.15rem)}
+.dactions .btn{font-size:1em;padding:.4rem 1rem;border-radius:999px;box-shadow:0 .2rem 0 rgba(0,0,0,.18)}
 /* commandes de la barre d'outils */
 .seg{display:flex;background:#fff;border:.2rem solid var(--col);border-radius:999px;padding:.15rem;gap:.15rem;box-shadow:0 .2rem 0 var(--col)}
 .seg button{padding:.25rem .75rem;border-radius:999px;font-weight:700;font-size:1em}
@@ -2702,17 +2710,23 @@ function renderDefi() {
   $('#stage').innerHTML = `<div class="defi ${R ? 'rev' : ''}">
       <div class="dtop"><div class="dots">${dots}</div><span style="color:var(--muted);font-weight:700">${D.i + 1} / ${D.list.length}</span></div>
       <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}${propsHTML}
-      <div class="dviz">${viz}</div>
+      <div class="dviz">${viz}</div>${extraBtn ? `<div class="dactions">${extraBtn}</div>` : ''}
       <div class="answer ${R || D.st.checked ? 'on' : ''}">${ans}</div>
     </div>`;
   // propositions trop longues pour une seule ligne : deux lignes de deux (ou une colonne s'il n'y en a que trois)
   const pr = $('#stage .props');
   if (pr && pr.offsetHeight > pr.firstElementChild.offsetHeight * 1.6) pr.classList.add(pr.children.length === 4 ? 'deux' : 'col');
-  // boutons de la question en bas de l'écran, à côté de « Nouvelle série » : plus de place pour la réponse
-  $('#tools').innerHTML = (!R && vu < nb ? BTN.aide(vu + 1, nb) : '') + extraBtn + (R ? '' : BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série')
-    + (animable ? toggle('Animations', 'danim', S.anim) : '')
-    + (q.type !== 'trier' && manipDe(q, false) ? toggle('Manipuler', 'dmanip', S.manipOn) : '')
-    + (PR ? toggle('Propositions', 'dprops', S.propsOn) : '');   // seulement si la question a des propositions (et qu'on ne la manipule pas)   // glisser des objets : actif par défaut, mémorisé ; seulement si la question s'y prête   // corrections animées : actif par défaut, mémorisé ; absent s'il n'y a rien à animer
+  // Barre du bas en deux groupes, chaque bouton toujours à la même place :
+  //   la question (Pas à pas, Voir la réponse, Suivant, Nouvelle série) | les réglages (Propositions, Animations, Manipuler).
+  // Un bouton qui n'a pas lieu d'être reste là, invisible : les autres ne se décalent jamais.
+  const place = (ok, html) => ok ? html : html.replace('<button ', '<button disabled tabindex="-1" aria-hidden="true" ').replace('class="', 'class="vide ');
+  $('#tools').innerHTML = `<div class="barre-q">`
+      + place(!R && vu < nb, BTN.aide(Math.min(vu + 1, Math.max(nb, 1)), Math.max(nb, 2)))
+      + place(!R, BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série') + `</div><div class="barre-r">`
+      + place(PR, toggle('Propositions', 'dprops', S.propsOn))                                      // si la question a des propositions (et qu'on ne la manipule pas)
+      + place(animable, toggle('Animations', 'danim', S.anim))                                      // corrections animées : actif par défaut, mémorisé
+      + place(q.type !== 'trier' && manipDe(q, false), toggle('Manipuler', 'dmanip', S.manipOn))   // glisser des objets : actif par défaut, mémorisé
+      + `</div>`;
 }
 
 /* =========================================================
