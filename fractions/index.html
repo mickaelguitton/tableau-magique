@@ -169,7 +169,8 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 /* défis : deux groupes de boutons à places fixes (un bouton absent garde sa place, invisible) */
 .tools .barre-q,.tools .barre-r{display:flex;align-items:center;gap:.7vw}
 .tools .barre-r{margin-left:1.8vw;padding-left:1.8vw;border-left:.2rem solid rgba(0,0,0,.12)}
-.tools .vide{visibility:hidden}
+.tools .barre-q .vide{visibility:hidden}
+.tools .barre-r .vide{opacity:.35;filter:grayscale(1);box-shadow:none;cursor:default}   /* réglage sans effet sur cette question : grisé */
 .tools .btn.aide{min-width:9.6em}
 /* boutons propres à une question (Vérifier, Une tournée, Effacer), juste sous le dessin */
 .dactions{flex:none;display:flex;justify-content:center;gap:.8rem;margin:.3rem 0 .1rem;font-size:clamp(.85rem,1.15vw,1.15rem)}
@@ -258,7 +259,13 @@ svg{user-select:none;-webkit-user-select:none}
 .defi.rev .dviz .cmprow svg{max-height:calc(15vh - 1rem)}
 .answer{min-height:clamp(60px,11vh,96px);display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;font-size:1.8rem;font-weight:600;opacity:0;transition:opacity .3s}
 .answer.on{opacity:1;transform:none}
-.answer{font-size:clamp(1.5rem,4.8vh,2.7rem);min-height:clamp(70px,13vh,130px);gap:.6em}
+.answer{font-size:clamp(1.5rem,4.8vh,2.7rem);min-height:clamp(70px,13vh,130px);height:clamp(70px,13vh,130px);flex:none;overflow:hidden;gap:.6em}
+.answer>.ajuste,.zone-aide>.ajuste{display:flex;align-items:center;justify-content:center;gap:.6em;flex-wrap:wrap;transform-origin:top center}
+.answer>.ajuste{transform-origin:center}
+/* zone d'aide (pas à pas, propositions) : hauteur fixe, vide au départ, pour que le dessin ne bouge jamais */
+.zone-aide{flex:none;height:clamp(3.4rem,14vh,9.5rem);overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+.zone-aide>.ajuste{flex-direction:column;gap:.35rem;width:100%}
+.zone-aide .hint{margin-top:.3em;font-size:clamp(1.05rem,2.6vh,1.45rem)}
 .answer .pill{background:var(--ok-soft);color:#1d6b33;padding:.35rem 1.1rem;border-radius:1.2rem;display:flex;align-items:center;gap:.3em;border:.15rem solid #b9e8c6}
 .answer .frac{font-size:1.05em}
 .answer .pill.ko{background:#fde3e6;color:#9b1c2e}
@@ -2694,9 +2701,10 @@ function renderDefi() {
   }
   steps = steps.filter(Boolean);
   const nb = steps.length, vu = Math.min(D.st.aide || 0, nb);
+  let hintHTML = '';
   if (vu) { // la dernière étape demandée ; son dessin (ou celui d'une étape précédente) s'il n'y a rien d'autre à l'écran
     const st = steps[vu - 1];
-    sub = (sub ? sub + '<br>' : '') + `<span class="hint">${st.t}</span>`;   // le texte seul, sans « Indice : », « Méthode : »…
+    hintHTML = `<span class="hint">${st.t}</span>`;   // le texte seul, sans « Indice : », « Méthode : »…
     const v = steps.slice(0, vu).reverse().find(x => x.v);
     if (!viz && v) viz = v.v;
   }
@@ -2709,17 +2717,25 @@ function renderDefi() {
   }
   $('#stage').innerHTML = `<div class="defi ${R ? 'rev' : ''}">
       <div class="dtop"><div class="dots">${dots}</div><span style="color:var(--muted);font-weight:700">${D.i + 1} / ${D.list.length}</span></div>
-      <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}${propsHTML}
+      <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}
+      ${nb || PR ? `<div class="zone-aide"><div class="ajuste">${hintHTML}${propsHTML}</div></div>` : ''}
       <div class="dviz">${viz}</div>${extraBtn ? `<div class="dactions">${extraBtn}</div>` : ''}
-      <div class="answer ${R || D.st.checked ? 'on' : ''}">${ans}</div>
+      <div class="answer ${R || D.st.checked ? 'on' : ''}"><div class="ajuste">${ans}</div></div>
     </div>`;
   // propositions trop longues pour une seule ligne : deux lignes de deux (ou une colonne s'il n'y en a que trois)
   const pr = $('#stage .props');
   if (pr && pr.offsetHeight > pr.firstElementChild.offsetHeight * 1.6) pr.classList.add(pr.children.length === 4 ? 'deux' : 'col');
+  // Le dessin garde toujours la même taille : la zone d'aide et la réponse ont une hauteur fixe,
+  // et ce qui dépasse (propositions sur deux lignes, réponse longue) est réduit pour y tenir.
+  for (const a of document.querySelectorAll('#stage .ajuste')) {
+    a.style.transform = '';
+    const place = a.parentElement.clientHeight, besoin = a.scrollHeight;
+    if (besoin > place && place > 0) a.style.transform = `scale(${(place / besoin).toFixed(3)})`;
+  }
   // Barre du bas en deux groupes, chaque bouton toujours à la même place :
   //   la question (Pas à pas, Voir la réponse, Suivant, Nouvelle série) | les réglages (Propositions, Animations, Manipuler).
-  // Un bouton qui n'a pas lieu d'être reste là, invisible : les autres ne se décalent jamais.
-  const place = (ok, html) => ok ? html : html.replace('<button ', '<button disabled tabindex="-1" aria-hidden="true" ').replace('class="', 'class="vide ');
+  // Un bouton qui n'a pas lieu d'être garde sa place (invisible pour la question, grisé pour un réglage) : les autres ne se décalent jamais.
+  const place = (ok, html) => ok ? html : html.replace('<button ', '<button disabled tabindex="-1" aria-hidden="true" ').replace('class="toggle on"', 'class="toggle"').replace('class="', 'class="vide ');
   $('#tools').innerHTML = `<div class="barre-q">`
       + place(!R && vu < nb, BTN.aide(Math.min(vu + 1, Math.max(nb, 1)), Math.max(nb, 2)))
       + place(!R, BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série') + `</div><div class="barre-r">`
