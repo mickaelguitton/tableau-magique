@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.8 dans le portail « Le tableau magique » (cartes lisibles du fond de la classe, signes à droite, quadrillages plus grands)
+  v2.9 dans le portail « Le tableau magique » (mur des fractions en couleur, option Mur blanc)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -367,7 +367,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.8</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.9</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -383,7 +383,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Manipuler :</b> une barre, un disque, une droite graduée, ou les trois à la fois. On partage l’unité, on colorie des parts, on partage encore (les nouveaux traits en pointillés) ou on regroupe. La carte « Quel est le nombre représenté ? » se retourne d’un clic pour montrer la fraction en chiffres et en lettres.</li>
       <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité : on crée soi-même les parts de chaque barre, on les colorie, puis on fait glisser le bon signe dans la case.</li>
-      <li><b>Le mur des fractions :</b> une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6.</li>
+      <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
       <li><b>Sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
       <li><b>Fractions décimales :</b> des quadrillages comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième), avec la carte « Quel est le nombre représenté ? », et une droite graduée avec loupes, pour passer à l’écriture à virgule.</li>
     </ul>
@@ -972,7 +972,7 @@ const S = {
   manip: { rep: 'barre', d: 4, base: 4, u: 1, set: new Set([0, 1, 2]), show: false, parts: false, sauts: false },   // show : carte retournée côté réponse ; parts : 1/4 écrit dans chaque part ; base : partage de départ (traits pleins)
   cmp: { rep: 'barre', a: { n: 3, d: 4 }, b: { n: 2, d: 3 }, chosen: null, revealed: false, faites: false,
          parts: { a: 1, b: 1 }, col: { a: new Set(), b: new Set() }, pt: { a: 0, b: 0 } },   // chaque ligne : ses parts (créées avec + et −), les parts coloriées, le point sur la droite
-  mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null },
+  mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null, blanc: load('mur-blanc', false) },   // blanc : mur à colorier soi-même (sinon une couleur par ligne)
   placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, revealed: false, grads: true, sauts: false },
   deci: { view: 'quad', u: 1, set: new Set(), by: 'centieme', v: 340, s: 0, loupe: false, virgule: true, show: false,
           pieces: { u: 1, d: 3, c: 4, m: 0 } },   // quadrillages : unités (bandes), dixièmes (carrés), centièmes (barres), millièmes (petits carrés)
@@ -1162,7 +1162,7 @@ function renderTools() {
   }
   if (S.mode === 'mur') {
     h += `<div class="chips">${c.wall.map(d => `<button class="chip ${S.mur.rows.includes(d) ? 'on' : ''}" data-act="murrow" data-v="${d}">${d === 1 ? '1' : '1/' + d}</button>`).join('')}</div>`;
-    h += toggle('Écrire les fractions', 'murlab', S.mur.labels);
+    h += toggle('Écrire les fractions', 'murlab', S.mur.labels) + toggle('Mur blanc', 'murblanc', S.mur.blanc);
     h += BTN.effacer('murclear');
   }
   if (S.mode === 'placer') {
@@ -1320,9 +1320,11 @@ function renderCompare() {
    12. Activité « Le mur des fractions »
    ========================================================= */
 
-const WALL_PAL = ['--c1', '--c0', '--c3', '--c2', '--c4', '--c5']; // une couleur de la palette par ligne du mur
+// une couleur bien distincte par ligne du mur (1 à 12), comme sur les murs des fractions des classes
+const WALL_PAL = ['#f2b134', '#ff6f61', '#2f80c3', '#2a9d8f', '#9b5de5', '#e76f51', '#e05297', '#43aa8b', '#a47148', '#3d5a98', '#8ab17d', '#c77dff'];
 
-const wallCol = d => soft(WALL_PAL[(d - 1) % WALL_PAL.length], d <= WALL_PAL.length ? 0.55 : 0.32);
+const wallFort = d => WALL_PAL[(d - 1) % WALL_PAL.length];                          // case mise en valeur
+const wallCol = d => `color-mix(in srgb, ${wallFort(d)} 45%, white)`;                // fond de la ligne
 
 function renderMur() {
   // le mur prend toute la hauteur libre : on place d'abord la zone, puis on calcule la hauteur des lignes
@@ -1336,12 +1338,16 @@ function renderMur() {
     const y = top + r * rh, w = W / d, set = S.mur.col[d] || [];
     for (let j = 0; j < d; j++) {
       const on = set.includes(j);
-      s += `<rect data-w="${d}:${j}" class="part" x="${x0 + j * w}" y="${y}" width="${w}" height="${rh}" fill="${on ? wallCol(d) : '#fff'}" stroke="${INK}" stroke-width="2"/>`;
+      // mur en couleur : une couleur par ligne, la case cliquée en couleur franche ; mur blanc : seule la case cliquée est coloriée
+      const fond = S.mur.blanc ? (on ? wallCol(d) : '#fff') : (on ? wallFort(d) : wallCol(d));
+      s += `<rect data-w="${d}:${j}" class="part" x="${x0 + j * w}" y="${y}" width="${w}" height="${rh}" fill="${fond}" stroke="${INK}" stroke-width="2"/>`;
       if (S.mur.labels) s += d === 1
         ? `<text x="${x0 + w / 2}" y="${y + rh / 2 + Math.min(14, rh / 5)}" text-anchor="middle" font-size="${Math.min(40, rh / 2.4)}" font-weight="700" fill="${INK}" pointer-events="none">1</text>`
         : `<g pointer-events="none">${svgFrac(x0 + j * w + w / 2, y + rh / 2 - 2, 1, d, Math.min(34, rh / 2.7, w / 2), INK)}</g>`;
     }
   });
+  if (!S.mur.blanc) rows.forEach((d, r) => (S.mur.col[d] || []).forEach(j =>   // contour épais des cases mises en valeur, par-dessus les voisines
+    s += `<rect x="${x0 + j * W / d + 2}" y="${top + r * rh + 2}" width="${W / d - 4}" height="${rh - 4}" fill="none" stroke="${INK}" stroke-width="6" pointer-events="none"/>`));
   const H = top + rows.length * rh + 14;
   const rx = S.mur.x;
   s += `<g id="ruler" style="display:${rx === null ? 'none' : 'block'}" transform="translate(${rx || 0},0)" pointer-events="none">
@@ -3025,6 +3031,7 @@ const ACT = {
   },
   murlab() { S.mur.labels = !S.mur.labels; render(); },
   murclear() { S.mur.col = {}; render(); },
+  murblanc() { S.mur.blanc = !S.mur.blanc; save('mur-blanc', S.mur.blanc); S.mur.col = {}; render(); },
   ptask(v) { S.placer.task = v; S.placer.guess = null; S.placer.revealed = false; render(); },
   pnew() { newPlacer(); render(); },
   preveal() { S.placer.revealed = true; render(); },
