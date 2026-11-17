@@ -179,6 +179,17 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .seg{display:flex;background:#fff;border:.2rem solid var(--col);border-radius:999px;padding:.15rem;gap:.15rem;box-shadow:0 .2rem 0 var(--col)}
 .seg button{padding:.25rem .75rem;border-radius:999px;font-weight:700;font-size:1em}
 .seg button.on{background:var(--col);color:#fff}
+.seg button:disabled{opacity:.35;cursor:default}
+/* « Options » : la liste s'ouvre au-dessus du bouton */
+.opts{position:relative}
+.opts-liste{display:none;position:absolute;bottom:calc(100% + .5rem);left:50%;transform:translateX(-50%);z-index:40;flex-direction:column;align-items:stretch;gap:.4rem;
+  background:#fff;border:.2rem solid var(--col,var(--c3));border-radius:1rem;padding:.55rem;box-shadow:0 .4rem 1rem rgba(0,0,0,.18);white-space:nowrap}
+.opts.ouvert .opts-liste{display:flex}
+/* Comparer : la fraction se change à l'écran */
+button.lab{background:none;cursor:pointer;border-radius:1rem;padding:.1rem .3rem;transition:background .15s}
+button.lab:hover,button.lab.edite{background:color-mix(in srgb,currentColor 12%,white)}
+.cedit .stepper{--col:var(--c3)}
+.cedit{position:absolute;left:0;top:calc(100% - .4rem);z-index:30;display:flex;align-items:center;gap:.4rem;background:#fff;border:.2rem solid var(--c3);border-radius:1rem;padding:.4rem .6rem;box-shadow:0 .4rem 1rem rgba(0,0,0,.18);font-size:clamp(.85rem,1.1vw,1.1rem);font-weight:700;color:var(--muted)}   /* flotte sous la fraction : la ligne ne bouge pas */
 .stepper{display:flex;align-items:center;gap:.3rem;background:#fff;border:.2rem solid var(--col);border-radius:999px;padding:.12rem .15rem .12rem .75rem;box-shadow:0 .2rem 0 var(--col);font-weight:700;font-size:1em}
 .stepper:not(:has(label)){padding-left:.15rem}
 .stepper .ctl{display:flex;align-items:center;gap:.2rem}
@@ -213,7 +224,6 @@ svg{user-select:none;-webkit-user-select:none}
 .grad{cursor:pointer}
 .grad:hover rect{fill:rgba(122,108,240,.12)}
 .card{width:clamp(260px,27vw,400px);cursor:pointer;flex:none;background:#fff;border:.3rem solid var(--c0);border-radius:1.6rem;box-shadow:0 .4rem 0 var(--c0);padding:1.4rem 1rem;position:relative;display:flex;flex-direction:column;align-self:center;max-height:100%;overflow:auto}
-.card .eye{position:absolute;top:.5rem;right:.5rem;padding:.15rem .7rem;border-radius:999px;background:var(--soft-a);color:var(--a);font-weight:700;font-size:.9rem}
 .card .big{font-size:clamp(2.6rem,7vh,4.4rem);color:var(--a);text-align:center;margin:.2rem 0 .3rem}
 .card .words{font-size:clamp(1.1rem,2.6vh,1.45rem);text-align:center;font-weight:700;margin-bottom:.5rem;line-height:1.15}
 .card ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem}
@@ -233,7 +243,7 @@ svg{user-select:none;-webkit-user-select:none}
 .rowctl button{width:2.4rem;height:2.4rem;border-radius:50%;background:var(--c3);color:#fff;font-size:1.5rem;font-weight:700;line-height:1;box-shadow:0 .15rem 0 rgba(0,0,0,.2)}
 .rowctl button:disabled{opacity:.3;cursor:default}
 .cmp{flex:1;display:flex;flex-direction:column;justify-content:safe center;gap:1vh;min-height:0}
-.cmprow{display:flex;align-items:center;gap:18px}
+.cmprow{display:flex;align-items:center;gap:18px;position:relative}
 .cmprow .lab{width:clamp(70px,8vw,110px);flex:none;text-align:center;font-size:clamp(2.2rem,6vh,3.4rem)}
 .cmprow .lab.a{color:var(--a)} .cmprow .lab.b{color:var(--b)}
 .cmprow svg{flex:1;min-width:0;height:auto;max-height:calc(26vh - 2rem)}
@@ -994,6 +1004,12 @@ const stepperSans = (label, key, minus, plus) =>
      <button data-act="step" data-key="${key}" data-dir="-1" ${minus ? '' : 'disabled'} aria-label="${label} : moins">−</button>
      <button data-act="step" data-key="${key}" data-dir="1" ${plus ? '' : 'disabled'} aria-label="${label} : plus">+</button></div></div>`;
 
+// Réglages qu'on change rarement, rangés dans « Options » : une petite liste qui s'ouvre au clic (un clic ailleurs la referme)
+const options = items => {
+  items = items.filter(Boolean);
+  return items.length ? `<div class="opts ${S.opts ? 'ouvert' : ''}"><button class="btn bmanip" data-act="opts" aria-expanded="${!!S.opts}">Options ${S.opts ? '▴' : '▾'}</button><div class="opts-liste">${items.join('')}</div></div>` : '';
+};
+
 const toggle = (label, act, on) => `<button class="toggle ${on ? 'on' : ''}" data-act="${act}">${label}</button>`;
 
 const seg = (act, cur, items) => `<div class="seg">${items.map(([v, l, ic]) => `<button class="${cur === v ? 'on' : ''}" data-act="${act}" data-v="${v}">${ic || ''}<span>${l}</span></button>`).join('')}</div>`;
@@ -1053,7 +1069,6 @@ const ICON = {
   ampoule: IC('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>'),
   suite: IC('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   neuf: IC('<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'),
-  liste: IC('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>'),
   gomme: IC('<path d="M8 20h12M5.5 14.5l8-8a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 18H8.5z"/><path d="M9.5 10.5l5 5"/>')
 };
 /* Boutons communs à toutes les activités (même nom, même couleur, même place) */
@@ -1076,19 +1091,15 @@ function renderTools() {
     h += seg('rep', m.rep, [['barre', 'Barre'], ['disque', 'Disque'], ['droite', 'Droite'], ['trois', 'Les trois']]);
     h += stepperSans('Parts', 'md', m.d > c.dens[0], m.d < c.dens[c.dens.length - 1]);
     if (c.maxU > 1) h += stepperSans('Unités', 'mu', m.u > 1, m.u < c.maxU);
-    h += `<button class="btn bmanip" data-act="split" data-k="2" ${okSplit(2) ? '' : 'disabled'}>Partager en 2</button>
-          <button class="btn bmanip" data-act="split" data-k="3" ${okSplit(3) ? '' : 'disabled'}>en 3</button>
-          <button class="btn bmanip" data-act="regroup" ${regroupK() ? '' : 'disabled'}>Regrouper</button>`;
-    if (m.rep === 'barre' || m.rep === 'trois') h += toggle('Afficher les parts', 'mparts', m.parts);   // 1/4 écrit dans chaque part
-    if (m.rep === 'droite' || m.rep === 'trois') h += toggle('Sauts', 'msauts', m.sauts);
+    h += `<div class="seg"><button data-act="split" data-k="2" ${okSplit(2) ? '' : 'disabled'}>Partager en 2</button><button data-act="split" data-k="3" ${okSplit(3) ? '' : 'disabled'}>en 3</button><button data-act="regroup" ${regroupK() ? '' : 'disabled'}>Regrouper</button></div>`;
+    h += options([(m.rep === 'barre' || m.rep === 'trois') && toggle('Afficher les parts', 'mparts', m.parts),   // 1/4 écrit dans chaque part
+                  (m.rep === 'droite' || m.rep === 'trois') && toggle('Sauts', 'msauts', m.sauts)]);
     h += BTN.effacer('clear');
   }
   if (S.mode === 'comparer') {
-    const k = S.cmp, maxN = d => d * c.maxU;
+    const k = S.cmp;
     h += seg('crep', k.rep, [['barre', 'Barres'], ['disque', 'Disques'], ['droite', 'Droites']]);
-    h += `<div class="grp"><span class="dot" style="background:var(--a)"></span>` + stepper('', 'an', k.a.n, k.a.n > 0, k.a.n < maxN(k.a.d)) + `<span class="lab">sur</span>` + stepper('', 'ad', k.a.d, k.a.d > c.dens[0], k.a.d < c.dens.at(-1)) + `</div>`;
-    h += `<div class="grp"><span class="dot" style="background:var(--b)"></span>` + stepper('', 'bn', k.b.n, k.b.n > 0, k.b.n < maxN(k.b.d)) + `<span class="lab">sur</span>` + stepper('', 'bd', k.b.d, k.b.d > c.dens[0] || k.b.d === 1, k.b.d < c.dens.at(-1)) + `</div>`;
-    h += toggle('Parts déjà faites', 'cfaites', k.faites);   // éteint : on crée soi-même les parts de chaque ligne
+    h += options([toggle('Parts déjà faites', 'cfaites', k.faites)]);   // éteint : on crée soi-même les parts de chaque ligne ; les fractions se changent à l'écran
     if (!(k.revealed || k.chosen === cmpSign(k.a, k.b))) h += BTN.voir('creveal');
     h += BTN.neuf('crandom');
   }
@@ -1105,7 +1116,7 @@ function renderTools() {
     h += stepperSans('Parts', 'pd', p.d > c.dens[0], p.d < Math.min(20, c.dens.at(-1)));
     if (pMax > 1) h += stepperSans('Unités', 'pu', p.u > 1, p.u < pMax);
     if (c.lvl >= 2) h += stepper('Départ', 'ps', p.s, p.s > 0, p.s < 20);
-    h += toggle('Graduations', 'pgrads', p.grads) + toggle('Sauts', 'psauts', p.sauts);
+    h += options([toggle('Graduations', 'pgrads', p.grads), toggle('Sauts', 'psauts', p.sauts)]);
     if (p.task === 'placer') h += BTN.effacer('pclear');
     if (!p.revealed) h += p.task === 'placer' ? BTN.verifier('preveal') : BTN.voir('preveal');
     h += BTN.neuf('pnew');
@@ -1114,10 +1125,9 @@ function renderTools() {
     const q = S.deci;
     h += seg('dview', q.view, [['carre', 'Carré de 100'], ['droite', 'Droite']]);
     if (q.view === 'carre') h += seg('dby', q.by, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes']]);
-    else h += toggle(c.deciMax === 1000 ? 'Loupes' : 'Loupe', 'dloupe', q.loupe);
     h += stepper('Unités', 'du', q.u, q.u > 1, q.u < Math.min(c.maxU, 3));
     if (q.view === 'droite') h += stepper('Départ', 'ds', q.s, q.s > 0, q.s < 99);
-    h += toggle('Écriture à virgule', 'dvirg', q.virgule);
+    h += options([q.view === 'droite' && toggle(c.deciMax === 1000 ? 'Loupes' : 'Loupe', 'dloupe', q.loupe), toggle('Écriture à virgule', 'dvirg', q.virgule)]);
     h += q.view === 'carre' ? BTN.effacer('dclear') : BTN.neuf('drandom');
   }
   if (S.mode === 'defis') h += BTN.neuf('dnew', 'Nouvelle série'); // les autres boutons des défis s'ajoutent dans renderDefi
@@ -1223,7 +1233,8 @@ function renderCompare() {
     const ctl = R ? '<div class="rowctl"></div>' : `<div class="rowctl"><span>parts</span>
         <button data-act="cparts" data-v="${r}" data-dir="1" ${k.parts[r] < maxP ? '' : 'disabled'} aria-label="une part de plus">+</button>
         <button data-act="cparts" data-v="${r}" data-dir="-1" ${k.parts[r] > 1 ? '' : 'disabled'} aria-label="une part de moins">−</button></div>`;
-    return `<div class="cmprow" data-row="${r}"><div class="lab ${r}">${F(f.n, f.d)}</div>${ctl}${dessin}</div>`;
+    const maxN = f.d * c.maxU, ed = k.edit === r ? `<div class="cedit">${stepper('', r + 'n', f.n, f.n > 0, f.n < maxN)}<span>sur</span>${stepper('', r + 'd', f.d, f.d > c.dens[0] || (r === 'b' && f.d === 1), f.d < c.dens.at(-1))}</div>` : '';
+    return `<div class="cmprow" data-row="${r}"><button class="lab ${r} ${k.edit === r ? 'edite' : ''}" data-act="cedit" data-v="${r}" title="Changer la fraction">${F(f.n, f.d)}</button>${ed}${ctl}${dessin}</div>`;
   };
   $('#stage').innerHTML = `
     <div class="title">Quelle fraction est la plus grande ?<small>Crée les parts avec + et −, puis colorie.</small></div>
@@ -2823,7 +2834,7 @@ const ACT = {
   fnb(v) { FICHE.nombre = +v; majFiche(); },
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
-  go(v) { S.mode = v; save('mode', v); S.screen = 'game'; render(); },
+  go(v) { S.mode = v; save('mode', v); S.screen = 'game'; S.opts = false; S.cmp.edit = null; render(); },
   solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },   // une compétence ouverte depuis le menu : propositions décochées
   gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },
   fs() { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); },
@@ -2866,7 +2877,9 @@ const ACT = {
     render();
   },
   crep(v) { S.cmp.rep = v; render(); },
-  crandom() { const r = comparePair(Math.random()); S.cmp.a = r.a; S.cmp.b = r.b; cmpVide(); render(); },
+  crandom() { const r = comparePair(Math.random()); S.cmp.a = r.a; S.cmp.b = r.b; S.cmp.edit = null; cmpVide(); render(); },
+  cedit(r) { S.cmp.edit = S.cmp.edit === r ? null : r; render(); },   // un clic sur une fraction : ses + et − apparaissent à côté
+  opts() { S.opts = !S.opts; renderTools(); },
   cfaites() { S.cmp.faites = !S.cmp.faites; cmpVide(); render(); },
   cparts(r, el) {   // une part de plus ou de moins sur une ligne : on recommence son coloriage
     const k = S.cmp; k.parts[r] = clamp(k.parts[r] + +el.dataset.dir, 1, 20); k.col[r] = new Set(); k.pt[r] = 0; render();
@@ -2929,6 +2942,8 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#tip, [data-act=info]')) $('#tip').hidden = true;
   // clic en dehors de la liste de pastilles ouverte : on la referme
   if (ouvert && !e.target.closest('.skill.ouvert, [data-act=reglages]')) { ouvert = null; renderMenu(); }
+  if (S.opts && !e.target.closest('.opts')) { S.opts = false; renderTools(); }
+  if (S.cmp.edit && !e.target.closest('.cedit, [data-act=cedit]')) { S.cmp.edit = null; renderCompare(); }
   const a = e.target.closest('[data-act]');
   if (a) { ACT[a.dataset.act]?.(a.dataset.v, a); return; }
   const w = e.target.closest('[data-w]');
@@ -2991,6 +3006,7 @@ document.addEventListener('change', e => { // cases à cocher des défis (menu)
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ouvert) { ouvert = null; renderMenu(); return; }   // Échap referme la liste de pastilles
+  if (e.key === 'Escape' && (S.opts || S.cmp.edit)) { S.opts = false; S.cmp.edit = null; render(); return; }   // … et « Options », et l'édition d'une fraction
   if (S.screen !== 'game' || S.mode !== 'defis') return;
   if (e.key === 'ArrowRight' || e.key === 'Enter') ACT.dnext();
   if (e.key === ' ') { e.preventDefault(); ACT.dreveal(); }
