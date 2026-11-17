@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v3.0 dans le portail « Le tableau magique » (quadrillages : Lire et Représenter ; nouvelle tuile Décimaux sur la droite)
+  v1.00 dans le portail « Le tableau magique » (numérotation repartie de 1.00 ; ensuite 1.01, 1.02…) (millièmes et flèche sur la droite, quadrillages de taille fixe)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v3.0</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.00</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -384,14 +384,14 @@ svg{user-select:none;-webkit-user-select:none}
     <h3>À quoi sert cet outil ?</h3>
     <p>À parts égales affiche au TBI ou au vidéoprojecteur des barres, des disques et des droites graduées qu’on partage et qu’on colorie devant les élèves. On montre ce qu’est une fraction, on compare, on cherche des fractions égales, puis on s’entraîne avec des défis corrigés ensemble. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
 
-    <h3>Manipuler et comprendre</h3>
+    <h3>Ateliers libres : découvrir et expliquer au tableau</h3>
     <ul>
       <li><b>Manipuler :</b> une barre, un disque, une droite graduée, ou les trois à la fois. On partage l’unité, on colorie des parts, on partage encore (les nouveaux traits en pointillés) ou on regroupe. La carte « Quel est le nombre représenté ? » se retourne d’un clic pour montrer la fraction en chiffres et en lettres.</li>
       <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité : on crée soi-même les parts de chaque barre, on les colorie, puis on fait glisser le bon signe dans la case.</li>
       <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
-      <li><b>Sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
+      <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
       <li><b>Fractions décimales :</b> des quadrillages comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
-      <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes (de 3 à 5) ou en centièmes (de 2,4 à 2,6) pour placer ou lire un nombre décimal.</li>
+      <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes (de 3 à 5), en centièmes (de 2,4 à 2,6) ou en millièmes au CM2 (de 2,45 à 2,47) : on place une flèche, ou on lit le nombre qu’elle montre.</li>
     </ul>
 
     <h3>Les défis, d’après les programmes</h3>
@@ -421,7 +421,7 @@ svg{user-select:none;-webkit-user-select:none}
      1-4   outils, programmes par classe, nombres en lettres, écriture des fractions
      5-6   dessins (barres, disques, droites, flèches, jetons, carré de 100, réponses des défis)
      7-9   état, tirages au hasard, menu, barre d'outils et boutons communs (même code couleur partout)
-     10-14 activités : Manipuler, Comparer, Mur, Sur la droite, Fractions décimales
+     10-14 activités : Manipuler, Comparer, Mur, Fractions sur la droite, Fractions décimales, Décimaux sur la droite
      15    défis (pastilles, questions, petits problèmes, pas à pas)
      16    affichage général et actions
      17    fiche Word à imprimer (exercices insécables, dessins réduits si une page restait presque vide)
@@ -473,7 +473,7 @@ const CL = {
 const C = () => CL[S.classe];
 
 const MODES = {
-  manip: 'Manipuler', comparer: 'Comparer', mur: 'Le mur des fractions', placer: 'Sur la droite', deci: 'Fractions décimales', ddroite: 'Décimaux sur la droite', defis: 'Défis'
+  manip: 'Manipuler', comparer: 'Comparer', mur: 'Le mur des fractions', placer: 'Fractions sur la droite', deci: 'Fractions décimales', ddroite: 'Décimaux sur la droite', defis: 'Défis'
 };
 
 const DEFIS = {
@@ -803,44 +803,42 @@ function quadPiece(x, y, w, h, col, t = 8) {
 }
 const QCOL = { u: 'var(--c3)', d: 'var(--c2)', c: 'var(--c0)', m: 'var(--c5)' };
 
-/* Les pièces d'un nombre, rangées : une sorte de pièce par rangée.
-   colonne : les unités en colonne à gauche (pour lire) ; sinon côte à côte (sur le plateau).
+/* Les pièces d'un nombre. Les unités en colonnes de deux à gauche ; les autres pièces se rangent à côté,
+   de gauche à droite puis à la ligne. La hauteur reste celle de deux unités : le dessin garde la même taille
+   d'un nombre à l'autre (il ne grandit que dans les cas extrêmes, 19 dixièmes par exemple).
    drag : chaque pièce peut être reprise (Représenter). Rend { s, H }. */
-function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, colonne = false, drag = false } = {}) {
+const QUAD_H = 2 * 160 + 16;   // hauteur de deux unités
+function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false } = {}) {
   const t = 8, cell = 10 * t, uw = 50 * t, uh = 20 * t, gap = 16;
   const piece = (k, inner) => drag ? `<g data-drag="pl-${k}" class="piece">${inner}</g>` : inner;
-  let s = '', H = y0, X = x0, Y = y0, haut = 0, xmin = x0, xmax = 982;
+  let s = '';
+  for (let k = 0; k < u; k++) s += piece('u', quadPiece(x0 + Math.floor(k / 2) * (uw + 24), y0 + (k % 2) * (uh + gap), uw, uh, QCOL.u));
+  const xmin = x0 + Math.ceil(u / 2) * (uw + 24) + (u ? 16 : 0), xmax = 982;
+  let X = xmin, Y = y0, haut = 0;
   const place = (w, h) => { if (X + w > xmax && X > xmin) { X = xmin; Y += haut + gap; haut = 0; } const p = [X, Y]; X += w + 12; haut = Math.max(haut, h); return p; };
-  const rangee = () => { if (X > xmin) { X = xmin; Y += haut + gap; haut = 0; } };
-  if (colonne) {
-    for (let k = 0; k < u; k++) s += piece('u', quadPiece(x0, y0 + k * (uh + gap), uw, uh, QCOL.u));
-    if (u) { H = y0 + u * (uh + gap) - gap; xmin = X = x0 + uw + 40; xmax = xmin + 6 * (cell + 12); }
-  } else {
-    for (let k = 0; k < u; k++) { const [a, b] = place(uw, uh); s += piece('u', quadPiece(a, b, uw, uh, QCOL.u)); }
-    rangee();
-  }
+  const sorte = () => { if (X > xmin) X += 16; };   // un petit écart entre deux sortes de pièces
   for (let k = 0; k < d; k++) { const [a, b] = place(cell, cell); s += piece('d', quadPiece(a, b, cell, cell, QCOL.d)); }
-  rangee();
+  sorte();
   for (let k = 0; k < c; k += 5) {   // les centièmes : des barres empilées par 5
     const [a, b] = place(cell, 9 * t);
     let g = `<rect x="${a}" y="${b}" width="${cell}" height="${9 * t}" fill="transparent"/>`;   // toute la pile se prend, même entre les barres
     for (let j = 0; j < Math.min(5, c - k); j++) g += quadPiece(a, b + j * 2 * t, cell, t, QCOL.c);
     s += piece('c', g);
   }
-  rangee();
+  sorte();
   for (let k = 0; k < m; k += 9) {   // les millièmes : des petits carrés, par 9
     const [a, b] = place(5 * t, 5 * t);
     let g = `<rect x="${a}" y="${b}" width="${5 * t}" height="${5 * t}" fill="transparent"/>`;
     for (let j = 0; j < Math.min(9, m - k); j++) g += quadPiece(a + (j % 3) * 2 * t, b + Math.floor(j / 3) * 2 * t, t, t, QCOL.m);
     s += piece('m', g);
   }
-  return { s, H: Math.max(H, Y + haut) };
+  return { s, H: Math.max(y0 + QUAD_H, Y + haut) };
 }
 
-// Lire : le nombre en pièces ; largeur fixe, pour qu'une pièce garde la même taille d'une situation à l'autre
+// Lire : le nombre en pièces, dans un cadre de taille fixe
 function quadSVG(P) {
-  const { s, H } = quadPieces(P, { colonne: true });
-  return svg(984, Math.max(H, 60) + 4, s, 'class="quad"');
+  const { s, H } = quadPieces(P);
+  return svg(984, H + 4, s, 'class="quad"');
 }
 
 /* Représenter : en haut la réserve (une pièce de chaque sorte, à faire glisser ou à toucher),
@@ -856,7 +854,7 @@ function quadRepSVG(P, verif, avecMilliemes) {
           <text x="${cx}" y="${k === 'u' ? 192 : 150}" text-anchor="middle" font-size="26" font-weight="700" fill="${INK}">${nom}</text></g>`;
   });
   const { s: pieces, H } = quadPieces(P, { x0: 18, y0: top + 16, drag: true });
-  const bas = Math.max(H + 16, top + 300), bord = verif === 'ok' ? 'var(--c2)' : verif === 'ko' ? 'var(--c5)' : '#cfc8bb';
+  const bas = H + 16, bord = verif === 'ok' ? 'var(--c2)' : verif === 'ko' ? 'var(--c5)' : '#cfc8bb';
   s += `<rect data-drop="plateau" x="2" y="${top}" width="980" height="${bas - top}" rx="18" fill="${soft('--c2', .06)}" stroke="${bord}" stroke-width="${verif ? 7 : 3}" ${verif ? '' : 'stroke-dasharray="12 9"'}/>` + pieces;
   return svg(984, bas + 4, s, 'class="quad glissable"');   // glissable : pas de défilement de la page au doigt
 }
@@ -1044,6 +1042,7 @@ const S = {
 if (!CL[S.classe]) S.classe = 'CM2';
 
 function fitClass() { // ramène tous les réglages dans le programme de la classe
+  if (S.dd.ech === 'millieme' && C().deciMax !== 1000) ddNew();   // les millièmes sur la droite : au CM2
   const c = C();
   if (!c.modes.includes(S.mode)) S.mode = 'manip';
   const m = S.manip;
@@ -1166,9 +1165,9 @@ function renderMenu() {
     <h1>À parts égales</h1><div class="subtitle">L'atelier des fractions</div>
     <div class="levels">${Object.keys(CL).map(k => `<button class="lvbtn ${LEVEL_COL[k]} ${S.classe === k ? 'active' : ''}" data-act="classe" data-v="${k}">${k}</button>`).join('')}</div></div>
     <div id="acts"><div class="space"></div>
-      <div class="domhead" style="--col:var(--c3)">Manipuler et comprendre</div>
+      <div class="domhead" style="--col:var(--c3)">Ateliers libres : découvrir et expliquer au tableau</div>
       <div class="sec-grid">${c.modes.filter(m => m !== 'defis').map(m => card(MODE_COL[m], 'go', m, MODES[m], MODE_SUB[m])).join('')}</div>
-      <div class="space"></div><div class="domhead dh-row" style="--col:var(--c5)"><span>Défis</span><button class="mixbtn" data-act="gomix">Toutes les compétences cochées</button></div>
+      <div class="space"></div><div class="domhead dh-row" style="--col:var(--c5)"><span>Défis : s’entraîner, question après question</span><button class="mixbtn" data-act="gomix">Toutes les compétences cochées</button></div>
       <div class="sec-grid">
       ${c.defis.map((k, i) => { const subs = subList(k), nOn = subs.filter(([v]) => subOn(k, v)).length;
         return `<div class="skill c${i % 6} ${defiOn(k) ? 'sel' : ''} ${subs.length ? 'withchips' : ''} ${ouvert === k ? 'ouvert' : ''}"><button class="skgo" data-act="solo" data-v="${k}"><span>${DEFIS[k]}</span>${subs.length ? '' : `<span class="sub">${DEFI_SUB[k]}</span>`}</button><div class="skside"><label class="chk" title="Inclure dans « Toutes les compétences cochées »"><input type="checkbox" data-chk="${k}" ${defiOn(k) ? 'checked' : ''}></label>${INFOS[k] && INFOS[k][S.classe] ? `<button class="skinfo" data-act="info" data-v="${k}" aria-label="Le programme">i</button>` : ''}</div>` +
@@ -1253,7 +1252,7 @@ function renderTools() {
   if (S.mode === 'ddroite') {
     const q = S.dd;
     h += seg('ddtache', q.tache, [['placer', 'Placer'], ['lire', 'Lire']]).replace('class="seg"', 'class="seg tache"');
-    h += seg('ddech', q.ech, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes']]);
+    h += seg('ddech', q.ech, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes'], ...(c.deciMax === 1000 ? [['millieme', 'Millièmes']] : [])]);
     h += options([toggle('Écriture à virgule', 'ddvirg', q.virgule)]);
     if (q.tache === 'placer') h += BTN.effacer('ddclear') + BTN.verifier('ddverif');
     if (q.tache === 'lire' || q.verif === 'ko') h += q.revealed ? '' : BTN.voir('ddvoir');
@@ -1548,13 +1547,15 @@ function deciRandom() {
    ========================================================= */
 
 // la valeur (en millièmes) de la graduation g, et l'écriture des nombres de la droite
-const ddPas = q => q.ech === 'dixieme' ? 100 : 10;
-const ddVal = (q, g) => q.debut * (q.ech === 'dixieme' ? 1000 : 100) + g * ddPas(q);
+const ddPas = q => ({ dixieme: 100, centieme: 10, millieme: 1 })[q.ech];   // une graduation, en millièmes
+const ddVal = (q, g) => q.debut * ddPas(q) * 10 + g * ddPas(q);
 const ddEcrit = (q, v) => { const [n, d] = deciBest(v); return q.virgule || v % 1000 === 0 ? comma(v) : F(n, d); };
 
 function ddNew() {
   const q = S.dd, c = C();
-  q.debut = q.ech === 'dixieme' ? ri(0, c.lvl === 3 ? 18 : 8) : ri(0, c.lvl === 3 ? 98 : 48);   // dixièmes : de e à e + 2 ; centièmes : de e,d à e,d + 0,2
+  if (q.ech === 'millieme' && c.deciMax !== 1000) q.ech = 'centieme';   // les millièmes : au CM2
+  // dixièmes : de e à e + 2 ; centièmes : de e,d à e,d + 0,2 ; millièmes : de e,dc à e,dc + 0,02
+  q.debut = { dixieme: ri(0, c.lvl === 3 ? 18 : 8), centieme: ri(0, c.lvl === 3 ? 98 : 48), millieme: ri(0, 998) }[q.ech];
   let v; do v = ri(1, 19); while (v === 10 || v === q.v);   // jamais sur un nombre déjà écrit
   q.v = v; q.guess = null; q.verif = null; q.revealed = false;
 }
@@ -1567,8 +1568,9 @@ function renderDdroite() {
   const cible = ddEcrit(q, ddVal(q, q.v));
   if (q.tache === 'placer') {
     title = `Place <span class="nbcible">${cible}</span> sur la droite graduée.`;
-    if (q.guess !== null) s += pointG(X(q.guess), y, q.verif === 'ok' ? 'var(--c2)' : q.verif === 'ko' ? 'var(--c5)' : 'var(--c1)');
-    if (q.revealed) s += arrowG(X(q.v), y, 'var(--a)', '');
+    // la flèche de l'élève : jaune, puis verte ou rouge après Vérifier ; « Voir la réponse » ajoute la bonne flèche
+    if (q.revealed) s += arrowG(X(q.v), y, 'var(--c2)', '');
+    if (q.guess !== null) s += arrowG(X(q.guess), y, q.verif === 'ok' ? 'var(--c2)' : q.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
   } else {
     title = 'Quel nombre est repéré par la flèche ?<small>Clique sur une graduation pour y placer la flèche.</small>';
     s += arrowG(X(q.v), y, 'var(--a)', q.revealed ? '' : null);
