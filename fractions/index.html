@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.0 dans le portail « Le tableau magique » (téléphone : pas à pas et propositions lisibles)
+  v2.1 dans le portail « Le tableau magique » (Manipuler : carte à retourner, pointillés ; Comparer : parts à créer ; Sur la droite : flèche d'un clic)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -212,13 +212,26 @@ svg{user-select:none;-webkit-user-select:none}
 .part:hover{filter:brightness(.95)}
 .grad{cursor:pointer}
 .grad:hover rect{fill:rgba(122,108,240,.12)}
-.card{width:clamp(220px,22vw,300px);flex:none;background:#fff;border:.3rem solid var(--c0);border-radius:1.6rem;box-shadow:0 .4rem 0 var(--c0);padding:1.4rem 1rem;position:relative;display:flex;flex-direction:column;align-self:center;max-height:100%;overflow:auto}
+.card{width:clamp(260px,27vw,400px);cursor:pointer;flex:none;background:#fff;border:.3rem solid var(--c0);border-radius:1.6rem;box-shadow:0 .4rem 0 var(--c0);padding:1.4rem 1rem;position:relative;display:flex;flex-direction:column;align-self:center;max-height:100%;overflow:auto}
 .card .eye{position:absolute;top:.5rem;right:.5rem;padding:.15rem .7rem;border-radius:999px;background:var(--soft-a);color:var(--a);font-weight:700;font-size:.9rem}
 .card .big{font-size:clamp(2.6rem,7vh,4.4rem);color:var(--a);text-align:center;margin:.2rem 0 .3rem}
 .card .words{font-size:clamp(1.1rem,2.6vh,1.45rem);text-align:center;font-weight:700;margin-bottom:.5rem;line-height:1.15}
 .card ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem}
 .card li{background:color-mix(in srgb,var(--a) 7%,white);border-radius:.9rem;padding:.3rem .5rem;font-size:clamp(.9rem,2.1vh,1.15rem);text-align:center;font-weight:500}
-.card .hid{font-size:5rem;text-align:center;color:color-mix(in srgb,var(--a) 35%,white);font-weight:700;padding:1.6rem 0}
+.card .hid{font-size:clamp(4rem,14vh,8rem);text-align:center;color:color-mix(in srgb,var(--a) 35%,white);font-weight:700;padding:.4rem 0;line-height:1}
+/* carte retournée (dos) : la question ; un clic n'importe où sur la carte la retourne */
+.card.dos{background:color-mix(in srgb,var(--c0) 10%,white);justify-content:center;min-height:clamp(220px,40vh,420px)}
+.card .question{font-size:clamp(1.4rem,3.4vh,2rem);font-weight:700;text-align:center;line-height:1.2;color:var(--ink)}
+.card.face .big{font-size:clamp(3rem,9vh,5.4rem)}
+.card.retourne{animation:retourne .32s ease-out}
+@keyframes retourne{from{transform:perspective(900px) rotateY(90deg)}to{transform:perspective(900px) rotateY(0)}}
+@media (prefers-reduced-motion:reduce){.card.retourne{animation:none}}
+.stepper.sans{padding-left:.75rem}
+/* Comparer : + et − pour créer les parts de chaque ligne */
+.rowctl{flex:none;display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:3.2rem}
+.rowctl span{font-size:.85rem;font-weight:700;color:var(--muted)}
+.rowctl button{width:2.4rem;height:2.4rem;border-radius:50%;background:var(--c3);color:#fff;font-size:1.5rem;font-weight:700;line-height:1;box-shadow:0 .15rem 0 rgba(0,0,0,.2)}
+.rowctl button:disabled{opacity:.3;cursor:default}
 .cmp{flex:1;display:flex;flex-direction:column;justify-content:safe center;gap:1vh;min-height:0}
 .cmprow{display:flex;align-items:center;gap:18px}
 .cmprow .lab{width:clamp(70px,8vw,110px);flex:none;text-align:center;font-size:clamp(2.2rem,6vh,3.4rem)}
@@ -324,7 +337,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.0</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.1</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -338,10 +351,10 @@ svg{user-select:none;-webkit-user-select:none}
 
     <h3>Manipuler et comprendre</h3>
     <ul>
-      <li><b>Manipuler :</b> une barre, un disque, une droite graduée, ou les trois à la fois. On partage l’unité, on colorie des parts, on partage encore ou on regroupe, et la fraction s’écrit en chiffres et en lettres.</li>
-      <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité, pour choisir le bon signe.</li>
+      <li><b>Manipuler :</b> une barre, un disque, une droite graduée, ou les trois à la fois. On partage l’unité, on colorie des parts, on partage encore (les nouveaux traits en pointillés) ou on regroupe. La carte « Quel est le nombre représenté ? » se retourne d’un clic pour montrer la fraction en chiffres et en lettres.</li>
+      <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité : on crée soi-même les parts de chaque barre, on les colorie, puis on choisit le bon signe.</li>
       <li><b>Le mur des fractions :</b> une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6.</li>
-      <li><b>Sur la droite :</b> placer une fraction ou lire celle que montre la flèche, sur une droite qui peut commencer à 3 ou à 5.</li>
+      <li><b>Sur la droite :</b> on construit sa droite (parts, unités, départ à 3 ou à 5) pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
       <li><b>Fractions décimales :</b> le carré de 100 et une droite à loupe pour passer des dixièmes et des centièmes à l’écriture à virgule.</li>
     </ul>
 
@@ -545,17 +558,21 @@ function soft(v, part) {
   return '#' + [0, 2, 4].map(i => Math.round(parseInt(c.slice(i, i + 2), 16) * part + 255 * (1 - part)).toString(16).padStart(2, '0')).join('');
 }
 
-function barG({ x = 0, y = 0, unitW, h, d, u, fill, interactive, gap = 30, labels = false }) {
+function barG({ x = 0, y = 0, unitW, h, d, u, fill, interactive, gap = 30, labels = false, base = 0 }) {
   let s = '';
   const sw = d > 30 ? 1 : d > 15 ? 1.5 : 2;
+  // base : partage de départ (4) ; après « partager en 2 » (8), les nouveaux traits sont en pointillés
+  const pas = base && base < d && d % base === 0 ? d / base : 1;
   for (let k = 0; k < u; k++) {
     const X = x + k * (unitW + gap), w = unitW / d;
     for (let j = 0; j < d; j++) {
       const i = k * d + j, f = fill(i), c = f && f.c !== undefined ? f.c : f;
       const anim = f && f.from ? ` class="part-anim" style="--from:${f.from};--de:${f.de}s"` : '';   // part qui change de couleur (correction animée)
-      s += `<rect ${interactive ? `data-i="${i}" class="part"` : ''}${anim} x="${X + j * w}" y="${y}" width="${w}" height="${h}" fill="${c || '#fff'}" stroke="${INK}" stroke-width="${sw}"/>`;
+      s += `<rect ${interactive ? `data-i="${i}" class="part"` : ''}${anim} x="${X + j * w}" y="${y}" width="${w}" height="${h}" fill="${c || '#fff'}" stroke="${pas > 1 ? 'none' : INK}" stroke-width="${sw}"/>`;
       if (labels && w >= 44 && h >= 60) s += svgFrac(X + j * w + w / 2, y + h / 2 - 4, 1, d, Math.min(24, w / 2.4), '#2b2d4299').replace('<g', '<g pointer-events="none"');
     }
+    if (pas > 1) for (let j = 1; j < d; j++)   // traits entre les parts : pleins (partage de départ) ou en pointillés (nouveaux)
+      s += `<path d="M ${X + j * w} ${y} V ${y + h}" stroke="${INK}" stroke-width="${j % pas ? sw : 3}" ${j % pas ? 'stroke-dasharray="7 6"' : ''} pointer-events="none"/>`;
     s += `<rect x="${X}" y="${y}" width="${unitW}" height="${h}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
   }
   return s;
@@ -567,16 +584,21 @@ function sector(cx, cy, r, a0, a1) {
   return `M ${cx} ${cy} L ${p(a0)} A ${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${p(a1)} Z`;
 }
 
-function diskG({ x = 0, cy, r, d, u, fill, interactive, gap = 40 }) {
+function diskG({ x = 0, cy, r, d, u, fill, interactive, gap = 40, base = 0 }) {
   let s = '';
   const sw = d > 30 ? 1 : d > 15 ? 1.5 : 2;
+  const pas = base && base < d && d % base === 0 ? d / base : 1;   // nouveaux traits en pointillés, comme pour la barre
   for (let k = 0; k < u; k++) {
     const cx = x + r + k * (2 * r + gap);
     for (let j = 0; j < d; j++) {
       const i = k * d + j, f = fill(i), c = (f && f.c !== undefined ? f.c : f) || '#fff';
       const anim = f && f.from ? vire(f.from, f.de) : '';
-      const attrs = `${interactive ? `data-i="${i}" class="part"` : ''}${anim} fill="${c}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"`;
+      const attrs = `${interactive ? `data-i="${i}" class="part"` : ''}${anim} fill="${c}" stroke="${pas > 1 ? 'none' : INK}" stroke-width="${sw}" stroke-linejoin="round"`;
       s += d === 1 ? `<circle cx="${cx}" cy="${cy}" r="${r}" ${attrs}/>` : `<path d="${sector(cx, cy, r, j * 360 / d, (j + 1) * 360 / d)}" ${attrs}/>`;
+    }
+    if (pas > 1) for (let j = 0; j < d; j++) {   // rayons : pleins (partage de départ) ou en pointillés (nouveaux)
+      const a = (j * 360 / d - 90) * Math.PI / 180;
+      s += `<path d="M ${cx} ${cy} L ${(cx + r * Math.cos(a)).toFixed(2)} ${(cy + r * Math.sin(a)).toFixed(2)}" stroke="${INK}" stroke-width="${j % pas ? sw : 3}" ${j % pas ? 'stroke-dasharray="7 6"' : ''} pointer-events="none"/>`;
     }
     s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
   }
@@ -585,14 +607,14 @@ function diskG({ x = 0, cy, r, d, u, fill, interactive, gap = 40 }) {
 
 /* Droite graduée de 0 à u, graduée en d-ièmes.
    opts : grads (graduations visibles), click (graduations cliquables), color */
-function lineG({ x = 50, y, L, u, d, grads = true, click = false, labelsInt = true, start = 0 }) { // start : premier entier écrit
-  const step = L / (u * d);
+function lineG({ x = 50, y, L, u, d, grads = true, click = false, labelsInt = true, start = 0, base = 0 }) { // start : premier entier écrit
+  const step = L / (u * d), pas = base && base < d && d % base === 0 ? d / base : 1;   // nouvelles graduations en pointillés
   let s = `<path d="M ${x - 14} ${y} H ${x + L + 34}" stroke="${INK}" stroke-width="3"/>
            <path d="M ${x + L + 24} ${y - 8} L ${x + L + 36} ${y} L ${x + L + 24} ${y + 8}" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
   for (let g = 0; g <= u * d; g++) {
     const X = x + g * step, big = g % d === 0;
     if (big) s += `<path d="M ${X} ${y - 16} V ${y + 16}" stroke="${INK}" stroke-width="3.5"/>`;
-    else if (grads) s += `<path d="M ${X} ${y - 9} V ${y + 9}" stroke="${INK}" stroke-width="${d > 20 ? 1.2 : 2}"/>`;
+    else if (grads) s += `<path d="M ${X} ${y - (g % pas ? 12 : 9)} V ${y + (g % pas ? 12 : 9)}" stroke="${INK}" stroke-width="${d > 20 ? 1.2 : 2}" ${g % pas ? 'stroke-dasharray="4 3"' : ''}/>`;
     if (big && labelsInt) s += `<text x="${X}" y="${y + 46}" text-anchor="middle" font-size="30" font-weight="700" fill="${INK}">${start + g / d}</text>`;
     if (click) s += `<g class="grad" data-g="${g}"><rect x="${X - step / 2}" y="${y - 40}" width="${step}" height="80" fill="transparent"/></g>`;
   }
@@ -630,13 +652,13 @@ function jumpsG(x, y, L, u, d, n, color, anim = false) {   // anim : les bonds a
 const svg = (w, h, inner, extra = '') => `<svg viewBox="0 0 ${w} ${h}" ${extra} xmlns="http://www.w3.org/2000/svg" font-family="Fredoka, Nunito, sans-serif">${inner}</svg>`;
 
 /* Une représentation complète prête à afficher */
-function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0, bilanDe = 0, anim = false }) {
+function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a)', sauts = false, click = false, labels = false, W = 1000, compact = false, bilan = 0, bilanDe = 0, anim = false, base = 0 }) {
   if (rep === 'barre') {
     const gap = 30, avail = W - 80;
     const unitW = u === 1 ? Math.min(820, avail) : (avail - (u - 1) * gap) / u;
     const h = compact ? 90 : Math.min(150, Math.max(80, unitW / 4));
     const x = (W - (u * unitW + (u - 1) * gap)) / 2;
-    let s = barG({ x, y: 10, unitW, h, d, u, fill, interactive, gap, labels });
+    let s = barG({ x, y: 10, unitW, h, d, u, fill, interactive, gap, labels, base });
     if (bilan) { // « 1 + 1/4 » écrit sous les unités : on voit que 4/4 font 1
       const yb = h + 62;
       if (bilanDe) s += `<g class="apparait" style="--de:${bilanDe}s">`;   // correction animée : le bilan arrive à la fin
@@ -658,11 +680,11 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
     if (compact) W = Math.max(400, u * 190 + (u - 1) * gap + 20);
     const r = Math.min(compact ? 95 : 190, (W - 80 - (u - 1) * gap) / u / 2);
     const x = (W - (u * 2 * r + (u - 1) * gap)) / 2;
-    return svg(W, 2 * r + 20, diskG({ x, cy: r + 10, r, d, u, fill, interactive, gap }));
+    return svg(W, 2 * r + 20, diskG({ x, cy: r + 10, r, d, u, fill, interactive, gap, base }));
   }
   // droite
   const x = 60, L = W - 160, y = 90;
-  let s = lineG({ x, y, L, u, d, click });
+  let s = lineG({ x, y, L, u, d, click, base });
   if (sauts || anim) s += jumpsG(x, y, L, u, d, n, color, anim);
   const fin = anim ? `<g${apparait(PAUSE + n * pasDe(n))}>` : '';   // correction animée : le point arrive après les bonds
   s += fin;
@@ -882,8 +904,9 @@ const S = {
   classe: load('classe', 'CM2'),
   mode: load('mode', 'manip'),
   screen: 'menu',
-  manip: { rep: 'barre', d: 4, u: 1, set: new Set([0, 1, 2]), show: true, sauts: false },
-  cmp: { rep: 'barre', a: { n: 3, d: 4 }, b: { n: 2, d: 3 }, chosen: null, revealed: false, images: true },
+  manip: { rep: 'barre', d: 4, base: 4, u: 1, set: new Set([0, 1, 2]), show: false, parts: false, sauts: false },   // show : carte retournée côté réponse ; parts : 1/4 écrit dans chaque part ; base : partage de départ (traits pleins)
+  cmp: { rep: 'barre', a: { n: 3, d: 4 }, b: { n: 2, d: 3 }, chosen: null, revealed: false, faites: false,
+         parts: { a: 1, b: 1 }, col: { a: new Set(), b: new Set() }, pt: { a: 0, b: 0 } },   // chaque ligne : ses parts (créées avec + et −), les parts coloriées, le point sur la droite
   mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null },
   placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, revealed: false, grads: true, sauts: false },
   deci: { view: 'carre', u: 1, set: new Set(), by: 'centieme', v: 340, s: 0, loupe: true, virgule: true, show: true },
@@ -898,14 +921,15 @@ function fitClass() { // ramène tous les réglages dans le programme de la clas
   const c = C();
   if (!c.modes.includes(S.mode)) S.mode = 'manip';
   const m = S.manip;
-  if (!c.dens.includes(m.d)) { m.d = 4; m.set = new Set(); }
+  if (!c.dens.includes(m.d)) { m.d = 4; m.base = 4; m.set = new Set(); }
+  if (m.d % m.base) m.base = m.d;
   m.u = clamp(m.u, 1, c.maxU);
   m.set = new Set([...m.set].filter(i => i < m.d * m.u));
   for (const f of [S.cmp.a, S.cmp.b]) {
     if (!c.dens.includes(f.d)) f.d = 4;
     f.n = clamp(f.n, 0, f.d * c.maxU);
   }
-  S.cmp.revealed = false; S.cmp.chosen = null;
+  cmpVide();
   S.mur.rows = S.mur.rows.filter(d => c.wall.includes(d));
   if (!S.mur.rows.length) S.mur.rows = [1, 2, 4];
   if (c.deciMax) { S.deci.u = clamp(S.deci.u, 1, c.maxU); if (c.deciMax === 100) S.deci.v = Math.round(S.deci.v / 10) * 10; }
@@ -963,6 +987,12 @@ const stepper = (label, key, val, minus, plus) =>
      <button data-act="step" data-key="${key}" data-dir="-1" ${minus ? '' : 'disabled'} aria-label="moins">−</button>
      <output>${val}</output>
      <button data-act="step" data-key="${key}" data-dir="1" ${plus ? '' : 'disabled'} aria-label="plus">+</button></div></div>`;
+
+// même chose sans le nombre : seulement − et + (le nombre de parts pourrait souffler la réponse)
+const stepperSans = (label, key, minus, plus) =>
+  `<div class="stepper sans"><label>${label}</label><div class="ctl">
+     <button data-act="step" data-key="${key}" data-dir="-1" ${minus ? '' : 'disabled'} aria-label="${label} : moins">−</button>
+     <button data-act="step" data-key="${key}" data-dir="1" ${plus ? '' : 'disabled'} aria-label="${label} : plus">+</button></div></div>`;
 
 const toggle = (label, act, on) => `<button class="toggle ${on ? 'on' : ''}" data-act="${act}">${label}</button>`;
 
@@ -1044,11 +1074,12 @@ function renderTools() {
     const maxD = Math.max(...c.dens.filter(x => x !== 100));
     const okSplit = k => m.d * k <= maxD || m.d * k === 100;
     h += seg('rep', m.rep, [['barre', 'Barre'], ['disque', 'Disque'], ['droite', 'Droite'], ['trois', 'Les trois']]);
-    h += stepper('Parts égales', 'md', m.d, m.d > c.dens[0], m.d < c.dens[c.dens.length - 1]);
-    if (c.maxU > 1) h += stepper('Unités', 'mu', m.u, m.u > 1, m.u < c.maxU);
+    h += stepperSans('Parts', 'md', m.d > c.dens[0], m.d < c.dens[c.dens.length - 1]);
+    if (c.maxU > 1) h += stepperSans('Unités', 'mu', m.u > 1, m.u < c.maxU);
     h += `<button class="btn bmanip" data-act="split" data-k="2" ${okSplit(2) ? '' : 'disabled'}>Partager en 2</button>
           <button class="btn bmanip" data-act="split" data-k="3" ${okSplit(3) ? '' : 'disabled'}>en 3</button>
           <button class="btn bmanip" data-act="regroup" ${regroupK() ? '' : 'disabled'}>Regrouper</button>`;
+    if (m.rep === 'barre' || m.rep === 'trois') h += toggle('Afficher les parts', 'mparts', m.parts);   // 1/4 écrit dans chaque part
     if (m.rep === 'droite' || m.rep === 'trois') h += toggle('Sauts', 'msauts', m.sauts);
     h += BTN.effacer('clear');
   }
@@ -1057,7 +1088,7 @@ function renderTools() {
     h += seg('crep', k.rep, [['barre', 'Barres'], ['disque', 'Disques'], ['droite', 'Droites']]);
     h += `<div class="grp"><span class="dot" style="background:var(--a)"></span>` + stepper('', 'an', k.a.n, k.a.n > 0, k.a.n < maxN(k.a.d)) + `<span class="lab">sur</span>` + stepper('', 'ad', k.a.d, k.a.d > c.dens[0], k.a.d < c.dens.at(-1)) + `</div>`;
     h += `<div class="grp"><span class="dot" style="background:var(--b)"></span>` + stepper('', 'bn', k.b.n, k.b.n > 0, k.b.n < maxN(k.b.d)) + `<span class="lab">sur</span>` + stepper('', 'bd', k.b.d, k.b.d > c.dens[0] || k.b.d === 1, k.b.d < c.dens.at(-1)) + `</div>`;
-    h += toggle('Images', 'cimages', k.images);
+    h += toggle('Parts déjà faites', 'cfaites', k.faites);   // éteint : on crée soi-même les parts de chaque ligne
     if (!(k.revealed || k.chosen === cmpSign(k.a, k.b))) h += BTN.voir('creveal');
     h += BTN.neuf('crandom');
   }
@@ -1069,9 +1100,11 @@ function renderTools() {
   if (S.mode === 'placer') {
     const p = S.placer, pMax = c.lvl === 1 ? 3 : c.maxU;
     h += seg('ptask', p.task, [['placer', 'Placer'], ['lire', 'Lire']]);
-    h += stepper('Parts prises', 'pn', p.n, p.n > p.s * p.d, p.n < (p.s + p.u) * p.d) + stepper('Parts égales', 'pd', p.d, p.d > c.dens[0], p.d < Math.min(20, c.dens.at(-1)));
+    // on construit sa droite : parts et unités sans chiffres (ils souffleraient la réponse) ; en « Lire », la flèche se place d'un clic
+    if (p.task === 'placer') h += stepper('Parts prises', 'pn', p.n, p.n > p.s * p.d, p.n < (p.s + p.u) * p.d);
+    h += stepperSans('Parts', 'pd', p.d > c.dens[0], p.d < Math.min(20, c.dens.at(-1)));
+    if (pMax > 1) h += stepperSans('Unités', 'pu', p.u > 1, p.u < pMax);
     if (c.lvl >= 2) h += stepper('Départ', 'ps', p.s, p.s > 0, p.s < 20);
-    if (pMax > 1) h += stepper('Unités', 'pu', p.u, p.u > 1, p.u < pMax);
     h += toggle('Graduations', 'pgrads', p.grads) + toggle('Sauts', 'psauts', p.sauts);
     if (p.task === 'placer') h += BTN.effacer('pclear');
     if (!p.revealed) h += p.task === 'placer' ? BTN.verifier('preveal') : BTN.voir('preveal');
@@ -1132,21 +1165,20 @@ function renderManip() {
   const firstN = i => i < n ? 'var(--a)' : null;
   let viz;
   if (m.rep === 'trois') {
-    viz = drawRep('disque', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true }) +
-          drawRep('barre', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true }) +
-          drawRep('droite', { d: m.d, u: m.u, n, sauts: m.sauts, click: true });
+    viz = drawRep('disque', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true, base: m.base }) +
+          drawRep('barre', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true, base: m.base, labels: m.parts }) +
+          drawRep('droite', { d: m.d, u: m.u, n, sauts: m.sauts, click: true, base: m.base });
   } else {
-    viz = drawRep(m.rep, { d: m.d, u: m.u, fill, interactive: true, n, sauts: m.sauts, click: true, labels: true });
+    viz = drawRep(m.rep, { d: m.d, u: m.u, fill, interactive: true, n, sauts: m.sauts, click: true, labels: m.parts, base: m.base });
   }
   const unitTxt = m.u > 1 ? `Chaque ${m.rep === 'disque' ? 'disque' : m.rep === 'droite' ? 'intervalle de 0 à 1' : 'barre'} est une unité.` : '';
   $('#stage').innerHTML = `
-    <div class="title">Je partage l'unité en ${m.d} parts égales${unitTxt ? `<small>${unitTxt}</small>` : ''}</div>
+    <div class="title">Je partage l'unité en parts égales${unitTxt ? `<small>${unitTxt}</small>` : ''}</div>
     <div class="manip">
       <div class="viz ${m.rep === 'trois' ? 'trio' : ''}">${viz}</div>
-      <div class="card">
-        <button class="eye" data-act="mshow">${m.show ? 'Cacher' : 'Montrer'}</button>
+      <div class="card ${m.show ? 'face' : 'dos'} ${S.retourne ? 'retourne' : ''}" data-act="mshow" role="button" tabindex="0" aria-label="Retourner la carte">
         ${m.show ? `<div class="big">${F(n, m.d)}</div><div class="words">${fracWords(n, m.d)}</div><ul>${factsHTML(n, m.d).map(x => `<li>${x}</li>`).join('')}</ul>`
-                 : `<div class="hid">?</div><div class="words" style="color:var(--muted)">Quelle fraction ?</div>`}
+                 : `<div class="question">Quel est le nombre représenté ?</div><div class="hid">?</div>`}
       </div>
     </div>`;
 }
@@ -1167,18 +1199,36 @@ function cmpRows(a, b, rep, showImages) {
           <div class="cmprow"><div class="lab b">${F(b.n, b.d)}</div>${one(b, 'var(--b)')}</div>`;
 }
 
+// Comparer : on repart de deux unités entières (ou déjà partagées, si « Parts déjà faites »), rien de colorié
+function cmpVide() {
+  const k = S.cmp;
+  k.revealed = false; k.chosen = null;
+  for (const r of ['a', 'b']) { k.parts[r] = k.faites ? k[r].d : 1; k.col[r] = new Set(); k.pt[r] = 0; }
+}
+
 function renderCompare() {
-  const k = S.cmp, real = cmpSign(k.a, k.b);
-  const signs = ['<', '=', '>'].map(s => {
-    const cls = k.chosen === s ? (s === real ? 'good' : 'bad') : (k.revealed && s === real ? 'good' : '');
-    return `<button class="${cls}" data-act="csign" data-v="${s}">${s === '<' ? '&lt;' : s === '>' ? '&gt;' : '='}</button>`;
+  const c = C(), k = S.cmp, real = cmpSign(k.a, k.b), R = k.revealed;
+  const signs = ['<', '=', '>'].map(x => {
+    const cls = k.chosen === x ? (x === real ? 'good' : 'bad') : (R && x === real ? 'good' : '');
+    return `<button class="${cls}" data-act="csign" data-v="${x}">${x === '<' ? '&lt;' : x === '>' ? '&gt;' : '='}</button>`;
   }).join('');
-  const ok = k.revealed || k.chosen === real;
+  const ok = R || k.chosen === real;
   const wa = k.a.d === 1 ? String(k.a.n) : fracWords(k.a.n, k.a.d), wb = k.b.d === 1 ? String(k.b.n) : fracWords(k.b.n, k.b.d);
+  const u = clamp(Math.ceil(Math.max(k.a.n / k.a.d, k.b.n / k.b.d, 1)), 1, c.maxU), maxP = Math.min(20, c.dens.at(-1));
+  // une ligne : la fraction, + et − pour créer les parts, le dessin qu'on colorie (à la réponse : le bon partage, bien colorié)
+  const ligne = (r, f, col) => {
+    const d = R ? f.d : k.parts[r];
+    const dessin = drawRep(k.rep, { d, u, color: col, compact: k.rep !== 'droite', interactive: !R, click: !R,
+      fill: R ? (i => i < f.n ? col : null) : (i => k.col[r].has(i) ? col : null), n: R ? f.n : k.pt[r] });
+    const ctl = R ? '<div class="rowctl"></div>' : `<div class="rowctl"><span>parts</span>
+        <button data-act="cparts" data-v="${r}" data-dir="1" ${k.parts[r] < maxP ? '' : 'disabled'} aria-label="une part de plus">+</button>
+        <button data-act="cparts" data-v="${r}" data-dir="-1" ${k.parts[r] > 1 ? '' : 'disabled'} aria-label="une part de moins">−</button></div>`;
+    return `<div class="cmprow" data-row="${r}"><div class="lab ${r}">${F(f.n, f.d)}</div>${ctl}${dessin}</div>`;
+  };
   $('#stage').innerHTML = `
-    <div class="title">Quelle fraction est la plus grande ?</div>
+    <div class="title">Quelle fraction est la plus grande ?<small>Crée les parts avec + et −, puis colorie.</small></div>
     <div class="cmp">
-      ${cmpRows(k.a, k.b, k.rep, k.images || ok)}
+      ${ligne('a', k.a, 'var(--a)')}${ligne('b', k.b, 'var(--b)')}
       <div class="verdict">
         <div class="mini"><span style="color:var(--a)">${F(k.a.n, k.a.d)}</span><div class="signs">${signs}</div><span style="color:var(--b)">${F(k.b.n, k.b.d)}</span></div>
       </div>
@@ -1244,7 +1294,7 @@ function renderPlacer() {
   const x = 60, L = 840, y = 175, W = 1000;
   const rel = p.n - p.s * p.d; // position comptée depuis le début de la droite
   const tx = lx(x, L, p.u, p.d, rel);
-  let s = lineG({ x, y, L, u: p.u, d: p.d, grads: p.grads, click: p.task === 'placer' && !p.revealed, start: p.s });
+  let s = lineG({ x, y, L, u: p.u, d: p.d, grads: p.grads, click: p.task === 'lire' || !p.revealed, start: p.s });   // Lire : un clic place la flèche
   const showTarget = p.revealed || p.task === 'lire';
   if (p.sauts && showTarget) s += jumpsG(x, y, L, p.u, p.d, rel, 'var(--c4)');
   if (p.task === 'placer' && p.guess !== null) s += pointG(lx(x, L, p.u, p.d, p.guess), y, 'var(--c1)');
@@ -1257,7 +1307,7 @@ function renderPlacer() {
   if (p.task === 'placer') {
     title = `Place ${p.mixed && p.n > p.d ? mixed(p.n, p.d) : F(p.n, p.d)} sur la droite graduée`;
     if (p.revealed && p.guess !== null) fb = p.guess === rel ? '<span class="ok">Bravo, c\'est bien placé !</span>' : '<span class="ko">Pas tout à fait : ton point est en jaune, la bonne place est montrée par la flèche.</span>';
-  } else title = 'Quelle fraction est montrée par la flèche ?';
+  } else title = 'Quelle fraction est montrée par la flèche ?<small>Clique sur une graduation pour y placer la flèche.</small>';
   if (p.revealed) {
     const e = Math.floor(p.n / p.d), r = p.n % p.d;
     let extra = lvl <= 1 ? mixedWords(p.n, p.d) : fracWords(p.n, p.d);
@@ -2779,7 +2829,8 @@ const ACT = {
   fs() { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); },
   classe(v) { S.classe = v; save('classe', v); fitClass(); render(); },
   rep(v) { S.manip.rep = v; render(); },
-  mshow() { S.manip.show = !S.manip.show; render(); },
+  mshow() { S.manip.show = !S.manip.show; S.retourne = true; render(); S.retourne = false; },   // on retourne la carte (petite animation)
+  mparts() { S.manip.parts = !S.manip.parts; render(); },
   msauts() { S.manip.sauts = !S.manip.sauts; render(); },
   clear() { S.manip.set = new Set(); render(); },
   split(_, el) {
@@ -2790,13 +2841,13 @@ const ACT = {
   regroup() {
     const m = S.manip, k = regroupK(); if (!k) return;
     const ns = new Set(); m.set.forEach(i => ns.add(Math.floor(i / k)));
-    m.d /= k; m.set = ns; render();
+    m.d /= k; m.set = ns; if (m.d % m.base) m.base = m.d; render();
   },
   step(_, el) {
     const key = el.dataset.key, dir = +el.dataset.dir, c = C();
     const m = S.manip, k = S.cmp, p = S.placer;
     switch (key) {
-      case 'md': m.d = nextDen(m.d, dir); m.set = new Set(); break;
+      case 'md': m.d = nextDen(m.d, dir); m.base = m.d; m.set = new Set(); break;   // nouveau partage : traits pleins
       case 'mu': m.u = clamp(m.u + dir, 1, c.maxU); m.set = new Set([...m.set].filter(i => i < m.d * m.u)); break;
       case 'an': k.a.n = clamp(k.a.n + dir, 0, k.a.d * c.maxU); break;
       case 'bn': k.b.n = clamp(k.b.n + dir, 0, k.b.d * c.maxU); break;
@@ -2810,12 +2861,16 @@ const ACT = {
       case 'du': S.deci.u = clamp(S.deci.u + dir, 1, c.maxU); S.deci.set = new Set([...S.deci.set].filter(i => i < S.deci.u * 100)); S.deci.v = Math.min(S.deci.v, S.deci.u * 1000); break;
     }
     if (key[0] === 'a' || key[0] === 'b') { k.chosen = null; k.revealed = false; }
+    if ((key === 'ad' || key === 'bd') && k.faites) { const r = key[0]; k.parts[r] = k[r].d; k.col[r] = new Set(); k.pt[r] = 0; }   // parts déjà faites : elles suivent le dénominateur
     if (key[0] === 'p') { p.guess = null; p.revealed = false; }
     render();
   },
   crep(v) { S.cmp.rep = v; render(); },
-  crandom() { const r = comparePair(Math.random()); S.cmp.a = r.a; S.cmp.b = r.b; S.cmp.chosen = null; S.cmp.revealed = false; render(); },
-  cimages() { S.cmp.images = !S.cmp.images; render(); },
+  crandom() { const r = comparePair(Math.random()); S.cmp.a = r.a; S.cmp.b = r.b; cmpVide(); render(); },
+  cfaites() { S.cmp.faites = !S.cmp.faites; cmpVide(); render(); },
+  cparts(r, el) {   // une part de plus ou de moins sur une ligne : on recommence son coloriage
+    const k = S.cmp; k.parts[r] = clamp(k.parts[r] + +el.dataset.dir, 1, 20); k.col[r] = new Set(); k.pt[r] = 0; render();
+  },
   csign(v) { S.cmp.chosen = v; render(); },
   creveal() { S.cmp.revealed = true; render(); },
   murrow(v) {
@@ -2900,6 +2955,9 @@ document.addEventListener('click', e => {
       if (m.rep === 'trois') { // en mode « les 3 », on colorie dans l'ordre
         const n = m.set.size; m.set = new Set(range(0, (i < n ? i : i + 1) - 1));
       } else { m.set.has(i) ? m.set.delete(i) : m.set.add(i); }
+    } else if (S.mode === 'comparer') {   // on colorie une part de la ligne
+      const set = S.cmp.col[p.closest('[data-row]').dataset.row];
+      set.has(i) ? set.delete(i) : set.add(i);
     } else if (S.mode === 'defis') {
       const st = S.defis.st; st.checked = false;
       st.set.has(i) ? st.set.delete(i) : st.set.add(i);
@@ -2910,7 +2968,11 @@ document.addEventListener('click', e => {
   if (g) {
     const v = +g.dataset.g;
     if (S.mode === 'manip') S.manip.set = new Set(range(0, v - 1));
-    if (S.mode === 'placer') S.placer.guess = v;
+    if (S.mode === 'comparer') S.cmp.pt[g.closest('[data-row]').dataset.row] = v;   // droite : le point de la ligne
+    if (S.mode === 'placer') {   // Placer : le point de l'élève ; Lire : la flèche se pose sur la graduation choisie
+      const p = S.placer;
+      if (p.task === 'lire') { p.n = p.s * p.d + v; p.revealed = false; } else p.guess = v;
+    }
     if (S.mode === 'defis') { S.defis.st.g = v; S.defis.st.checked = false; } // « Place 3/4 » dans les défis
     if (S.mode === 'deci') {
       const q = S.deci, line = +g.closest('[data-line]').dataset.line;
