@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.2 dans le portail « Le tableau magique » (Manipuler : dos de la carte avec la question seule, en grand)
+  v2.3 dans le portail « Le tableau magique » (défis à manipuler : dessin plus grand)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -173,7 +173,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .tools .barre-r .vide{opacity:.35;filter:grayscale(1);box-shadow:none;cursor:default}   /* réglage sans effet sur cette question : grisé */
 .tools .btn.aide{min-width:9.6em}
 /* boutons propres à une question (Vérifier, Une tournée, Effacer), juste sous le dessin */
-.dactions{flex:none;display:flex;justify-content:center;gap:.8rem;margin:.3rem 0 .1rem;font-size:clamp(.85rem,1.15vw,1.15rem)}
+.dactions{flex:none;display:flex;justify-content:center;gap:.8rem;font-size:clamp(.85rem,1.15vw,1.15rem)}
 .dactions .btn{font-size:1em;padding:.4rem 1rem;border-radius:999px;box-shadow:0 .2rem 0 rgba(0,0,0,.18)}
 /* commandes de la barre d'outils */
 .seg{display:flex;background:#fff;border:.2rem solid var(--col);border-radius:999px;padding:.15rem;gap:.15rem;box-shadow:0 .2rem 0 var(--col)}
@@ -288,6 +288,11 @@ svg{user-select:none;-webkit-user-select:none}
 /* zone d'aide (pas à pas, propositions) : hauteur fixe, vide au départ, pour que le dessin ne bouge jamais */
 .zone-aide{flex:none;height:clamp(3.4rem,14vh,9.5rem);overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
 .zone-aide>.ajuste{flex-direction:column;gap:.35rem;width:100%}
+.zone-aide.courte{height:clamp(2.2rem,6vh,3.4rem)}   /* pas de propositions possibles : une ligne de pas à pas suffit */
+/* le dessin et, à sa droite, les boutons propres à la question (Vérifier, Une tournée, Effacer) : le dessin garde toute la hauteur */
+.dzone{flex:1;min-height:0;display:flex;align-items:stretch;gap:1rem}
+.dzone>.dviz{flex:1;min-width:0}
+.dzone>.dactions{flex-direction:column;justify-content:center;margin:0}
 .zone-aide .hint{margin-top:.3em;font-size:clamp(1.05rem,2.6vh,1.45rem)}
 .answer .pill{background:var(--ok-soft);color:#1d6b33;padding:.35rem 1.1rem;border-radius:1.2rem;display:flex;align-items:center;gap:.3em;border:.15rem solid #b9e8c6}
 .answer .frac{font-size:1.05em}
@@ -317,7 +322,9 @@ svg{user-select:none;-webkit-user-select:none}
   .card.dos{min-height:0}
   .prompt{font-size:1.4rem}
   .answer{font-size:1.25rem;min-height:3rem}
-  .zone-aide,.answer{height:auto}   /* téléphone : la page défile, la zone d'aide et la réponse prennent la place qu'il leur faut (rien n'est réduit) */
+  .zone-aide,.answer{height:auto}
+  .dzone{flex:none;flex-direction:column}
+  .dzone>.dactions{flex-direction:row}   /* téléphone : la page défile, la zone d'aide et la réponse prennent la place qu'il leur faut (rien n'est réduit) */
   .prop{font-size:1.25rem}
   .tools .barre-r{border-left:none;margin-left:0;padding-left:0}   /* les réglages passent à la ligne : pas de trait de séparation */
   .signature-bas{position:static!important;display:block;text-align:right;margin:.4rem 1rem .6rem}
@@ -349,7 +356,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.2</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.3</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -2062,21 +2069,21 @@ const MANIP = {
       const r = 21, gx = 54, jaune = soft('--c1', .6);
       const bille = (cx, cy, id, on) => `<g data-drag="${id}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? 'var(--a)' : jaune}" stroke="${INK}" stroke-width="2.5"/></g>`;
       // la réserve : toujours de la même taille, pour que rien ne saute pendant qu'on vide
-      const parLigne = Math.min(Q, 16), lignesR = Math.ceil(Q / parLigne), hR = 26 + lignesR * gx;
+      const parLigne = Math.min(Q, 16), lignesR = Math.ceil(Q / parLigne), hR = 12 + lignesR * gx;   // compact : le dessin peut être plus grand
       let s = `<rect data-drop="r" x="20" y="8" width="960" height="${hR}" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>`;
-      for (let i = 0; i < reste; i++) s += bille(500 - (parLigne - 1) * gx / 2 + (i % parLigne) * gx, 8 + 13 + gx / 2 + Math.floor(i / parLigne) * gx, 'r', false);
+      for (let i = 0; i < reste; i++) s += bille(500 - (parLigne - 1) * gx / 2 + (i % parLigne) * gx, 8 + 6 + gx / 2 + Math.floor(i / parLigne) * gx, 'r', false);
       // les assiettes : assez hautes pour la plus remplie
       const ecart = 16, gw = (960 - (d - 1) * ecart) / d, cols = Math.max(1, Math.floor((gw - 16) / gx)), plein = Math.max(k, ...st.p);
-      const hA = 30 + Math.ceil(plein / cols) * gx, y0 = hR + 40;
+      const hA = 16 + Math.ceil(plein / cols) * gx, y0 = hR + 22;
       for (let j = 0; j < d; j++) {
         const X = 20 + j * (gw + ecart), on = egal && j < n;
         const rouge = st.checked && !egal;   // tout est partagé mais les parts ne sont pas égales : en rouge, sans explication
         s += `<rect data-drop="p${j}" x="${X}" y="${y0}" width="${gw}" height="${hA}" rx="34" fill="${on ? soft('--a', .2) : rouge ? '#fde3e6' : '#fff'}" stroke="${on ? 'var(--a)' : rouge ? 'var(--c5)' : '#b9b0a0'}" stroke-width="4"/>`;
         const c = Math.min(cols, Math.max(1, st.p[j]));
-        for (let i = 0; i < st.p[j]; i++) s += bille(X + gw / 2 + ((i % cols) - (c - 1) / 2) * gx, y0 + 15 + gx / 2 + Math.floor(i / cols) * gx, 'p' + j, on);
-        s += `<text x="${X + gw / 2}" y="${y0 + hA + 40}" text-anchor="middle" font-size="32" font-weight="700" fill="${on ? 'var(--a)' : INK}">${st.p[j]}</text>`;
+        for (let i = 0; i < st.p[j]; i++) s += bille(X + gw / 2 + ((i % cols) - (c - 1) / 2) * gx, y0 + 8 + gx / 2 + Math.floor(i / cols) * gx, 'p' + j, on);
+        s += `<text x="${X + gw / 2}" y="${y0 + hA + 34}" text-anchor="middle" font-size="32" font-weight="700" fill="${on ? 'var(--a)' : INK}">${st.p[j]}</text>`;
       }
-      const viz = svg(1000, y0 + hA + 56, s, GLISSABLE);
+      const viz = svg(1000, y0 + hA + 42, s, GLISSABLE);
       const ans = !st.checked ? ''
         : egal ? `<div class="pill">Chaque assiette a ${k} ${obj} : ${F(1, d)} de ${Q} ${obj}, c'est ${k} ${obj}.</div>`
                  + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n} assiettes : ${n} × ${k} = ${n * k} ${obj}.</div>` : '')
@@ -2199,7 +2206,7 @@ const MANIP = {
     dessin(q, st, R, { I, M }) {
       if (st.u === undefined) { st.u = 0; st.p = 0; }
       const { n, d, e, r } = q, tot = st.u * d + st.p;
-      const uw = Math.min(250, 840 / (e + 2)), x0 = 70, yB = 70, h = 80;
+      const uw = Math.min(250, 840 / (e + 2)), x0 = 70, yB = 58, h = 80;   // compact en hauteur : le dessin peut être plus grand
       // la bande à construire : sa longueur est celle de la fraction
       let s = `<rect data-drop="z" x="20" y="${yB - 50}" width="960" height="${h + 110}" fill="transparent"/>`
             + `<rect x="${x0}" y="${yB}" width="${n / d * uw}" height="${h}" rx="6" fill="${soft('--c1', .12)}" stroke="${INK}" stroke-width="3" stroke-dasharray="10 7"/>`
@@ -2210,20 +2217,20 @@ const MANIP = {
       for (let i = 0; i < st.p; i++, X += uw / d) s += `<g data-drag="bp"><rect x="${X}" y="${yB}" width="${uw / d}" height="${h}" fill="${soft('--a', .6)}" stroke="${INK}" stroke-width="2.5"/></g>`;
       // ce qu'on a construit, écrit sous la bande : 1 + 3/4
       const ecrit = [...Array(st.u).fill('1'), ...(st.p ? [`${st.p}/${d}`] : [])].join(' + ');
-      if (ecrit) s += `<text x="${x0}" y="${yB + h + 50}" font-size="34" font-weight="700" fill="${INK}">${ecrit}</text>`;
+      if (ecrit) s += `<text x="${x0}" y="${yB + h + 42}" font-size="34" font-weight="700" fill="${INK}">${ecrit}</text>`;
       // la boîte à pièces, en bas : on y prend des unités et des parts (et on y jette celles en trop)
-      const yP = yB + h + 90;
-      s += `<rect data-drop="pal" x="20" y="${yP}" width="960" height="130" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>
-            <g data-drag="u"><rect x="${x0}" y="${yP + 25}" width="${uw}" height="${h}" fill="${soft('--c3', .55)}" stroke="${INK}" stroke-width="3"/><text x="${x0 + uw / 2}" y="${yP + 25 + h / 2 + 13}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">1</text></g>
-            <g data-drag="p"><rect x="${x0 + uw + 60}" y="${yP + 25}" width="${Math.max(uw / d, 34)}" height="${h}" fill="${soft('--a', .6)}" stroke="${INK}" stroke-width="2.5"/></g>
-            ${svgFrac(x0 + uw + 60 + Math.max(uw / d, 34) + 50, yP + 25 + h / 2 + 4, 1, d, 30, INK)}`;
+      const yP = yB + h + 64;
+      s += `<rect data-drop="pal" x="20" y="${yP}" width="960" height="112" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>
+            <g data-drag="u"><rect x="${x0}" y="${yP + 16}" width="${uw}" height="${h}" fill="${soft('--c3', .55)}" stroke="${INK}" stroke-width="3"/><text x="${x0 + uw / 2}" y="${yP + 16 + h / 2 + 13}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">1</text></g>
+            <g data-drag="p"><rect x="${x0 + uw + 60}" y="${yP + 16}" width="${Math.max(uw / d, 34)}" height="${h}" fill="${soft('--a', .6)}" stroke="${INK}" stroke-width="2.5"/></g>
+            ${svgFrac(x0 + uw + 60 + Math.max(uw / d, 34) + 50, yP + 16 + h / 2 + 4, 1, d, 30, INK)}`;
       st.checked = tot >= n;
       const ans = tot === n && st.u === e ? `<div class="pill">Bravo ! ${F(n, d)} = ${e} + ${F(r, d)}</div>` : '';
       const fini = tot === n && st.u === e;
       return {
         prompt: `${F(n, d)} = ${fini ? e : BOX} + ${fini ? F(r, d) : Fbox(null, d)}`,
         sub: `Construis ${F(n, d)} avec des unités et des ${denName(d, true)} : fais glisser les pièces sur la bande.`,
-        viz: svg(1000, yP + 140, s, GLISSABLE), ans,
+        viz: svg(1000, yP + 120, s, GLISSABLE), ans,
         steps: [I(`1 = ${F(d, d)} : une unité, c'est ${d} ${denName(d, true)}.`),
                 M(`Mets d'abord le plus d'unités possible, puis complète avec des ${denName(d, true)}.`)],
         boutons: BTN.effacer('dvider')
@@ -2784,8 +2791,8 @@ function renderDefi() {
   $('#stage').innerHTML = `<div class="defi ${R ? 'rev' : ''}">
       <div class="dtop"><div class="dots">${dots}</div><span style="color:var(--muted);font-weight:700">${D.i + 1} / ${D.list.length}</span></div>
       <div class="prompt">${prompt}</div>${sub ? `<div class="sub">${sub}</div>` : ''}
-      ${nb || PR ? `<div class="zone-aide"><div class="ajuste">${hintHTML}${propsHTML}</div></div>` : ''}
-      <div class="dviz">${viz}</div>${extraBtn ? `<div class="dactions">${extraBtn}</div>` : ''}
+      ${nb || PR ? `<div class="zone-aide ${PR ? '' : 'courte'}"><div class="ajuste">${hintHTML}${propsHTML}</div></div>` : ''}
+      <div class="dzone"><div class="dviz">${viz}</div>${extraBtn ? `<div class="dactions">${extraBtn}</div>` : ''}</div>
       <div class="answer ${R || D.st.checked ? 'on' : ''}"><div class="ajuste">${ans}</div></div>
     </div>`;
   // propositions trop longues pour une seule ligne : deux lignes de deux (ou une colonne s'il n'y en a que trois)
