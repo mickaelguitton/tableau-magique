@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.1 dans le portail « Le tableau magique » (Manipuler : carte à retourner, pointillés ; Comparer : parts à créer ; Sur la droite : flèche d'un clic)
+  v2.2 dans le portail « Le tableau magique » (Manipuler : dos de la carte avec la question seule, en grand)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -231,7 +231,7 @@ svg{user-select:none;-webkit-user-select:none}
 .card .hid{font-size:clamp(4rem,14vh,8rem);text-align:center;color:color-mix(in srgb,var(--a) 35%,white);font-weight:700;padding:.4rem 0;line-height:1}
 /* carte retournée (dos) : la question ; un clic n'importe où sur la carte la retourne */
 .card.dos{background:color-mix(in srgb,var(--c0) 10%,white);justify-content:center;min-height:clamp(220px,40vh,420px)}
-.card .question{font-size:clamp(1.4rem,3.4vh,2rem);font-weight:700;text-align:center;line-height:1.2;color:var(--ink)}
+.card .question{font-size:clamp(2rem,5.6vh,3.3rem);font-weight:700;text-align:center;line-height:1.15;color:var(--ink);text-wrap:balance;margin:auto 0}   /* dos de la carte : la question seule, en grand, centrée */
 .card.face .big{font-size:clamp(3rem,9vh,5.4rem)}
 .card.retourne{animation:retourne .32s ease-out}
 @keyframes retourne{from{transform:perspective(900px) rotateY(90deg)}to{transform:perspective(900px) rotateY(0)}}
@@ -313,6 +313,8 @@ svg{user-select:none;-webkit-user-select:none}
   .cmprow svg,.defi.rev .dviz .cmprow svg{max-height:34vh}
   .card{width:clamp(150px,24vw,220px);padding:.8rem .7rem}
   .card .big{font-size:2.4rem}
+  .card .question{font-size:1.35rem}   /* téléphone : la question tient dans la carte */
+  .card.dos{min-height:0}
   .prompt{font-size:1.4rem}
   .answer{font-size:1.25rem;min-height:3rem}
   .zone-aide,.answer{height:auto}   /* téléphone : la page défile, la zone d'aide et la réponse prennent la place qu'il leur faut (rien n'est réduit) */
@@ -347,7 +349,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.1</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.2</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1188,7 +1190,7 @@ function renderManip() {
       <div class="viz ${m.rep === 'trois' ? 'trio' : ''}">${viz}</div>
       <div class="card ${m.show ? 'face' : 'dos'} ${S.retourne ? 'retourne' : ''}" data-act="mshow" role="button" tabindex="0" aria-label="Retourner la carte">
         ${m.show ? `<div class="big">${F(n, m.d)}</div><div class="words">${fracWords(n, m.d)}</div><ul>${factsHTML(n, m.d).map(x => `<li>${x}</li>`).join('')}</ul>`
-                 : `<div class="question">Quel est le nombre représenté ?</div><div class="hid">?</div>`}
+                 : `<div class="question">Quel est le nombre représenté ?</div>`}
       </div>
     </div>`;
 }
