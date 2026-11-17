@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.00 dans le portail « Le tableau magique » (numérotation repartie de 1.00 ; ensuite 1.01, 1.02…) (millièmes et flèche sur la droite, quadrillages de taille fixe)
+  v1.01 dans le portail « Le tableau magique » (CE1 : moins de fractions de numérateur 1)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.00</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.01</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -391,7 +391,7 @@ svg{user-select:none;-webkit-user-select:none}
       <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
       <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
       <li><b>Fractions décimales :</b> des quadrillages comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
-      <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes (de 3 à 5), en centièmes (de 2,4 à 2,6) ou en millièmes au CM2 (de 2,45 à 2,47) : on place une flèche, ou on lit le nombre qu’elle montre.</li>
+      <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes, en centièmes ou, au CM2, en millièmes : on place une flèche, ou on lit le nombre qu’elle montre. Les nombres écrits sur la droite changent à chaque situation.</li>
     </ul>
 
     <h3>Les défis, d’après les programmes</h3>
@@ -1689,8 +1689,10 @@ const GEN = {
     // Une fraction n/d ; la figure peut être partagée plus finement (k parts pour une) : 3/4 sur des huitièmes.
     const c = C(), lvl = c.lvl;
     let d = pickDen(t, 12), n = t < 0.2 ? 1 : ri(1, d - 1), k = 1;
+    // CE1 : la première question en numérateur 1, ensuite surtout des fractions comme 2/3 ou 3/4 (sinon trop de 1/2, 1/3, 1/4)
+    if (lvl === 0) n = t < 0.1 ? 1 : d > 2 && Math.random() < 0.8 ? ri(2, d - 1) : ri(1, d - 1);
     if (t > 0.3 && Math.random() < 0.35) {
-      const bases = lvl === 0 ? [[1, 2], [1, 3], [1, 4]]
+      const bases = lvl === 0 ? [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4]]
         : [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 6], [5, 6]];
       const ok = bases.map(([bn, bd]) => [bn, bd, [2, 3, 4].filter(m => bd * m <= 12 && c.dens.includes(bd * m))]).filter(x => x[2].length);
       const [bn, bd, ks] = pick(ok);
