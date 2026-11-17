@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.5 dans le portail « Le tableau magique » (partage : nombre d'assiettes choisi avec + et −)
+  v2.6 dans le portail « Le tableau magique » (fraction d'une quantité : réponse choisie puis Vérifier)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -157,7 +157,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .btn svg.ic{width:1.15em;height:1.15em;flex:none}
 .tools .btn.bmanip{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 .16rem var(--col,var(--c3)),0 .2rem 0 rgba(0,0,0,.14)}
 .tools .btn.bmanip:active{box-shadow:inset 0 0 0 .16rem var(--col,var(--c3))}
-.btn.aide{background:var(--c1);color:var(--ink)}
+.btn.aide,.btn.jaune{background:var(--c1);color:var(--ink)}
 .btn.voir{background:var(--c4)}
 .btn.suite{background:var(--c2)}
 .btn.neuf{background:var(--c0)}
@@ -356,7 +356,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.5</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.6</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1974,6 +1974,7 @@ document.addEventListener('pointermove', e => {
 function finGlisse(e) {
   if (!glisse || e.pointerId !== glisse.id) return;
   const g = glisse; glisse = null;
+  sauteClic = true; setTimeout(() => { sauteClic = false; }, 0);   // le navigateur envoie ce clic aussitôt après le lâcher
   g.el.style.display = 'none';              // pour voir ce qu'il y a sous le pointeur
   // la première zone d'arrivée sous le pointeur (les billes ou étiquettes déjà posées ne la cachent pas)
   const zone = document.elementsFromPoint(e.clientX, e.clientY).find(x => x.matches('[data-drop]'));
@@ -1996,7 +1997,8 @@ function etiquette(x, y, n, d, id, etat = '', w = 78) {
 const melange = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 // trier : la boîte où va une fraction
 const boiteDe = (sorte, [n, d]) => sorte === 'un' ? (n < d ? 0 : n === d ? 1 : 2) : (2 * n === d ? 0 : 1);
-const BTN_TOURNEE = `<button class="btn small" data-act="tournee">Une tournée</button>`;
+const BTN_TOURNEE = `<button class="btn small jaune" data-act="tournee">Une tournée</button>`;
+const EFFACER_JAUNE = act => BTN.effacer(act).replace('btn small', 'btn small jaune');   // fraction d'une quantité : Une tournée et Effacer en jaune
 
 /* La manipulation d'une question, si elle s'y prête (pas trop d'objets à faire glisser…).
    avecReglage = false : on demande seulement si c'est possible (pour montrer ou non l'interrupteur « Manipuler »). */
@@ -2012,11 +2014,17 @@ function manipDe(q, avecReglage = true) {
   return null;
 }
 
+// partage : choisir (ou ne plus choisir) une assiette pour la réponse
+function selAssiette(st, j) { st.sel = st.sel || new Set(); st.sel.has(j) ? st.sel.delete(j) : st.sel.add(j); st.checked = false; }
+let sauteClic = false;   // le clic émis juste après un lâcher d'objet ne compte pas comme un clic sur une assiette
+
 /* Ce que fait chaque lâcher d'objet */
 const LACHER = {
   // billes : de la réserve (r) vers une assiette (p0, p1…), d'une assiette à l'autre, ou retour à la réserve
-  partage(q, st, de, vers) {
+  partage(q, st, de, vers, p, bouge) {
+    if (!bouge && de[0] === 'p' && vers === de) { selAssiette(st, +de.slice(1)); return; }   // un simple clic sur une bille : on choisit son assiette
     if (!vers || vers === de) return;
+    st.checked = false;
     const Q = q.d * q.k, reste = Q - st.p.reduce((a, b) => a + b, 0);
     if (de === 'r') { if (reste <= 0) return; } else { const i = +de.slice(1); if (!st.p[i]) return; st.p[i]--; }
     if (vers !== 'r') st.p[+vers.slice(1)]++;
@@ -2066,8 +2074,9 @@ const MANIP = {
       const { d, k, n, obj } = q, Q = d * k;
       if (!st.p) st.p = [0];                 // une seule assiette au départ : on en ajoute avec + (sans chiffre)
       const nA = st.p.length, dans = st.p.reduce((a, b) => a + b, 0), reste = Q - dans;
+      if (!st.sel) st.sel = new Set();
       const egal = reste === 0 && nA === d && st.p.every(x => x === k);   // le bon nombre d'assiettes, et autant dans chacune
-      st.checked = reste === 0;   // tout est partagé : on dit si les parts sont égales
+      const juste = egal && st.sel.size === n;                              // … et les assiettes choisies (Vérifier)
       const r = 21, gx = 54, jaune = soft('--c1', .6);
       const bille = (cx, cy, id, on) => `<g data-drag="${id}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? 'var(--a)' : jaune}" stroke="${INK}" stroke-width="2.5"/></g>`;
       // la réserve : toujours de la même taille, pour que rien ne saute pendant qu'on vide
@@ -2078,26 +2087,23 @@ const MANIP = {
       const ecart = 16, gw = (960 - (nA - 1) * ecart) / nA, cols = Math.max(1, Math.floor((gw - 16) / gx)), plein = Math.max(k, ...st.p);
       const hA = 16 + Math.ceil(plein / cols) * gx, y0 = hR + 22;
       for (let j = 0; j < nA; j++) {
-        const X = 20 + j * (gw + ecart), on = egal && j < n;
-        const rouge = st.checked && !egal;   // tout est partagé mais les parts ne sont pas égales : en rouge, sans explication
-        s += `<rect data-drop="p${j}" x="${X}" y="${y0}" width="${gw}" height="${hA}" rx="34" fill="${on ? soft('--a', .2) : rouge ? '#fde3e6' : '#fff'}" stroke="${on ? 'var(--a)' : rouge ? 'var(--c5)' : '#b9b0a0'}" stroke-width="4"/>`;
+        const X = 20 + j * (gw + ecart), on = st.sel.has(j);   // assiette choisie pour la réponse (clic)
+        const rouge = st.checked && !juste;   // Vérifier, et ce n'est pas ça : en rouge, sans explication
+        s += `<rect data-drop="p${j}" x="${X}" y="${y0}" width="${gw}" height="${hA}" rx="34" fill="${rouge ? '#fde3e6' : on ? soft('--c3', .16) : '#fff'}" stroke="${rouge ? 'var(--c5)' : on ? 'var(--c3)' : '#b9b0a0'}" stroke-width="${on ? 6 : 4}"/>`;   // rouge (faux) d'abord ; choisie : bleu, bord épais (pas la couleur de la tuile, qui ressemble au rouge)
         const c = Math.min(cols, Math.max(1, st.p[j]));
-        for (let i = 0; i < st.p[j]; i++) s += bille(X + gw / 2 + ((i % cols) - (c - 1) / 2) * gx, y0 + 8 + gx / 2 + Math.floor(i / cols) * gx, 'p' + j, on);
-        s += `<text x="${X + gw / 2}" y="${y0 + hA + 34}" text-anchor="middle" font-size="32" font-weight="700" fill="${on ? 'var(--a)' : INK}">${st.p[j]}</text>`;
+        for (let i = 0; i < st.p[j]; i++) s += bille(X + gw / 2 + ((i % cols) - (c - 1) / 2) * gx, y0 + 8 + gx / 2 + Math.floor(i / cols) * gx, 'p' + j, false);
+        s += `<text x="${X + gw / 2}" y="${y0 + hA + 34}" text-anchor="middle" font-size="32" font-weight="700" fill="${on ? 'var(--c3)' : INK}">${st.p[j]}</text>`;
       }
       const viz = svg(1000, y0 + hA + 42, s, GLISSABLE);
-      const ans = !st.checked ? ''
-        : egal ? `<div class="pill">Chaque assiette a ${k} ${obj} : ${F(1, d)} de ${Q} ${obj}, c'est ${k} ${obj}.</div>`
-                 + (n > 1 ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n} assiettes : ${n} × ${k} = ${n * k} ${obj}.</div>` : '')
-        : '';
+      const ans = st.checked && juste ? `<div class="pill">${F(n, d)} de ${Q} ${obj}, c'est ${n * k} ${obj}.</div>` : '';   // en vert, après Vérifier
       return {
         prompt: `${F(n, d)} de ${Q} ${obj}, c'est combien ?`,
-        sub: `Choisis le nombre d'assiettes avec + et −, puis partage les ${Q} ${obj} : fais-les glisser, ou fais une tournée.`,
+        sub: `Choisis le nombre d'assiettes, partage les ${Q} ${obj}, puis clique sur les assiettes de la réponse.`,
         viz, ans,
         steps: [I(`${F(1, d)} de ${Q} ${obj}, c'est une part quand on partage les ${Q} ${obj} en ${d} parts égales.`),
                 M(n === 1 ? `Quand tout est partagé, compte les ${obj} d'une assiette.` : `Compte les ${obj} d'une assiette, puis prends ${words(n)} assiettes.`)],
         boutons: `<div class="rowctl"><span>assiettes</span><button data-act="passiettes" data-dir="1" ${nA < 8 ? '' : 'disabled'} aria-label="une assiette de plus">+</button><button data-act="passiettes" data-dir="-1" ${nA > 1 ? '' : 'disabled'} aria-label="une assiette de moins">−</button></div>`
-               + BTN_TOURNEE + BTN.effacer('dvider')
+               + BTN_TOURNEE + EFFACER_JAUNE('dvider') + BTN.verifier('dcheck')
       };
     }
   },
@@ -2107,8 +2113,7 @@ const MANIP = {
       const { Q, unit, obj, d, n } = q, qte = `${milliers(Q)} ${unit}${obj ? ' ' + obj : ''}`;
       if (!st.parts) { st.parts = 1; st.col = new Set(); }
       const x = 60, W = 880, y = 70, h = 110, w = W / st.parts;
-      const fini = st.parts === d && st.col.size === n;   // bon partage et bon nombre de parts prises
-      st.checked = fini;
+      const fini = st.parts === d && st.col.size === n;   // bon partage et bon nombre de parts prises : la valeur des parts s'écrit
       let s = `<path d="M ${x} ${y - 14} V ${y - 26} H ${x + W} V ${y - 14}" fill="none" stroke="${INK}" stroke-width="3"/>
                <text x="${x + W / 2}" y="${y - 36}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${milliers(Q)} ${unit}</text>`;
       for (let j = 0; j < st.parts; j++) {
@@ -2116,14 +2121,14 @@ const MANIP = {
         s += `<rect data-i="${j}" class="part" x="${x + j * w}" y="${y}" width="${w}" height="${h}" fill="${pris ? 'var(--a)' : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
         if (fini && w > 60) s += `<text x="${x + j * w + w / 2}" y="${y + h / 2 + 10}" text-anchor="middle" font-size="${Math.min(30, w / 3.2)}" font-weight="700" fill="${pris ? '#fff' : INK}" pointer-events="none">${comma(Math.round(Q * 1000 / d))} ${unit}</text>`;
       }
-      s += `<rect x="${x}" y="${y}" width="${W}" height="${h}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
+      s += `<rect x="${x}" y="${y}" width="${W}" height="${h}" fill="none" stroke="${st.checked && !fini ? 'var(--c5)' : INK}" stroke-width="${st.checked && !fini ? 7 : 4}" pointer-events="none"/>`;   // Vérifier, pas encore ça : cadre rouge
       return {
         prompt: `${F(n, d)} de ${qte}, c'est combien ?`,
         sub: `Coupe la bande en parts égales avec + et −, puis colorie les parts que tu prends.`,
         viz: svg(1000, y + h + 20, s), 
-        ans: fini ? `<div class="pill">${F(1, d)} de ${milliers(Q)} ${unit}, c'est ${comma(Math.round(Q * 1000 / d))} ${unit}${n > 1 ? ` ; ${F(n, d)}, c'est ${n} × ${comma(Math.round(Q * 1000 / d))} = ${comma(Math.round(Q * 1000 * n / d))} ${unit}` : ''}</div>` : '',
+        ans: st.checked && fini ? `<div class="pill">${F(n, d)} de ${milliers(Q)} ${unit}, c'est ${comma(Math.round(Q * 1000 * n / d))} ${unit}.</div>` : '',   // en vert, après Vérifier
         steps: [I(`${F(1, d)} : on coupe la quantité en ${d} parts égales.`), M(n === 1 ? 'Cherche combien vaut une part.' : `Cherche combien vaut une part, puis prends-en ${words(n)}.`)],
-        boutons: `<div class="rowctl"><span>parts</span><button data-act="bparts" data-dir="1" ${st.parts < 12 ? '' : 'disabled'} aria-label="une part de plus">+</button><button data-act="bparts" data-dir="-1" ${st.parts > 1 ? '' : 'disabled'} aria-label="une part de moins">−</button></div>` + BTN.effacer('dvider')
+        boutons: `<div class="rowctl"><span>parts</span><button data-act="bparts" data-dir="1" ${st.parts < 12 ? '' : 'disabled'} aria-label="une part de plus">+</button><button data-act="bparts" data-dir="-1" ${st.parts > 1 ? '' : 'disabled'} aria-label="une part de moins">−</button></div>` + EFFACER_JAUNE('dvider') + BTN.verifier('dcheck')
       };
     }
   },
@@ -2964,12 +2969,13 @@ const ACT = {
     const st = S.defis.st; st.p = Array(clamp((st.p || [0]).length + +el.dataset.dir, 1, 8)).fill(0); render();
   },
   bparts(_, el) {   // bande des grandeurs : une part de plus ou de moins (on recommence le coloriage)
-    const st = S.defis.st; st.parts = clamp((st.parts || 1) + +el.dataset.dir, 1, 12); st.col = new Set(); render();
+    const st = S.defis.st; st.parts = clamp((st.parts || 1) + +el.dataset.dir, 1, 12); st.col = new Set(); st.checked = false; render();
   },
   tournee() {   // partage : une bille dans chaque assiette, tant qu'il en reste
     const q = S.defis.list[S.defis.i], st = S.defis.st;
     let reste = q.d * q.k - st.p.reduce((a, b) => a + b, 0);
     for (let j = 0; j < st.p.length && reste > 0; j++, reste--) st.p[j]++;
+    st.checked = false;
     render();
   },
   dvider() {   // défi à manipuler : on recommence (le pas à pas reste ; les assiettes et les parts de la bande aussi, vides)
@@ -3024,12 +3030,14 @@ document.addEventListener('click', e => {
       set.has(i) ? set.delete(i) : set.add(i);
     } else if (S.mode === 'defis') {
       const st = S.defis.st, q = S.defis.list[S.defis.i];
-      if (manipDe(q) === 'bande') { st.col.has(i) ? st.col.delete(i) : st.col.add(i); render(); return; }   // bande des grandeurs : on prend ou rend une part
+      if (manipDe(q) === 'bande') { st.col.has(i) ? st.col.delete(i) : st.col.add(i); st.checked = false; render(); return; }   // bande des grandeurs : on prend ou rend une part
       st.checked = false;
       st.set.has(i) ? st.set.delete(i) : st.set.add(i);
     }
     render(); return;
   }
+  const plat = e.target.closest('#stage [data-drop^="p"]');
+  if (plat && S.mode === 'defis' && !sauteClic && manipDe(S.defis.list[S.defis.i]) === 'partage') { selAssiette(S.defis.st, +plat.dataset.drop.slice(1)); render(); return; }
   const g = e.target.closest('[data-g]');
   if (g) {
     const v = +g.dataset.g;
