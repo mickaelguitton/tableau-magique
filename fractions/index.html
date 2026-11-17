@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.03 dans le portail « Le tableau magique » (défi quadrillages avec unités et millièmes, droites qui ne commencent pas à 0)
+  v1.03 dans le portail « Le tableau magique » (défi matériel de numération avec unités et millièmes, droites qui ne commencent pas à 0 ; « matériel de numération » au lieu de « quadrillages »)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -391,7 +391,7 @@ svg{user-select:none;-webkit-user-select:none}
       <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité : on crée soi-même les parts de chaque barre, on les colorie, puis on fait glisser le bon signe dans la case.</li>
       <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
       <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
-      <li><b>Fractions décimales :</b> des quadrillages comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
+      <li><b>Fractions décimales :</b> le matériel de numération, comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
       <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes, en centièmes ou, au CM2, en millièmes : on place une flèche, ou on lit le nombre qu’elle montre. Les nombres écrits sur la droite changent à chaque situation.</li>
     </ul>
 
@@ -1126,7 +1126,7 @@ const LEVEL_COL = { CE1: 'c0', CE2: 'c1', CM1: 'c2', CM2: 'c4' };
 
 const MODE_SUB = {
   manip: 'barres, disques et droites à colorier', comparer: 'deux fractions côte à côte', mur: 'une règle pour voir les égalités',
-  placer: 'placer et lire une fraction', deci: 'lire et représenter avec des quadrillages', ddroite: 'placer et lire un nombre décimal'
+  placer: 'placer et lire une fraction', deci: 'lire et représenter avec le matériel de numération', ddroite: 'placer et lire un nombre décimal'
 };
 
 const DEFI_SUB = {
@@ -1497,7 +1497,7 @@ function renderDeci() {
   const ecrit = v => { const [n, d] = deciBest(v); return q.virgule ? comma(v) : F(n, d); };
   if (q.tache === 'rep') {   // on montre un nombre ; les élèves déposent les pièces sur le plateau
     $('#stage').innerHTML = `
-      <div class="title">Représente le nombre avec les quadrillages.${legende}</div>
+      <div class="title">Représente le nombre avec le matériel de numération.${legende}</div>
       <div class="manip">
         <div class="viz">${quadRepSVG(q.plateau, q.verif, mille)}</div>
         <div class="card face cible ${q.verif === 'ok' ? 'ok' : ''}"><div class="big">${ecrit(q.cible)}</div></div>
@@ -1590,7 +1590,7 @@ const SUBS = {
   ajouter: l => [['plus', 'additions'], ['moins', 'soustractions'], ...(l <= 1 ? [['comp', 'complément à 1']] : []), ...(l >= 1 ? [['diff', 'dénominateurs différents']] : [])],
   decomposer: l => [['dec', 'décomposer'], ['rec', 'recomposer']],
   quantite: l => [['obj', 'objets'], ['gr', 'grandeurs (g, m, L…)']],
-  decimales: l => [['carre', 'quadrillages'], ['conv', 'dixièmes, centièmes'], ['decomp', 'décomposer'], ['virgule', 'écriture à virgule'], ['dcmp', 'comparer'], ['intercaler', 'intercaler'], ['encadrerDec', 'encadrer'], ['arrondi', 'arrondir']]
+  decimales: l => [['carre', 'matériel de numération'], ['conv', 'dixièmes, centièmes'], ['decomp', 'décomposer'], ['virgule', 'écriture à virgule'], ['dcmp', 'comparer'], ['intercaler', 'intercaler'], ['encadrerDec', 'encadrer'], ['arrondi', 'arrondir']]
 };
 /* Un exemple pour chaque pastille (bulle d'aide au survol) */
 const SUB_EX = {

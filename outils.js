@@ -121,7 +121,7 @@ self.OUTILS = [
     nom: 'À parts égales',
     niveau: 'fractions · du CE1 au CM2',
     texte: 'L’atelier des fractions à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
-         + 'fractions à comparer, mur des fractions, fractions décimales avec des quadrillages, décimaux sur la droite graduée. '
+         + 'fractions à comparer, mur des fractions, fractions décimales avec le matériel de numération, décimaux sur la droite graduée. '
          + 'Des défis d’après les programmes, à manipuler au doigt, avec pas à pas, propositions de réponses et correction en images, et des fiches Word à imprimer.',
     donnees: ['fractions-'],
     couleur: '#23887C', ombre: '#B5E3DC'
