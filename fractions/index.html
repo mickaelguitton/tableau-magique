@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.04 dans le portail « Le tableau magique » (défis : un seul réglage, Propositions ; Options à un seul choix affiché directement)
+  v1.04 dans le portail « Le tableau magique » (défis : un seul réglage, Propositions ; plus de menu Options ; sauts montrés avec la réponse)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -185,11 +185,6 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .seg.tache button{font-size:1.12em}
 .seg.tache button.on{background:var(--c1);color:var(--ink)}
 .seg button:disabled{opacity:.35;cursor:default}
-/* « Options » : la liste s'ouvre au-dessus du bouton */
-.opts{position:relative}
-.opts-liste{display:none;position:absolute;bottom:calc(100% + .5rem);left:50%;transform:translateX(-50%);z-index:40;flex-direction:column;align-items:stretch;gap:.4rem;
-  background:#fff;border:.2rem solid var(--col,var(--c3));border-radius:1rem;padding:.55rem;box-shadow:0 .4rem 1rem rgba(0,0,0,.18);white-space:nowrap}
-.opts.ouvert .opts-liste{display:flex}
 /* Comparer : la fraction se change à l'écran */
 button.lab{background:none;cursor:pointer;border-radius:1rem;padding:.1rem .3rem;transition:background .15s}
 button.lab:hover,button.lab.edite{background:color-mix(in srgb,currentColor 12%,white)}
@@ -390,7 +385,7 @@ svg{user-select:none;-webkit-user-select:none}
       <li><b>Manipuler :</b> une barre, un disque, une droite graduée, ou les trois à la fois. On partage l’unité, on colorie des parts, on partage encore (les nouveaux traits en pointillés) ou on regroupe. La carte « Quel est le nombre représenté ? » se retourne d’un clic pour montrer la fraction en chiffres et en lettres.</li>
       <li><b>Comparer :</b> deux fractions côte à côte, avec la même unité : on crée soi-même les parts de chaque barre, on les colorie, puis on fait glisser le bon signe dans la case.</li>
       <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
-      <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation.</li>
+      <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation. La correction montre les sauts depuis 0 ; le bouton « Graduations » cache les petites graduations.</li>
       <li><b>Fractions décimales :</b> le matériel de numération, comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
       <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes, en centièmes ou, au CM2, en millièmes : on place une flèche, ou on lit le nombre qu’elle montre. Les nombres écrits sur la droite changent à chaque situation.</li>
     </ul>
@@ -1006,11 +1001,11 @@ const S = {
   classe: load('classe', 'CM2'),
   mode: load('mode', 'manip'),
   screen: 'menu',
-  manip: { rep: 'barre', d: 4, base: 4, u: 1, set: new Set([0, 1, 2]), show: false, parts: false, sauts: false },   // show : carte retournée côté réponse ; parts : 1/4 écrit dans chaque part ; base : partage de départ (traits pleins)
+  manip: { rep: 'barre', d: 4, base: 4, u: 1, set: new Set([0, 1, 2]), show: false, parts: false },   // show : carte retournée côté réponse ; parts : 1/4 écrit dans chaque part ; base : partage de départ (traits pleins)
   cmp: { rep: 'barre', a: { n: 3, d: 4 }, b: { n: 2, d: 3 }, chosen: null, revealed: false, faites: false,
          parts: { a: 1, b: 1 }, col: { a: new Set(), b: new Set() }, pt: { a: 0, b: 0 } },   // chaque ligne : ses parts (créées avec + et −), les parts coloriées, le point sur la droite
   mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null, blanc: load('mur-blanc', false) },   // blanc : mur à colorier soi-même (sinon une couleur par ligne)
-  placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, verif: null, revealed: false, grads: true, sauts: false },   // verif : 'ok' ou 'ko' après Vérifier
+  placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, verif: null, revealed: false, grads: true },   // verif : 'ok' ou 'ko' après Vérifier
   // quadrillages : unités (bandes), dixièmes (grands carrés), centièmes (barres), millièmes (petits carrés)
   // tache 'lire' : quel nombre est représenté ? ; tache 'rep' : on montre un nombre, on dépose les bonnes pièces
   deci: { tache: 'lire', virgule: true, show: false, pieces: { u: 1, d: 3, c: 4, m: 0 },
@@ -1102,12 +1097,6 @@ const stepperSans = (label, key, minus, plus) =>
      <button data-act="step" data-key="${key}" data-dir="-1" ${minus ? '' : 'disabled'} aria-label="${label} : moins">−</button>
      <button data-act="step" data-key="${key}" data-dir="1" ${plus ? '' : 'disabled'} aria-label="${label} : plus">+</button></div></div>`;
 
-// Réglages qu'on change rarement, rangés dans « Options » : une petite liste qui s'ouvre au clic (un clic ailleurs la referme)
-const options = items => {
-  items = items.filter(Boolean);
-  if (items.length === 1) return items[0];   // un seul réglage : directement dans la barre, sans menu « Options »
-  return items.length ? `<div class="opts ${S.opts ? 'ouvert' : ''}"><button class="btn bmanip" data-act="opts" aria-expanded="${!!S.opts}">Options ${S.opts ? '▴' : '▾'}</button><div class="opts-liste">${items.join('')}</div></div>` : '';
-};
 
 const toggle = (label, act, on) => `<button class="toggle ${on ? 'on' : ''}" data-act="${act}">${label}</button>`;
 
@@ -1191,14 +1180,13 @@ function renderTools() {
     h += stepperSans('Parts', 'md', m.d > c.dens[0], m.d < c.dens[c.dens.length - 1]);
     if (c.maxU > 1) h += stepperSans('Unités', 'mu', m.u > 1, m.u < c.maxU);
     h += `<div class="seg"><button data-act="split" data-k="2" ${okSplit(2) ? '' : 'disabled'}>Partager en 2</button><button data-act="split" data-k="3" ${okSplit(3) ? '' : 'disabled'}>en 3</button><button data-act="regroup" ${regroupK() ? '' : 'disabled'}>Regrouper</button></div>`;
-    h += options([(m.rep === 'barre' || m.rep === 'trois') && toggle('Afficher les parts', 'mparts', m.parts),   // 1/4 écrit dans chaque part
-                  (m.rep === 'droite' || m.rep === 'trois') && toggle('Sauts', 'msauts', m.sauts)]);
+    if (m.rep === 'barre' || m.rep === 'trois') h += toggle('Afficher les parts', 'mparts', m.parts);   // 1/4 écrit dans chaque part
     h += BTN.effacer('clear');
   }
   if (S.mode === 'comparer') {
     const k = S.cmp;
     h += seg('crep', k.rep, [['barre', 'Barres'], ['disque', 'Disques'], ['droite', 'Droites']]);
-    h += options([toggle('Parts déjà faites', 'cfaites', k.faites)]);   // éteint : on crée soi-même les parts de chaque ligne ; les fractions se changent à l'écran
+    h += toggle('Parts déjà faites', 'cfaites', k.faites);   // éteint : on crée soi-même les parts de chaque ligne ; les fractions se changent à l'écran
     if (!(k.revealed || k.chosen === cmpSign(k.a, k.b))) h += BTN.voir('creveal');
     h += BTN.neuf('crandom');
   }
@@ -1214,7 +1202,7 @@ function renderTools() {
     if (p.task === 'placer') h += stepper('Parts prises', 'pn', p.n, p.n > p.s * p.d, p.n < (p.s + p.u) * p.d);
     h += stepperSans('Parts', 'pd', p.d > c.dens[0], p.d < Math.min(20, c.dens.at(-1)));
     if (pMax > 1) h += stepperSans('Unités', 'pu', p.u > 1, p.u < pMax);
-    h += options([toggle('Graduations', 'pgrads', p.grads), toggle('Sauts', 'psauts', p.sauts)]);
+    h += toggle('Graduations', 'pgrads', p.grads);
     if (p.task === 'placer') h += BTN.effacer('pclear');
     if (p.task === 'placer') h += BTN.verifier('pverif');
     if ((p.task === 'lire' || p.verif === 'ko') && !p.revealed) h += BTN.voir('preveal');
@@ -1228,7 +1216,7 @@ function renderTools() {
       h += stepperSans('Unités', 'qu', P.u > 0, P.u < Math.min(c.maxU, 3)) + stepperSans('Dixièmes', 'qd', P.d > 0, P.d < 19)
          + stepperSans('Centièmes', 'qc', P.c > 0, P.c < 19) + (c.deciMax === 1000 ? stepperSans('Millièmes', 'qm', P.m > 0, P.m < 19) : '');
     }
-    h += options([toggle('Écriture à virgule', 'dvirg', q.virgule)]);
+    h += toggle('Écriture à virgule', 'dvirg', q.virgule);
     h += BTN.effacer('dclear');
     if (q.tache === 'rep') h += BTN.verifier('dverif');
     h += BTN.neuf('drandom');
@@ -1237,7 +1225,7 @@ function renderTools() {
     const q = S.dd;
     h += seg('ddtache', q.tache, [['placer', 'Placer'], ['lire', 'Lire']]).replace('class="seg"', 'class="seg tache"');
     h += seg('ddech', q.ech, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes'], ...(c.deciMax === 1000 ? [['millieme', 'Millièmes']] : [])]);
-    h += options([toggle('Écriture à virgule', 'ddvirg', q.virgule)]);
+    h += toggle('Écriture à virgule', 'ddvirg', q.virgule);
     if (q.tache === 'placer') h += BTN.effacer('ddclear') + BTN.verifier('ddverif');
     if (q.tache === 'lire' || q.verif === 'ko') h += q.revealed ? '' : BTN.voir('ddvoir');
     h += BTN.neuf('ddnew');
@@ -1291,9 +1279,9 @@ function renderManip() {
   if (m.rep === 'trois') {
     viz = drawRep('disque', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true, base: m.base }) +
           drawRep('barre', { d: m.d, u: m.u, fill: firstN, interactive: true, compact: true, base: m.base, labels: m.parts }) +
-          drawRep('droite', { d: m.d, u: m.u, n, sauts: m.sauts, click: true, base: m.base });
+          drawRep('droite', { d: m.d, u: m.u, n, sauts: m.show, click: true, base: m.base });   // les sauts, quand la carte montre la réponse
   } else {
-    viz = drawRep(m.rep, { d: m.d, u: m.u, fill, interactive: true, n, sauts: m.sauts, click: true, labels: m.parts, base: m.base });
+    viz = drawRep(m.rep, { d: m.d, u: m.u, fill, interactive: true, n, sauts: m.show, click: true, labels: m.parts, base: m.base });
   }
   const unitTxt = m.u > 1 ? `Chaque ${m.rep === 'disque' ? 'disque' : m.rep === 'droite' ? 'intervalle de 0 à 1' : 'barre'} est une unité.` : '';
   $('#stage').innerHTML = `
@@ -1442,12 +1430,12 @@ function renderPlacer() {
   const tx = lx(x, L, p.u, p.d, rel);
   let s = lineG({ x, y, L, u: p.u, d: p.d, grads: p.grads, click: p.task === 'lire' || !p.revealed, start: p.s });   // Lire : un clic place la flèche
   const showTarget = p.revealed || p.task === 'lire' || p.verif === 'ok';
-  if (p.sauts && showTarget) s += jumpsG(x, y, L, p.u, p.d, rel, 'var(--c4)');
+  if (p.revealed || p.verif === 'ok') s += jumpsG(x, y, L, p.u, p.d, rel, 'var(--c4)');   // la correction montre toujours les sauts depuis 0
   // Placer : la flèche de l'élève, jaune puis verte ou rouge après Vérifier ; « Voir la réponse » ajoute la bonne flèche
   if (p.task === 'placer' && p.guess !== null && p.guess !== rel) s += arrowG(lx(x, L, p.u, p.d, p.guess), y, p.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
   if (p.task === 'placer' && p.guess === rel && !p.revealed) s += arrowG(tx, y, p.verif === 'ok' ? 'var(--c2)' : 'var(--c1)', '');
   if (showTarget) {
-    const lab = p.revealed ? (lvl === 1 && p.n > p.d // au CE2 : « 2 + 1/4 » plutôt que 9/4
+    const lab = p.revealed || p.verif === 'ok' ? (lvl === 1 && p.n > p.d // au CE2 : « 2 + 1/4 » plutôt que 9/4
         ? `${Math.floor(p.n / p.d)}${p.n % p.d ? ` + ${p.n % p.d}/${p.d}` : ''}` : { n: p.n, d: p.d }) : null;
     s += arrowG(tx, y, p.task === 'placer' ? 'var(--c2)' : 'var(--a)', lab);
   }
@@ -3105,7 +3093,7 @@ const ACT = {
   fnb(v) { FICHE.nombre = +v; majFiche(); },
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
-  go(v) { S.mode = v; save('mode', v); S.screen = 'game'; S.opts = false; S.cmp.edit = null; render(); },
+  go(v) { S.mode = v; save('mode', v); S.screen = 'game'; S.cmp.edit = null; render(); },
   solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },   // une compétence ouverte depuis le menu : propositions décochées
   gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },
   fs() { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); },
@@ -3113,7 +3101,6 @@ const ACT = {
   rep(v) { S.manip.rep = v; render(); },
   mshow() { S.manip.show = !S.manip.show; S.retourne = true; render(); S.retourne = false; },   // on retourne la carte (petite animation)
   mparts() { S.manip.parts = !S.manip.parts; render(); },
-  msauts() { S.manip.sauts = !S.manip.sauts; render(); },
   clear() { S.manip.set = new Set(); render(); },
   split(_, el) {
     const m = S.manip, k = +el.dataset.k, ns = new Set();
@@ -3152,7 +3139,6 @@ const ACT = {
   crep(v) { S.cmp.rep = v; render(); },
   crandom() { const r = comparePair(Math.random(), false, true); S.cmp.a = r.a; S.cmp.b = r.b; S.cmp.edit = null; cmpVide(); render(); },
   cedit(r) { S.cmp.edit = S.cmp.edit === r ? null : r; render(); },   // un clic sur une fraction : ses + et − apparaissent à côté
-  opts() { S.opts = !S.opts; renderTools(); ajusteBarre(); },
   cfaites() { S.cmp.faites = !S.cmp.faites; cmpVide(); render(); },
   cparts(r, el) {   // une part de plus ou de moins sur une ligne : on recommence son coloriage
     const k = S.cmp; k.parts[r] = clamp(k.parts[r] + +el.dataset.dir, 1, 20); k.col[r] = new Set(); k.pt[r] = 0; render();
@@ -3173,7 +3159,6 @@ const ACT = {
   preveal() { S.placer.revealed = true; render(); },
   pclear() { S.placer.guess = null; S.placer.verif = null; S.placer.revealed = false; render(); },
   pgrads() { S.placer.grads = !S.placer.grads; render(); },
-  psauts() { S.placer.sauts = !S.placer.sauts; render(); },
   dtache(v) { S.deci.tache = v; render(); },
   dclear() { const q = S.deci; if (q.tache === 'rep') { q.plateau = { u: 0, d: 0, c: 0, m: 0 }; q.verif = null; } else q.pieces = { u: 0, d: 0, c: 0, m: 0 }; render(); },
   dverif() { const q = S.deci; q.verif = valPlateau(q.plateau) === q.cible ? 'ok' : 'ko'; render(); },   // les échanges comptent : 12 dixièmes, c'est 1,2
@@ -3233,7 +3218,6 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#tip, [data-act=info]')) $('#tip').hidden = true;
   // clic en dehors de la liste de pastilles ouverte : on la referme
   if (ouvert && !e.target.closest('.skill.ouvert, [data-act=reglages]')) { ouvert = null; renderMenu(); }
-  if (S.opts && !e.target.closest('.opts')) { S.opts = false; renderTools(); ajusteBarre(); }
   if (S.cmp.edit && !e.target.closest('.cedit, [data-act=cedit]')) { S.cmp.edit = null; renderCompare(); }
   const a = e.target.closest('[data-act]');
   if (a) { ACT[a.dataset.act]?.(a.dataset.v, a); return; }
@@ -3290,7 +3274,7 @@ document.addEventListener('change', e => { // cases à cocher des défis (menu)
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ouvert) { ouvert = null; renderMenu(); return; }   // Échap referme la liste de pastilles
-  if (e.key === 'Escape' && (S.opts || S.cmp.edit)) { S.opts = false; S.cmp.edit = null; render(); return; }   // … et « Options », et l'édition d'une fraction
+  if (e.key === 'Escape' && S.cmp.edit) { S.cmp.edit = null; render(); return; }   // … et l'édition d'une fraction
   if (S.screen !== 'game' || S.mode !== 'defis') return;
   if (e.key === 'ArrowRight' || e.key === 'Enter') ACT.dnext();
   if (e.key === ' ') { e.preventDefault(); ACT.dreveal(); }
