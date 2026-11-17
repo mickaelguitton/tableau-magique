@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.03 dans le portail « Le tableau magique » (défi matériel de numération avec unités et millièmes, droites qui ne commencent pas à 0 ; « matériel de numération » au lieu de « quadrillages »)
+  v1.04 dans le portail « Le tableau magique » (défis : un seul réglage, Propositions ; Options à un seul choix affiché directement)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -373,7 +373,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.03</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.04</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -399,9 +399,9 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, trier, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
-      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts (bouton « Manipuler », actif au départ, pour revenir aux questions classiques).</li>
-      <li><b>Des propositions de réponses,</b> si on le souhaite (bouton « Propositions ») : la bonne et des erreurs fréquentes des élèves (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
-      <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer (bouton « Animations » pour l’arrêter).</li>
+      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts. Ces questions se manipulent d’office ; cocher « Propositions » les remet en question classique.</li>
+      <li><b>Des propositions de réponses,</b> si on le souhaite (bouton « Propositions », le seul réglage des défis) : la bonne et des erreurs fréquentes des élèves (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
+      <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer.</li>
     </ul>
 
     <h3>En classe</h3>
@@ -1018,8 +1018,7 @@ const S = {
   // décimaux sur la droite : une droite en dixièmes (de e à e + 2) ou en centièmes (de e,d à e,d + 0,2) ; v compté en graduations
   dd: { tache: 'placer', ech: 'dixieme', debut: 2, v: 7, guess: null, verif: null, revealed: false, virgule: true },
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
-  anim: load('animations', true),   // corrections animées dans les défis
-  manipOn: load('manipuler', true), // défis à manipuler (glisser des objets) quand la question s'y prête
+  anim: true,   // corrections des défis toujours animées (elles ne se jouent qu'à « Voir la réponse »)
   propsOn: false                    // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
 };
 if (!CL[S.classe]) S.classe = 'CM2';
@@ -1106,6 +1105,7 @@ const stepperSans = (label, key, minus, plus) =>
 // Réglages qu'on change rarement, rangés dans « Options » : une petite liste qui s'ouvre au clic (un clic ailleurs la referme)
 const options = items => {
   items = items.filter(Boolean);
+  if (items.length === 1) return items[0];   // un seul réglage : directement dans la barre, sans menu « Options »
   return items.length ? `<div class="opts ${S.opts ? 'ouvert' : ''}"><button class="btn bmanip" data-act="opts" aria-expanded="${!!S.opts}">Options ${S.opts ? '▴' : '▾'}</button><div class="opts-liste">${items.join('')}</div></div>` : '';
 };
 
@@ -1698,7 +1698,7 @@ const GEN = {
     if (!reps.length && tries < 30) return GEN.nommer(t, comp, tries + 1); // disque seul : on retire une fraction de 8 parts au plus
     const rep = pick(reps.length ? reps : ['barre']), u = Math.max(1, Math.ceil(n / d));
     const q = { n, d, k, u, rep, scatter: k === 1 && rep !== 'droite' && t > 0.5 && n <= d };
-    // une question sur trois peut devenir « associer dessins et fractions » (interrupteur Manipuler)
+    // une question sur trois peut devenir « associer dessins et fractions » (à manipuler)
     if (comp === 'nommer' && Math.random() < 1 / 3) q.assoc = genAssocier(t);
     return q;
   },
@@ -2053,7 +2053,7 @@ function autreUnite(cent, unit) {
   return '';
 }
 
-/* Corrections animées (bouton « Animations » des défis, actif par défaut).
+/* Corrections animées des défis (toujours, à « Voir la réponse »).
    Chaque élément animé reçoit un retard --de (secondes) : il apparaît, surgit ou change de couleur à ce moment. */
 const apparait = de => ` class="apparait" style="--de:${de.toFixed(2)}s"`;
 const surgit = de => ` class="surgit" style="--de:${de.toFixed(2)}s"`;
@@ -2132,7 +2132,7 @@ function scatterIdx(n, total) { // parts coloriées dispersées (pas forcément 
    - Décomposer : construire la fraction avec des unités et des parts         (manip « construire »)
    Dans les dessins SVG, chaque objet déplaçable est un <g data-drag="…">, chaque zone d'arrivée a data-drop="…".
    Au lâcher, LACHER[manipDe(q)](q, st, objet, zone, point) met à jour S.defis.st, puis on redessine.
-   L'interrupteur « Manipuler » (dans l'exercice, actif par défaut) transforme les questions qui s'y prêtent ;
+   Les questions qui s'y prêtent se manipulent ; « Propositions » coché les remet en question classique (réponses A, B, C, D) ;
    le tri, lui, se fait toujours en glissant.
    ========================================================= */
 
@@ -2200,10 +2200,10 @@ const BTN_TOURNEE = `<button class="btn small jaune" data-act="tournee">Une tour
 const EFFACER_JAUNE = act => BTN.effacer(act).replace('btn small', 'btn small jaune');   // fraction d'une quantité : Une tournée et Effacer en jaune
 
 /* La manipulation d'une question, si elle s'y prête (pas trop d'objets à faire glisser…).
-   avecReglage = false : on demande seulement si c'est possible (pour montrer ou non l'interrupteur « Manipuler »). */
+   avecReglage = false : on demande seulement si la question peut se manipuler. */
 function manipDe(q, avecReglage = true) {
   if (q.type === 'trier') return 'trier';                       // le tri se fait toujours en glissant les étiquettes
-  if (PAPIER || (avecReglage && !S.manipOn)) return null;       // sur la fiche Word, ou interrupteur éteint
+  if (PAPIER || (avecReglage && S.propsOn && propositions(q))) return null;   // fiche Word, ou propositions demandées : la question classique
   if (q.type === 'quantite' && !q.grand && q.d <= 6 && q.d * q.k <= 30) return 'partage';
   if (q.type === 'quantite' && q.grand) return 'bande';   // 3/4 de 500 g : on coupe une bande en parts égales et on en prend
   if (q.type === 'colorier' && q.rep === 'droite') return 'placer';
@@ -2655,7 +2655,7 @@ function renderDefi() {
   const q = D.list[D.i], R = D.revealed, lvl = C().lvl, AN = R && S.anim;   // AN : correction animée
   const dots = D.list.map((_, i) => `<i class="${i < D.i ? 'done' : i === D.i ? 'cur' : ''}"></i>`).join('');
   let prompt = '', sub = '', viz = '', ans = '', extraBtn = '';
-  let animable = false;   // cette question a une correction animée : on montre alors le bouton « Animations »
+  let animable = false;   // cette question a une correction animée
   // Pas à pas en étapes, montrées une par une : un indice pour démarrer, un dessin pour comprendre, la méthode.
   // La réponse complète reste derrière « Voir la réponse ».
   let steps = [];
@@ -3055,15 +3055,13 @@ function renderDefi() {
     if (besoin > place && place > 0) a.style.transform = `scale(${(place / besoin).toFixed(3)})`;
   }
   // Barre du bas en deux groupes, chaque bouton toujours à la même place :
-  //   la question (Pas à pas, Voir la réponse, Suivant, Nouvelle série) | les réglages (Propositions, Animations, Manipuler).
+  //   la question (Pas à pas, Voir la réponse, Suivant, Nouvelle série) | Propositions (ou, si on ne la coche pas, on manipule).
   // Un bouton qui n'a pas lieu d'être garde sa place (invisible pour la question, grisé pour un réglage) : les autres ne se décalent jamais.
   const place = (ok, html) => ok ? html : html.replace('<button ', '<button disabled tabindex="-1" aria-hidden="true" ').replace('class="toggle on"', 'class="toggle"').replace('class="', 'class="vide ');
   $('#tools').innerHTML = `<div class="barre-q">`
       + place(!R && vu < nb, BTN.aide(Math.min(vu + 1, Math.max(nb, 1)), Math.max(nb, 2)))
       + place(!R, BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série') + `</div><div class="barre-r">`
-      + place(PR, toggle('Propositions', 'dprops', S.propsOn))                                      // si la question a des propositions (et qu'on ne la manipule pas)
-      + place(animable, toggle('Animations', 'danim', S.anim))                                      // corrections animées : actif par défaut, mémorisé
-      + place(q.type !== 'trier' && manipDe(q, false), toggle('Manipuler', 'dmanip', S.manipOn))   // glisser des objets : actif par défaut, mémorisé
+      + place(propositions(q), toggle('Propositions', 'dprops', S.propsOn))   // si la question a des propositions ; sinon on manipule
       + `</div>`;
 }
 
@@ -3191,8 +3189,6 @@ const ACT = {
   drandom() { deciRandom(); render(); },
   dnew() { newSeries(); render(); },
   dreveal() { S.defis.revealed = true; render(); },
-  danim() { S.anim = !S.anim; save('animations', S.anim); render(); },
-  dmanip() { S.manipOn = !S.manipOn; save('manipuler', S.manipOn); S.defis.st = { aide: S.defis.st.aide }; render(); },
   dcheck() { S.defis.st.checked = true; render(); },
   daide() { S.defis.st.aide = (S.defis.st.aide || 0) + 1; render(); }, // une étape de plus à chaque clic
   info(v, el) { // bulle « i » : objectif et exemples de réussite ; un second clic la ferme
@@ -3203,7 +3199,7 @@ const ACT = {
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + 'px';
   },
-  dprops() { S.propsOn = !S.propsOn; delete S.defis.st.choix; render(); },              // afficher ou masquer les propositions A, B, C, D
+  dprops() { S.propsOn = !S.propsOn; S.defis.st = { aide: S.defis.st.aide }; render(); },   // propositions A, B, C, D, ou retour à la manipulation
   dprop(v) { if (!S.defis.revealed) { S.defis.st.choix = +v; render(); } },             // une proposition choisie : juste ou l'explication de l'erreur
   passiettes(_, el) {   // partage : une assiette de plus ou de moins (toutes les billes retournent dans la réserve)
     const st = S.defis.st; st.p = Array(clamp((st.p || [0]).length + +el.dataset.dir, 1, 8)).fill(0); render();
