@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.01 dans le portail « Le tableau magique » (CE1 : moins de fractions de numérateur 1)
+  v1.02 dans le portail « Le tableau magique » (ateliers et défis cohérents : signes à glisser, flèche sur la droite, quadrillages)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -254,6 +254,7 @@ svg{user-select:none;-webkit-user-select:none}
 /* Comparer : + et − pour créer les parts de chaque ligne */
 .caseSigne{width:min(100%,clamp(22rem,36vw,36rem))}
 .caseSigne svg{width:100%;height:auto;display:block}
+.caseSigne.defi{width:min(100%,46rem);margin:auto}   /* dans les défis : la case et les signes en grand */
 .rowctl{flex:none;display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:3.2rem}
 .rowctl span{font-size:.85rem;font-weight:700;color:var(--muted)}
 .rowctl button{width:2.4rem;height:2.4rem;border-radius:50%;background:var(--c3);color:#fff;font-size:1.5rem;font-weight:700;line-height:1;box-shadow:0 .15rem 0 rgba(0,0,0,.2)}
@@ -372,7 +373,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.01</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.02</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -419,7 +420,7 @@ svg{user-select:none;-webkit-user-select:none}
    Un seul fichier, sans connexion. Deux écrans : le menu (classe, activités, défis) et l'activité choisie.
    Plan du code :
      1-4   outils, programmes par classe, nombres en lettres, écriture des fractions
-     5-6   dessins (barres, disques, droites, flèches, jetons, carré de 100, réponses des défis)
+     5-6   dessins (barres, disques, droites, flèches, jetons, quadrillages, réponses des défis)
      7-9   état, tirages au hasard, menu, barre d'outils et boutons communs (même code couleur partout)
      10-14 activités : Manipuler, Comparer, Mur, Fractions sur la droite, Fractions décimales, Décimaux sur la droite
      15    défis (pastilles, questions, petits problèmes, pas à pas)
@@ -731,7 +732,7 @@ function drawRep(rep, { d, u, fill, interactive = false, n = 0, color = 'var(--a
 }
 
 /* =========================================================
-   6. Autres dessins : jetons, grandeurs, carré de 100, droites à loupe, réponses des défis
+   6. Autres dessins : jetons, grandeurs, quadrillages, droites à loupe, réponses des défis
    ========================================================= */
 
 /* Jetons partagés en d groupes de k ; les n premiers groupes sont coloriés */
@@ -774,24 +775,6 @@ function grandeurSVG(Q, unit, d, k, n, shown, anim = false) {
   return svg(1000, y + h + 20, s);
 }
 
-/* Carré de 100 : index = unité × 100 + colonne × 10 + ligne (une colonne = un dixième) */
-function squareSVG(u, fill, interactive, decoupe = false) {   // decoupe : les colonnes (dixièmes) se coupent en 10 sous les yeux des élèves
-  const side = Math.min(360, (1000 - 80 - (u - 1) * 40) / u), cell = side / 10, gap = 40;
-  const x0 = (1000 - (u * side + (u - 1) * gap)) / 2;
-  let s = '';
-  for (let k = 0; k < u; k++) {
-    const X = x0 + k * (side + gap);
-    for (let j = 0; j < 10; j++) for (let r = 0; r < 10; r++) {
-      const i = k * 100 + j * 10 + r;
-      s += `<rect ${interactive ? `data-c="${i}" class="part"` : ''} x="${X + j * cell}" y="${10 + r * cell}" width="${cell}" height="${cell}" fill="${fill(i) || '#fff'}" stroke="${decoupe ? 'none' : '#b9b3a8'}" stroke-width="1"/>`;
-    }
-    if (decoupe) for (let r = 1; r < 10; r++) s += `<path${apparait(PAUSE + 0.4 + r * 0.18)} d="M ${X} ${10 + r * cell} h ${side}" stroke="#8f887c" stroke-width="1.5" pointer-events="none"/>`;
-    for (let j = 1; j < 10; j++) s += `<path d="M ${X + j * cell} 10 v ${side}" stroke="${INK}" stroke-width="2" pointer-events="none"/>`;
-    s += `<rect x="${X}" y="10" width="${side}" height="${side}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
-  }
-  return svg(1000, side + 20, s);
-}
-
 /* Fractions décimales en quadrillages : la bande bleue est l'unité (1000 petits carrés),
    un grand carré est un dixième (100 petits carrés), une barre un centième (10), un petit carré un millième. */
 // une pièce : son quadrillage fin, et les grands carrés (dixièmes) en trait plus épais
@@ -808,7 +791,7 @@ const QCOL = { u: 'var(--c3)', d: 'var(--c2)', c: 'var(--c0)', m: 'var(--c5)' };
    d'un nombre à l'autre (il ne grandit que dans les cas extrêmes, 19 dixièmes par exemple).
    drag : chaque pièce peut être reprise (Représenter). Rend { s, H }. */
 const QUAD_H = 2 * 160 + 16;   // hauteur de deux unités
-function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false } = {}) {
+function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false, compact = false } = {}) {
   const t = 8, cell = 10 * t, uw = 50 * t, uh = 20 * t, gap = 16;
   const piece = (k, inner) => drag ? `<g data-drag="pl-${k}" class="piece">${inner}</g>` : inner;
   let s = '';
@@ -832,12 +815,12 @@ function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false } = {}) {
     for (let j = 0; j < Math.min(9, m - k); j++) g += quadPiece(a + (j % 3) * 2 * t, b + Math.floor(j / 3) * 2 * t, t, t, QCOL.m);
     s += piece('m', g);
   }
-  return { s, H: Math.max(y0 + QUAD_H, Y + haut) };
+  return { s, H: Math.max(compact ? 0 : y0 + QUAD_H, Y + haut) };
 }
 
-// Lire : le nombre en pièces, dans un cadre de taille fixe
-function quadSVG(P) {
-  const { s, H } = quadPieces(P);
+// Lire : le nombre en pièces, dans un cadre de taille fixe (compact : sans la place réservée aux unités, pour les défis)
+function quadSVG(P, compact = false) {
+  const { s, H } = quadPieces(P, { compact });
   return svg(984, H + 4, s, 'class="quad"');
 }
 
@@ -1027,7 +1010,7 @@ const S = {
   cmp: { rep: 'barre', a: { n: 3, d: 4 }, b: { n: 2, d: 3 }, chosen: null, revealed: false, faites: false,
          parts: { a: 1, b: 1 }, col: { a: new Set(), b: new Set() }, pt: { a: 0, b: 0 } },   // chaque ligne : ses parts (créées avec + et −), les parts coloriées, le point sur la droite
   mur: { rows: [1, 2, 3, 4, 6, 8, 12], labels: true, col: {}, x: null, blanc: load('mur-blanc', false) },   // blanc : mur à colorier soi-même (sinon une couleur par ligne)
-  placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, revealed: false, grads: true, sauts: false },
+  placer: { task: 'placer', d: 4, u: 2, n: 5, s: 0, guess: null, verif: null, revealed: false, grads: true, sauts: false },   // verif : 'ok' ou 'ko' après Vérifier
   // quadrillages : unités (bandes), dixièmes (grands carrés), centièmes (barres), millièmes (petits carrés)
   // tache 'lire' : quel nombre est représenté ? ; tache 'rep' : on montre un nombre, on dépose les bonnes pièces
   deci: { tache: 'lire', virgule: true, show: false, pieces: { u: 1, d: 3, c: 4, m: 0 },
@@ -1233,7 +1216,8 @@ function renderTools() {
     if (pMax > 1) h += stepperSans('Unités', 'pu', p.u > 1, p.u < pMax);
     h += options([toggle('Graduations', 'pgrads', p.grads), toggle('Sauts', 'psauts', p.sauts)]);
     if (p.task === 'placer') h += BTN.effacer('pclear');
-    if (!p.revealed) h += p.task === 'placer' ? BTN.verifier('preveal') : BTN.voir('preveal');
+    if (p.task === 'placer') h += BTN.verifier('pverif');
+    if ((p.task === 'lire' || p.verif === 'ko') && !p.revealed) h += BTN.voir('preveal');
     h += BTN.neuf('pnew');
   }
   if (S.mode === 'deci') {
@@ -1346,20 +1330,27 @@ function cmpVide() {
   for (const r of ['a', 'b']) { k.parts[r] = k.faites ? k[r].d : 1; k.col[r] = new Set(); k.pt[r] = 0; }
 }
 
-function renderCompare() {
-  const c = C(), k = S.cmp, real = cmpSign(k.a, k.b), R = k.revealed;
-  // la case « ? » entre les deux fractions ; on y fait glisser (ou on touche) un des trois signes
-  const TXT = { '<': '&lt;', '=': '=', '>': '&gt;' }, ID = { '<': 'lt', '=': 'eq', '>': 'gt' };
-  const dansCase = R ? real : k.chosen, couleur = dansCase ? (dansCase === real ? 'var(--c2)' : 'var(--c5)') : 'var(--muted)';
-  // à gauche : fraction, case, fraction ; à droite, bien à l'écart : les trois signes à faire glisser
-  let v = svgFrac(70, 66, k.a.n, k.a.d, 60, 'var(--a)') + svgFrac(310, 66, k.b.n, k.b.d, 60, 'var(--b)')
-        + `<rect data-drop="case" x="135" y="6" width="110" height="110" rx="20" fill="${dansCase ? '#fff' : soft('--c1', .15)}" stroke="${couleur}" stroke-width="5" ${dansCase ? '' : 'stroke-dasharray="12 8"'}/>`
-        + `<text x="190" y="${dansCase ? 92 : 88}" text-anchor="middle" font-size="${dansCase ? 90 : 72}" font-weight="700" fill="${couleur}" pointer-events="none">${dansCase ? TXT[dansCase] : '?'}</text>`
+/* Deux fractions, une case « ? » entre elles, et à droite, bien à l'écart, les trois signes à faire glisser (ou à toucher).
+   Le même dessin sert à l'atelier Comparer et au défi « Comparer deux fractions ».
+   signe : le signe posé dans la case ; etat : 'ok' (vert), 'ko' (rouge) ou '' (pas encore vérifié) */
+const SIGNE_TXT = { '<': '&lt;', '=': '=', '>': '&gt;' }, SIGNE_ID = { '<': 'lt', '=': 'eq', '>': 'gt' };
+function signesSVG(a, b, signe, etat) {
+  const couleur = etat === 'ok' ? 'var(--c2)' : etat === 'ko' ? 'var(--c5)' : signe ? INK : 'var(--muted)';
+  let v = svgFrac(70, 66, a.n, a.d, 60, 'var(--a)') + svgFrac(310, 66, b.n, b.d, 60, 'var(--b)')
+        + `<rect data-drop="case" x="135" y="6" width="110" height="110" rx="20" fill="${signe ? '#fff' : soft('--c1', .15)}" stroke="${couleur}" stroke-width="5" ${signe ? '' : 'stroke-dasharray="12 8"'}/>`
+        + `<text x="190" y="${signe ? 92 : 88}" text-anchor="middle" font-size="${signe ? 90 : 72}" font-weight="700" fill="${couleur}" pointer-events="none">${signe ? SIGNE_TXT[signe] : '?'}</text>`
         + `<path d="M 420 14 V 108" stroke="#cfc8bb" stroke-width="3" stroke-dasharray="4 8" stroke-linecap="round"/>`;
   ['<', '=', '>'].forEach((x, i) => {
     const X = 520 + i * 105;
-    v += `<g data-drag="${ID[x]}"><rect x="${X - 42}" y="21" width="84" height="80" rx="16" fill="var(--c3)"/><text x="${X}" y="84" text-anchor="middle" font-size="64" font-weight="700" fill="#fff">${TXT[x]}</text></g>`;
+    v += `<g data-drag="${SIGNE_ID[x]}"><rect x="${X - 42}" y="21" width="84" height="80" rx="16" fill="var(--c3)"/><text x="${X}" y="84" text-anchor="middle" font-size="64" font-weight="700" fill="#fff">${SIGNE_TXT[x]}</text></g>`;
   });
+  return svg(780, 122, v, GLISSABLE);
+}
+
+function renderCompare() {
+  const c = C(), k = S.cmp, real = cmpSign(k.a, k.b), R = k.revealed;
+  // la case « ? » entre les deux fractions ; on y fait glisser (ou on touche) un des trois signes
+  const dansCase = R ? real : k.chosen;
   const ok = R || k.chosen === real;
   const wa = k.a.d === 1 ? String(k.a.n) : fracWords(k.a.n, k.a.d), wb = k.b.d === 1 ? String(k.b.n) : fracWords(k.b.n, k.b.d);
   const u = clamp(Math.ceil(Math.max(k.a.n / k.a.d, k.b.n / k.b.d, 1)), 1, c.maxU), maxP = Math.min(20, c.dens.at(-1));
@@ -1378,7 +1369,7 @@ function renderCompare() {
     <div class="title">Quelle fraction est la plus grande ?<small>Crée les parts avec + et −, puis colorie.</small></div>
     <div class="cmp">
       ${ligne('a', k.a, 'var(--a)')}${ligne('b', k.b, 'var(--b)')}
-      <div class="verdict"><div class="caseSigne">${svg(780, 122, v, GLISSABLE)}</div></div>
+      <div class="verdict"><div class="caseSigne">${signesSVG(k.a, k.b, dansCase, dansCase ? (dansCase === real ? 'ok' : 'ko') : '')}</div></div>
       <div class="verdict" style="min-height:62px">${ok ? `<div class="sentence">${wa} ${SIGN_TXT[real]} ${wb}</div>` : ''}</div>
     </div>`;
 }
@@ -1441,7 +1432,7 @@ function newPlacer() {
   p.s = 0;   // la droite commence toujours à 0
   do p.n = p.s * p.d + ri(1, p.u * p.d - 1); while (p.n % p.d === 0 && Math.random() < 0.85);
   p.mixed = c.lvl === 1 || (c.lvl >= 2 && Math.random() < 0.4);
-  p.guess = null; p.revealed = false;
+  p.guess = null; p.verif = null; p.revealed = false;
 }
 
 function renderPlacer() {
@@ -1450,20 +1441,21 @@ function renderPlacer() {
   const rel = p.n - p.s * p.d; // position comptée depuis le début de la droite
   const tx = lx(x, L, p.u, p.d, rel);
   let s = lineG({ x, y, L, u: p.u, d: p.d, grads: p.grads, click: p.task === 'lire' || !p.revealed, start: p.s });   // Lire : un clic place la flèche
-  const showTarget = p.revealed || p.task === 'lire';
+  const showTarget = p.revealed || p.task === 'lire' || p.verif === 'ok';
   if (p.sauts && showTarget) s += jumpsG(x, y, L, p.u, p.d, rel, 'var(--c4)');
-  if (p.task === 'placer' && p.guess !== null) s += pointG(lx(x, L, p.u, p.d, p.guess), y, 'var(--c1)');
+  // Placer : la flèche de l'élève, jaune puis verte ou rouge après Vérifier ; « Voir la réponse » ajoute la bonne flèche
+  if (p.task === 'placer' && p.guess !== null && p.guess !== rel) s += arrowG(lx(x, L, p.u, p.d, p.guess), y, p.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
+  if (p.task === 'placer' && p.guess === rel && !p.revealed) s += arrowG(tx, y, p.verif === 'ok' ? 'var(--c2)' : 'var(--c1)', '');
   if (showTarget) {
     const lab = p.revealed ? (lvl === 1 && p.n > p.d // au CE2 : « 2 + 1/4 » plutôt que 9/4
         ? `${Math.floor(p.n / p.d)}${p.n % p.d ? ` + ${p.n % p.d}/${p.d}` : ''}` : { n: p.n, d: p.d }) : null;
-    s += arrowG(tx, y, 'var(--a)', lab);
+    s += arrowG(tx, y, p.task === 'placer' ? 'var(--c2)' : 'var(--a)', lab);
   }
   let title, fb = '';
   if (p.task === 'placer') {
     title = `Place ${p.mixed && p.n > p.d ? mixed(p.n, p.d) : F(p.n, p.d)} sur la droite graduée`;
-    if (p.revealed && p.guess !== null) fb = p.guess === rel ? '<span class="ok">Bravo, c\'est bien placé !</span>' : '<span class="ko">Pas tout à fait : ton point est en jaune, la bonne place est montrée par la flèche.</span>';
   } else title = 'Quelle fraction est montrée par la flèche ?<small>Clique sur une graduation pour y placer la flèche.</small>';
-  if (p.revealed) {
+  if (p.revealed || p.verif === 'ok') {
     const e = Math.floor(p.n / p.d), r = p.n % p.d;
     let extra = lvl <= 1 ? mixedWords(p.n, p.d) : fracWords(p.n, p.d);
     if (lvl === 1 && e >= 1) extra = `${mixed(p.n, p.d)} &nbsp;·&nbsp; ` + extra;
@@ -1598,13 +1590,13 @@ const SUBS = {
   ajouter: l => [['plus', 'additions'], ['moins', 'soustractions'], ...(l <= 1 ? [['comp', 'complément à 1']] : []), ...(l >= 1 ? [['diff', 'dénominateurs différents']] : [])],
   decomposer: l => [['dec', 'décomposer'], ['rec', 'recomposer']],
   quantite: l => [['obj', 'objets'], ['gr', 'grandeurs (g, m, L…)']],
-  decimales: l => [['carre', 'carré de 100'], ['conv', 'dixièmes, centièmes'], ['decomp', 'décomposer'], ['virgule', 'écriture à virgule'], ['dcmp', 'comparer'], ['intercaler', 'intercaler'], ['encadrerDec', 'encadrer'], ['arrondi', 'arrondir']]
+  decimales: l => [['carre', 'quadrillages'], ['conv', 'dixièmes, centièmes'], ['decomp', 'décomposer'], ['virgule', 'écriture à virgule'], ['dcmp', 'comparer'], ['intercaler', 'intercaler'], ['encadrerDec', 'encadrer'], ['arrondi', 'arrondir']]
 };
 /* Un exemple pour chaque pastille (bulle d'aide au survol) */
 const SUB_EX = {
   memeDen: '2/5 et 3/5', unit: '1/5 et 1/3', memeNum: '5/12 et 5/8', multiple: '3/4 et 5/8', egal: '1/2 et 3/6', un: '5/4 et 1', commun: '7/4 et 17/10',
   fr: '9/10 ; 14/10 ; 2', dec: '1,8 ; 1,54 ; 128/100', comp: '3/4 = ?/8', parmi: 'Lesquelles sont égales à 1/2 ?', plus: '2/5 + 1/5', moins: '4/5 − 1/5',
-  diff: '2/3 − 1/6', rec: '2 + 2/3 = ?/3', obj: '1/3 de 12 billes', gr: '1/4 de 10 m', carre: 'quelle fraction du carré ?', conv: '3/10 = ?/100',
+  diff: '2/3 − 1/6', rec: '2 + 2/3 = ?/3', obj: '1/3 de 12 billes', gr: '1/4 de 10 m', carre: "quelle fraction de l'unité ?", conv: '3/10 = ?/100',
   tri1: '3/4 ; 5/5 ; 7/4', tri2: '2/4 ; 3/8 ; 5/10',
   virgule: '254/100 = 2,54', dcmp: '67/10 et 6,07', intercaler: '1,4 < ? < 1,5', encadrerDec: '17,4 < 17,48 < 17,5', arrondi: '5,78 → 6'
 };
@@ -1789,7 +1781,7 @@ const GEN = {
   lire(t) {
     const c = C(), d = pickDen(t, c.lvl >= 3 ? 12 : 10);
     const u = c.lvl === 1 ? (t > 0.5 ? ri(2, 3) : 1) : ri(2, Math.min(3, c.maxU)); // CE2 : mesures « 2 unités et 1 quart »
-    const st = c.lvl >= 2 && t > 0.5 && Math.random() < 0.5 ? ri(1, 9) : 0;
+    const st = 0;   // la droite part toujours de 0, comme dans l'atelier
     let n; do n = st * d + ri(1, u * d - 1); while (n % d === 0);
     return { n, d, u, st };
   },
@@ -2211,6 +2203,7 @@ function manipDe(q, avecReglage = true) {
   if (q.type === 'quantite' && q.grand) return 'bande';   // 3/4 de 500 g : on coupe une bande en parts égales et on en prend
   if (q.type === 'colorier' && q.rep === 'droite') return 'placer';
   if (q.type === 'encadrer' && q.U) return 'glisse';
+  if (q.type === 'comparer') return 'signe';                     // comme dans l'atelier : le signe glissé dans la case
   if (q.type === 'decomposer' && !q.inverse && q.d <= 8) return 'construire';
   if (q.type === 'nommer' && q.assoc) return 'associer';
   return null;
@@ -2237,6 +2230,9 @@ const LACHER = {
     st.g = Math.max(0, Math.min(N, Math.round((p.x - 60) / pas))); st.checked = false;
   },
   // fraction posée entre deux entiers : l'intervalle sous le pointeur
+  signe(q, st, de, vers, p, bouge) {   // un signe lâché dans la case, ou simplement touché
+    if (vers === 'case' || !bouge) { st.sign = { lt: '<', eq: '=', gt: '>' }[de]; st.checked = false; }
+  },
   glisse(q, st, de, vers, p) {
     const v = (p.x - 60) / (840 / q.U);
     st.e = Math.max(0, Math.min(q.U - 1, Math.floor(v))); st.checked = false;
@@ -2580,8 +2576,8 @@ PROPS.decimales = q => {
   const k = q.k, lt = '&lt;';
   if (k === 'carre') { const c = q.c; return { bonne: F(c, 100), pieges: [
     [`${c},100`, 'barre de fraction prise pour une virgule.'],
-    [F(c, 10), 'des centièmes, pas des dixièmes : le carré a 100 petits carrés.'],
-    [F(100 - c, 100), 'ce sont les petits carrés non coloriés.']] }; }
+    [F(c, 10), 'des centièmes, pas des dixièmes : une unité a 100 barres.'],
+    [F(Math.floor(c / 10) + c % 10, 100), 'chaque pièce comptée pour un centième, même les grands carrés.']] }; }
   if (k === 'conv') { const m = q.to / q.from, a = q.a;
     return q.rev ? { bonne: F(a, q.from), pieges: [[F(a * m, q.from), 'recopié.'], [F(a * m * m, q.from), 'multiplié au lieu de diviser.']] }
                  : { bonne: F(a * m, q.to), pieges: [[F(a, q.to), 'recopié.'], [F(a * m * m, q.to), 'multiplié par 100.']] }; }
@@ -2745,6 +2741,14 @@ function renderDefi() {
         steps = [I(ind), Dn('Dessine les deux fractions avec la même unité.', `<div class="cmp" style="width:100%">${cmpRows(a, b, 'barre', true)}</div>`), M(met)]; }
       const wa = a.d === 1 ? String(a.n) : fracWords(a.n, a.d), wb = b.d === 1 ? String(b.n) : fracWords(b.n, b.d);
       ans = `<div class="pill">${wa} ${SIGN_TXT[real]} ${wb}</div>`;
+      if (qm === 'signe' && !R) {   // à manipuler : la case et les signes, puis Vérifier (vert ou rouge, sans explication)
+        const st = D.st, etat = st.checked && st.sign ? (st.sign === real ? 'ok' : 'ko') : '';
+        prompt = 'Quelle fraction est la plus grande ?';
+        sub = 'Fais glisser le bon signe dans la case.';
+        viz = `<div class="caseSigne defi">${signesSVG(a, b, st.sign, etat)}</div>`;
+        if (etat !== 'ok') ans = '';
+        extraBtn = st.sign ? BTN.verifier('dcheck') : '';
+      }
       break;
     }
     case 'egales': {
@@ -2929,7 +2933,7 @@ function renderDefi() {
     }
     case 'decimales': {
       const k = q.k;
-      steps = ({ carre: [I('Le grand carré est partagé en 100 petits carrés.'), M("Une colonne, c'est 1 dixième = 10 centièmes : compte les colonnes pleines, puis les petits carrés.")],
+      steps = ({ carre: [I("La bande bleue, l'unité, contient 10 grands carrés ; un grand carré contient 10 barres."), M("Un grand carré, c'est 1 dixième = 10 centièmes : compte les grands carrés, puis les barres.")],
                  conv: [I('1 dixième = 10 centièmes ; 1 centième = 10 millièmes.'), M('Des parts 10 fois plus petites : il en faut 10 fois plus.')],
                  decomp: [I('1 unité = 10 dixièmes = 100 centièmes = 1 000 millièmes.'), M('Écris le nombre avec une virgule : chaque chiffre donne une partie.')],
                  dcmp: [I('Écris les deux nombres de la même façon, avec une virgule.'), M('Compare les parties entières, puis les dixièmes, puis les centièmes.')],
@@ -2940,15 +2944,14 @@ function renderDefi() {
         || [I('Après la virgule : 1er chiffre, les dixièmes ; 2e, les centièmes ; 3e, les millièmes.'),
             M(q.rev ? 'Le dernier chiffre après la virgule dit le dénominateur : dixièmes, centièmes ou millièmes.' : `Des ${denName(q.d, true)} : il faut ${q.d === 100 ? 'deux' : 'trois'} chiffres après la virgule.`)];
       if (k === 'carre') {
-        prompt = 'Quelle fraction du grand carré est coloriée ?'; sub = 'Le grand carré est l\'unité.';
-        viz = squareSVG(1, i => i < q.c ? A : null, false);
+        prompt = "Quelle fraction de l'unité est représentée ?"; sub = "La bande bleue est l'unité. Grand carré : un dixième · barre : un centième.";
+        viz = quadSVG({ u: 0, d: Math.floor(q.c / 10), c: q.c % 10, m: 0 }, true);
         ans = `<div class="pill">${F(q.c, 100)}${q.c % 10 === 0 ? ` = ${F(q.c / 10, 10)}` : ''} &nbsp;${fracWords(q.c, 100)}</div><div class="pill">${comma(q.c * 10)}</div>`;
       } else if (k === 'conv') {
         const m = q.to / q.from;
         prompt = q.rev ? `${Fbox(R ? q.a : null, q.from)} = ${F(q.a * m, q.to)}` : `${F(q.a, q.from)} = ${Fbox(R ? q.a * m : null, q.to)}`;
         sub = 'Trouve le nombre qui manque.';
-        animable = q.from === 10;
-        if (R && q.from === 10) viz = squareSVG(1, i => i < q.a * 10 ? A : null, false, AN);
+        if (R && q.from === 10) viz = quadSVG({ u: 0, d: q.a, c: 0, m: 0 }, true);   // chaque grand carré : 10 barres
         ans = `<div class="pill">1 ${denName(q.from, false)} = 10 ${denName(q.to, true)}, donc ${F(q.a, q.from)} = ${F(q.a * m, q.to)}</div>`;
       } else if (k === 'decomp') {
         const n = q.n, d = q.d, v = d === 100 ? n * 10 : n;
@@ -2959,7 +2962,7 @@ function renderDefi() {
         if (d === 1000) terms.push(R ? F(mi, 1000) : Fbox(null, 1000));
         prompt = `${F(n, d)} = ${terms.join(' + ')}`;
         sub = 'Décompose en unités, dixièmes, centièmes' + (d === 1000 ? ', millièmes.' : '.');
-        if (R && d === 100) viz = squareSVG(Math.ceil(n / 100) || 1, i => i < n ? A : null, false);
+        if (R && d === 100) viz = quadSVG({ u: Math.floor(n / 100), d: Math.floor(n % 100 / 10), c: n % 10, m: 0 });
         ans = `<div class="pill">${comma(v)}</div>`;
       } else if (k === 'dcmp') {
         const show = (v, fr) => { const [n, d] = deciBest(v); return fr ? F(n, d) : comma(v); };
@@ -3156,10 +3159,11 @@ const ACT = {
   murlab() { S.mur.labels = !S.mur.labels; render(); },
   murclear() { S.mur.col = {}; render(); },
   murblanc() { S.mur.blanc = !S.mur.blanc; save('mur-blanc', S.mur.blanc); S.mur.col = {}; render(); },
-  ptask(v) { S.placer.task = v; S.placer.guess = null; S.placer.revealed = false; render(); },
+  ptask(v) { S.placer.task = v; S.placer.guess = null; S.placer.verif = null; S.placer.revealed = false; render(); },
+  pverif() { const p = S.placer; if (p.guess === null) return; p.verif = p.guess === p.n - p.s * p.d ? 'ok' : 'ko'; render(); },
   pnew() { newPlacer(); render(); },
   preveal() { S.placer.revealed = true; render(); },
-  pclear() { S.placer.guess = null; S.placer.revealed = false; render(); },
+  pclear() { S.placer.guess = null; S.placer.verif = null; S.placer.revealed = false; render(); },
   pgrads() { S.placer.grads = !S.placer.grads; render(); },
   psauts() { S.placer.sauts = !S.placer.sauts; render(); },
   dtache(v) { S.deci.tache = v; render(); },
@@ -3262,7 +3266,7 @@ document.addEventListener('click', e => {
     if (S.mode === 'comparer') S.cmp.pt[g.closest('[data-row]').dataset.row] = v;   // droite : le point de la ligne
     if (S.mode === 'placer') {   // Placer : le point de l'élève ; Lire : la flèche se pose sur la graduation choisie
       const p = S.placer;
-      if (p.task === 'lire') { p.n = p.s * p.d + v; p.revealed = false; } else p.guess = v;
+      if (p.task === 'lire') { p.n = p.s * p.d + v; p.revealed = false; } else { p.guess = v; p.verif = null; p.revealed = false; }
     }
     if (S.mode === 'defis') { S.defis.st.g = v; S.defis.st.checked = false; } // « Place 3/4 » dans les défis
     if (S.mode === 'ddroite') {   // Placer : le point de l'élève ; Lire : la flèche se pose sur la graduation choisie
