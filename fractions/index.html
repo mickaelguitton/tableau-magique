@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v2.3 dans le portail « Le tableau magique » (défis à manipuler : dessin plus grand)
+  v2.4 dans le portail « Le tableau magique » (fraction d'une grandeur : bande à couper)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -356,7 +356,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.3</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v2.4</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -381,7 +381,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, trier, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
-      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes dans des assiettes, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts (bouton « Manipuler », actif au départ, pour revenir aux questions classiques).</li>
+      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes dans des assiettes, couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts (bouton « Manipuler », actif au départ, pour revenir aux questions classiques).</li>
       <li><b>Des propositions de réponses,</b> si on le souhaite (bouton « Propositions ») : la bonne et des erreurs fréquentes des élèves (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
       <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer (bouton « Animations » pour l’arrêter).</li>
     </ul>
@@ -2004,6 +2004,7 @@ function manipDe(q, avecReglage = true) {
   if (q.type === 'trier') return 'trier';                       // le tri se fait toujours en glissant les étiquettes
   if (PAPIER || (avecReglage && !S.manipOn)) return null;       // sur la fiche Word, ou interrupteur éteint
   if (q.type === 'quantite' && !q.grand && q.d <= 6 && q.d * q.k <= 30) return 'partage';
+  if (q.type === 'quantite' && q.grand) return 'bande';   // 3/4 de 500 g : on coupe une bande en parts égales et on en prend
   if (q.type === 'colorier' && q.rep === 'droite') return 'placer';
   if (q.type === 'encadrer' && q.U) return 'glisse';
   if (q.type === 'decomposer' && !q.inverse && q.d <= 8) return 'construire';
@@ -2095,6 +2096,32 @@ const MANIP = {
         steps: [I(`${F(1, d)} de ${Q} ${obj}, c'est une part quand on partage les ${Q} ${obj} en ${d} parts égales.`),
                 M(n === 1 ? `Quand tout est partagé, compte les ${obj} d'une assiette.` : `Compte les ${obj} d'une assiette, puis prends ${words(n)} assiettes.`)],
         boutons: BTN_TOURNEE + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  bande: {   // grandeurs (g, m, €, min…) : la bande entière vaut la quantité ; on la coupe en parts égales (+ et −), puis on colorie celles qu'on prend
+    dessin(q, st, R, { I, M }) {
+      const { Q, unit, obj, d, n } = q, qte = `${milliers(Q)} ${unit}${obj ? ' ' + obj : ''}`;
+      if (!st.parts) { st.parts = 1; st.col = new Set(); }
+      const x = 60, W = 880, y = 70, h = 110, w = W / st.parts;
+      const fini = st.parts === d && st.col.size === n;   // bon partage et bon nombre de parts prises
+      st.checked = fini;
+      let s = `<path d="M ${x} ${y - 14} V ${y - 26} H ${x + W} V ${y - 14}" fill="none" stroke="${INK}" stroke-width="3"/>
+               <text x="${x + W / 2}" y="${y - 36}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${milliers(Q)} ${unit}</text>`;
+      for (let j = 0; j < st.parts; j++) {
+        const pris = st.col.has(j);
+        s += `<rect data-i="${j}" class="part" x="${x + j * w}" y="${y}" width="${w}" height="${h}" fill="${pris ? 'var(--a)' : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
+        if (fini && w > 60) s += `<text x="${x + j * w + w / 2}" y="${y + h / 2 + 10}" text-anchor="middle" font-size="${Math.min(30, w / 3.2)}" font-weight="700" fill="${pris ? '#fff' : INK}" pointer-events="none">${comma(Math.round(Q * 1000 / d))} ${unit}</text>`;
+      }
+      s += `<rect x="${x}" y="${y}" width="${W}" height="${h}" fill="none" stroke="${INK}" stroke-width="4" pointer-events="none"/>`;
+      return {
+        prompt: `${F(n, d)} de ${qte}, c'est combien ?`,
+        sub: `Coupe la bande en parts égales avec + et −, puis colorie les parts que tu prends.`,
+        viz: svg(1000, y + h + 20, s), 
+        ans: fini ? `<div class="pill">${F(1, d)} de ${milliers(Q)} ${unit}, c'est ${comma(Math.round(Q * 1000 / d))} ${unit}${n > 1 ? ` ; ${F(n, d)}, c'est ${n} × ${comma(Math.round(Q * 1000 / d))} = ${comma(Math.round(Q * 1000 * n / d))} ${unit}` : ''}</div>` : '',
+        steps: [I(`${F(1, d)} : on coupe la quantité en ${d} parts égales.`), M(n === 1 ? 'Cherche combien vaut une part.' : `Cherche combien vaut une part, puis prends-en ${words(n)}.`)],
+        boutons: `<div class="rowctl"><span>parts</span><button data-act="bparts" data-dir="1" ${st.parts < 12 ? '' : 'disabled'} aria-label="une part de plus">+</button><button data-act="bparts" data-dir="-1" ${st.parts > 1 ? '' : 'disabled'} aria-label="une part de moins">−</button></div>` + BTN.effacer('dvider')
       };
     }
   },
@@ -2931,6 +2958,9 @@ const ACT = {
   },
   dprops() { S.propsOn = !S.propsOn; delete S.defis.st.choix; render(); },              // afficher ou masquer les propositions A, B, C, D
   dprop(v) { if (!S.defis.revealed) { S.defis.st.choix = +v; render(); } },             // une proposition choisie : juste ou l'explication de l'erreur
+  bparts(_, el) {   // bande des grandeurs : une part de plus ou de moins (on recommence le coloriage)
+    const st = S.defis.st; st.parts = clamp((st.parts || 1) + +el.dataset.dir, 1, 12); st.col = new Set(); render();
+  },
   tournee() {   // partage : une bille dans chaque assiette, tant qu'il en reste
     const q = S.defis.list[S.defis.i], st = S.defis.st;
     let reste = q.d * q.k - st.p.reduce((a, b) => a + b, 0);
@@ -2983,7 +3013,9 @@ document.addEventListener('click', e => {
       const set = S.cmp.col[p.closest('[data-row]').dataset.row];
       set.has(i) ? set.delete(i) : set.add(i);
     } else if (S.mode === 'defis') {
-      const st = S.defis.st; st.checked = false;
+      const st = S.defis.st, q = S.defis.list[S.defis.i];
+      if (manipDe(q) === 'bande') { st.col.has(i) ? st.col.delete(i) : st.col.add(i); render(); return; }   // bande des grandeurs : on prend ou rend une part
+      st.checked = false;
       st.set.has(i) ? st.set.delete(i) : st.set.add(i);
     }
     render(); return;
