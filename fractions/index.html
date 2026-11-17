@@ -810,7 +810,8 @@ function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false, compact = fa
     for (let j = 0; j < Math.min(9, m - k); j++) g += quadPiece(a + (j % 3) * 2 * t, b + Math.floor(j / 3) * 2 * t, t, t, QCOL.m);
     s += piece('m', g);
   }
-  return { s, H: Math.max(compact ? 0 : y0 + QUAD_H, Y + haut) };
+  const hautU = u ? y0 + Math.min(u, 2) * (uh + gap) - gap : 0;   // la colonne des unités (deux au plus en hauteur)
+  return { s, H: Math.max(compact ? hautU : y0 + QUAD_H, Y + haut) };
 }
 
 // Lire : le nombre en pièces, dans un cadre de taille fixe (compact : sans la place réservée aux unités, pour les défis)
