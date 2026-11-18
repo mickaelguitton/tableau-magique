@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-court="À parts égales">À parts égales : l'atelier des fractions, du CE1 au CM2 – Le tableau magique</title>
+<title data-court="À parts égales">À parts égales : fractions et décimaux, du CE1 au CM2 – Le tableau magique</title>
 <meta name="author" content="Mickaël Guitton">
 <meta name="license" content="CC BY-NC 4.0">
-<meta name="description" content="À parts égales, outil gratuit pour enseigner les fractions au TBI, du CE1 au CM2 : barres, disques et droites graduées à partager et colorier, mur des fractions, défis à manipuler au doigt, propositions de réponses, correction animée et fiches Word avec corrigé.">
+<meta name="description" content="À parts égales, outil gratuit pour enseigner les fractions et les décimaux au TBI, du CE1 au CM2 : barres, disques et droites graduées à partager et colorier, mur des fractions, défis à manipuler au doigt, propositions de réponses, correction animée et fiches Word avec corrigé.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/fractions/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="À parts égales : l'atelier des fractions, du CE1 au CM2 – Le tableau magique">
+<meta property="og:title" content="À parts égales : fractions et décimaux, du CE1 au CM2 – Le tableau magique">
 <meta property="og:description" content="À parts égales, outil gratuit pour enseigner les fractions au TBI, du CE1 au CM2 : barres, disques et droites graduées à partager et colorier, mur des fractions, défis à manipuler au doigt, propositions de réponses, correction animée et fiches Word avec corrigé.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/fractions/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-fractions.jpg">
@@ -26,8 +26,8 @@
 <script src="../portail.js"></script>
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
-  À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.06 dans le portail « Le tableau magique » (comparer des décimaux avec les signes, fiche Word sans manipulation, premières questions plus variées)
+  À parts égales : fractions et décimaux, du CE1 au CM2
+  v1.07 dans le portail « Le tableau magique » (sous-titre : fractions et décimaux)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -368,14 +368,14 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.06</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.07</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
 <dialog id="aPropos" aria-labelledby="titreAPropos">
   <article>
     <h2 id="titreAPropos">À parts égales</h2>
-    <p class="chapeau">L’atelier des fractions à projeter au tableau, du CE1 au CM2 : on partage, on colorie, on compare et on place les fractions avec toute la classe.</p>
+    <p class="chapeau">Les fractions et les décimaux à projeter au tableau, du CE1 au CM2 : on partage, on colorie, on compare et on place les nombres avec toute la classe.</p>
 
     <h3>À quoi sert cet outil ?</h3>
     <p>À parts égales affiche au TBI ou au vidéoprojecteur des barres, des disques et des droites graduées qu’on partage et qu’on colorie devant les élèves. On montre ce qu’est une fraction, on compare, on cherche des fractions égales, puis on s’entraîne avec des défis corrigés ensemble. C’est un outil gratuit, sans inscription, qui fonctionne aussi sans connexion une fois installé.</p>
@@ -411,7 +411,7 @@ svg{user-select:none;-webkit-user-select:none}
 </dialog>
 
 <script>
-/* À parts égales : l'atelier des fractions, du CE1 au CM2  –  M. Guitton  –  licence CC BY-NC 4.0
+/* À parts égales : fractions et décimaux, du CE1 au CM2  –  M. Guitton  –  licence CC BY-NC 4.0
    Un seul fichier, sans connexion. Deux écrans : le menu (classe, activités, défis) et l'activité choisie.
    Plan du code :
      1-4   outils, programmes par classe, nombres en lettres, écriture des fractions
@@ -1138,7 +1138,7 @@ function renderMenu() {
   let h = `<div class="menu-head">
     <div class="fs-menu leftbtns"><button class="btn small portail-accueil" onclick="location.href='../'">Accueil</button><button class="btn small fsbtn" data-act="fs" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
     <button class="btn small menu-right" data-act="print">Imprimer</button>
-    <h1>À parts égales</h1><div class="subtitle">L'atelier des fractions</div>
+    <h1>À parts égales</h1><div class="subtitle">Fractions et décimaux</div>
     <div class="levels">${Object.keys(CL).map(k => `<button class="lvbtn ${LEVEL_COL[k]} ${S.classe === k ? 'active' : ''}" data-act="classe" data-v="${k}">${k}</button>`).join('')}</div></div>
     <div id="acts"><div class="space"></div>
       <div class="domhead" style="--col:var(--c3)">Ateliers libres : découvrir et expliquer au tableau</div>
