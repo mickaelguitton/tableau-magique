@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : l'atelier des fractions, du CE1 au CM2
-  v1.04 dans le portail « Le tableau magique » (défis : un seul réglage, Propositions ; plus de menu Options ; sauts montrés avec la réponse)
+  v1.05 dans le portail « Le tableau magique » (encadrer entre deux entiers : bouton Graduations)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -368,7 +368,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.04</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.05</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -394,7 +394,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, trier, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
-      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts. Ces questions se manipulent d’office ; cocher « Propositions » les remet en question classique.</li>
+      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts. Ces questions se manipulent d’office ; cocher « Propositions » les remet en question classique. Pour « Encadrer entre deux entiers », le bouton « Graduations » ajoute les petites graduations sur la droite.</li>
       <li><b>Des propositions de réponses,</b> si on le souhaite (bouton « Propositions », le seul réglage des défis) : la bonne et des erreurs fréquentes des élèves (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
       <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer.</li>
     </ul>
@@ -1015,7 +1015,8 @@ const S = {
   dd: { tache: 'placer', ech: 'dixieme', debut: 2, v: 7, guess: null, verif: null, revealed: false, virgule: true },
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
   anim: true,   // corrections des défis toujours animées (elles ne se jouent qu'à « Voir la réponse »)
-  propsOn: false                    // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
+  propsOn: false,                   // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
+  gradsOn: false                    // « Encadrer entre deux entiers » : petites graduations sur la droite (décoché à l'ouverture)
 };
 if (!CL[S.classe]) S.classe = 'CM2';
 
@@ -2328,7 +2329,7 @@ const MANIP = {
   glisse: {   // encadrer : la droite n'a que les entiers ; la fraction se pose entre deux d'entre eux
     dessin(q, st, R, { I, Dn, M }) {
       const { n, d, e, U } = q, x = 60, L = 840, y = 170, pas = L / U, place = st.e !== undefined;
-      let s = `<rect data-drop="droite" x="0" y="0" width="1000" height="250" fill="transparent"/>` + lineG({ x, y, L, u: U, d: 1 });
+      let s = `<rect data-drop="droite" x="0" y="0" width="1000" height="250" fill="transparent"/>` + lineG({ x, y, L, u: U, d: S.gradsOn ? d : 1 });   // les entiers seuls, ou toutes les graduations
       if (place) s += `<rect x="${x + st.e * pas + 4}" y="${y - 12}" width="${pas - 8}" height="24" rx="12" fill="${soft('--a', .45)}"/>`;
       const cx = place ? x + (st.e + 0.5) * pas : 500;
       if (place) s += `<path d="M ${cx} ${y - 66} V ${y - 18}" stroke="var(--a)" stroke-width="3" stroke-dasharray="6 5"/>`;
@@ -3051,6 +3052,7 @@ function renderDefi() {
       + place(!R && vu < nb, BTN.aide(Math.min(vu + 1, Math.max(nb, 1)), Math.max(nb, 2)))
       + place(!R, BTN.voir('dreveal')) + BTN.suivant() + BTN.neuf('dnew', 'Nouvelle série') + `</div><div class="barre-r">`
       + place(propositions(q), toggle('Propositions', 'dprops', S.propsOn))   // si la question a des propositions ; sinon on manipule
+      + (q.type === 'encadrer' ? place(qm === 'glisse' && !R, toggle('Graduations', 'dgrads', S.gradsOn)) : '')   // encadrer : la droite avec ses petites graduations
       + `</div>`;
 }
 
@@ -3095,8 +3097,8 @@ const ACT = {
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
   go(v) { S.mode = v; save('mode', v); S.screen = 'game'; S.cmp.edit = null; render(); },
-  solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },   // une compétence ouverte depuis le menu : propositions décochées
-  gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; newSeries(); render(); },
+  solo(v) { S.defis.only = v; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; S.gradsOn = false; newSeries(); render(); },   // une compétence ouverte depuis le menu : propositions décochées
+  gomix() { S.defis.only = null; S.mode = 'defis'; S.screen = 'game'; S.propsOn = false; S.gradsOn = false; newSeries(); render(); },
   fs() { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); },
   classe(v) { S.classe = v; save('classe', v); fitClass(); render(); },
   rep(v) { S.manip.rep = v; render(); },
@@ -3185,6 +3187,7 @@ const ACT = {
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + 'px';
   },
+  dgrads() { S.gradsOn = !S.gradsOn; render(); },
   dprops() { S.propsOn = !S.propsOn; S.defis.st = { aide: S.defis.st.aide }; render(); },   // propositions A, B, C, D, ou retour à la manipulation
   dprop(v) { if (!S.defis.revealed) { S.defis.st.choix = +v; render(); } },             // une proposition choisie : juste ou l'explication de l'erreur
   passiettes(_, el) {   // partage : une assiette de plus ou de moins (toutes les billes retournent dans la réserve)
