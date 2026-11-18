@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.07 dans le portail « Le tableau magique » (sous-titre : fractions et décimaux)
+  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -362,13 +362,13 @@ svg{user-select:none;-webkit-user-select:none}
 </div>
 <div id="fiche" hidden><div class="panneau">
   <h2>Fiche à imprimer</h2>
-  <div>Un fichier Word, avec les défis de la classe, du plus simple au plus difficile.</div>
+  <div>Un fichier Word, avec les défis de la classe : choisis la difficulté, ou « 1 → 3 » pour aller du plus simple au plus difficile.</div>
   <div id="ficheCorps"></div>
   <div id="ficheErreur" class="erreur" role="alert" hidden></div>
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.07</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.08</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -403,7 +403,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li>Pour introduire une notion en manipulant devant toute la classe.</li>
       <li>En rituel, avec les défis sur ardoise et la correction collective.</li>
-      <li>Avec des fiches Word à imprimer, de 6 à 12 exercices, avec ligne pour le prénom et corrigé.</li>
+      <li>Avec des fiches Word à imprimer, de 6 à 12 exercices, de difficulté 1, 2 ou 3 (ou de plus en plus difficile), avec ligne pour le prénom et corrigé.</li>
     </ul>
     <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
   </article>
@@ -1710,7 +1710,8 @@ const GEN = {
   comparer(t) { return comparePair(t, true); },
   trier(t) { // des étiquettes à trier dans des boîtes : par rapport à 1, ou égales à 1/2 ou pas
     const c = C(), sorte = pick(subPick('trier', ['tri1', 'tri2'])) === 'tri1' ? 'un' : 'demi';
-    const dens = c.dens.filter(d => d >= 2 && d <= 10), vus = new Set(), items = [];
+    const dmax = t < 0.35 ? 5 : t < 0.7 ? 8 : 10;   // la difficulté monte dans la série : d'abord des demis, tiers, quarts, cinquièmes
+    const dens = c.dens.filter(d => d >= 2 && d <= dmax), vus = new Set(), items = [];
     const ajoute = f => { if (!vus.has(f.join('/'))) { vus.add(f.join('/')); items.push(f); } };
     const combien = test => items.filter(test).length;
     if (sorte === 'un') {   // 7 étiquettes : une ou deux égales à 1, trois plus petites, le reste plus grandes
@@ -1719,8 +1720,12 @@ const GEN = {
       for (let i = 0; i < 99 && combien(f => f[0] < f[1]) < 3; i++) { const d = pick(dens); ajoute([ri(1, d - 1), d]); }
       for (let i = 0; i < 99 && combien(f => f[0] > f[1]) < 4 - nEg + 1; i++) { const d = pick(dens); ajoute([ri(d + 1, 2 * d - 1 + (t > 0.5 ? d : 0)), d]); }
     } else {                // 3 égales à 1/2, 4 qui lui ressemblent
-      melange([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]].filter(f => dens.includes(f[1]))).slice(0, 3).forEach(ajoute);
-      melange([[1, 3], [2, 3], [1, 4], [3, 4], [2, 5], [3, 5], [2, 6], [4, 6], [3, 8], [5, 8], [4, 10], [6, 10], [3, 10], [1, 5]].filter(f => dens.includes(f[1]))).slice(0, 4).forEach(ajoute);
+      melange([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]].filter(f => c.dens.includes(f[1]) && f[1] <= Math.max(dmax, 6))).slice(0, 3).forEach(ajoute);
+      // au début, des fractions loin de 1/2 ; à la fin, des fractions qui en sont tout près (4/10, 5/8, 3/5…)
+      const loin = [[1, 3], [1, 4], [3, 4], [1, 5], [4, 5], [1, 6], [5, 6], [1, 8], [7, 8], [1, 10], [9, 10]], pres = [[2, 3], [2, 5], [3, 5], [2, 6], [4, 6], [3, 8], [5, 8], [4, 10], [6, 10], [3, 10], [7, 10]];
+      const ressemble = t < 0.35 ? loin : t < 0.7 ? [...loin, ...pres] : pres;
+      melange(ressemble.filter(f => dens.includes(f[1]))).slice(0, 4).forEach(ajoute);
+      if (items.length < 7) melange([...loin, ...pres].filter(f => c.dens.includes(f[1]))).forEach(f => items.length < 7 && ajoute(f));
     }
     return { sorte, items: melange(items), boites: sorte === 'un' ? ['plus petit que 1', 'égal à 1', 'plus grand que 1'] : ['égal à 1/2', 'pas égal à 1/2'] };
   },
@@ -1733,7 +1738,8 @@ const GEN = {
     // (CE1 : défi retiré du menu ; ces réglages servent si on le remet)
     if (c.lvl === 0) base = pick(t < 0.25 ? [[1, 2], [1, 1]] : [[1, 2], [1, 1], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5]]);
     const ks = [2, 3, 4, 5, 10].filter(k => base[1] * k <= maxD && c.dens.includes(base[1] * k) && base[1] * k * Math.ceil(base[0] / base[1]) <= 36);
-    const k = pick(ks.length ? ks : [2]);
+    const parTemps = t < 0.4 ? ks.slice(0, 2) : t < 0.7 ? ks.slice(0, 3) : ks.slice(1);   // × 2 ou × 3 au début, × 4, × 5, × 10 ensuite
+    const k = pick(parTemps.length ? parTemps : ks.length ? ks : [2]);
     const out = { a: base[0], b: base[1], k, miss: c.lvl === 3 && t > 0.6 && Math.random() < 0.5 ? 'd' : 'n' };
     const sortesEg = subPick('egales', ['comp', 'parmi']);
     if (c.lvl === 0 && base[1] === 1 && sortesEg.includes('comp')) return out;            // « 1 = ?/4 » : seulement en nombre manquant
@@ -1848,8 +1854,8 @@ const GEN = {
   },
   probleme(t) { return makeProbleme(t); },
   produit(t) { // 3 × 5/4
-    const m = ri(2, t < 0.5 ? 3 : 4), d = pick([2, 3, 4, 5, 6, 8]);
-    let a = ri(1, t < 0.5 ? d - 1 : d + 2); while (m * a > 4 * d || a % d === 0) a = ri(1, d - 1);
+    const m = ri(2, t < 0.4 ? 3 : t < 0.7 ? 4 : 5), d = pick(t < 0.4 ? [3, 4, 5, 6] : t < 0.7 ? [2, 3, 4, 5, 6, 8] : [3, 4, 5, 6, 8, 10]);   // la difficulté monte dans la série
+    let a = ri(1, t < 0.5 ? d - 1 : d + 2); while (m * a > (t < 0.4 ? d : 4 * d) || a % d === 0) a = ri(1, d - 1);   // au début, un résultat qui ne dépasse pas 1
     return { m, a, d };
   },
   decimales(t) {
@@ -3114,6 +3120,7 @@ const ACT = {
   fcreate() { creerFicheWord(); },
   fcomp(v) { FICHE.choix.has(v) ? FICHE.choix.delete(v) : FICHE.choix.add(v); majFiche(); },
   fnb(v) { FICHE.nombre = +v; majFiche(); },
+  fniv(v) { FICHE.niveau = +v; majFiche(); },
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
   go(v) { S.mode = v; save('mode', v); S.screen = 'game'; S.cmp.edit = null; render(); },
@@ -3308,7 +3315,7 @@ document.addEventListener('keydown', e => {
    17. Fiche Word à imprimer (comme dans les autres outils) : fabriquée ici, sans connexion
    ========================================================= */
 
-const FICHE = { nombre: 8, prenom: true, corrige: true, choix: null };
+const FICHE = { nombre: 8, prenom: true, corrige: true, choix: null, niveau: 0 };   // niveau : 1, 2 ou 3 ; 0 = de plus en plus difficile (1 → 3)
 
 function ouvrirFiche() {
   FICHE.choix = new Set(S.defis.only ? [S.defis.only] : C().defis.filter(defiOn));
@@ -3320,6 +3327,8 @@ function majFiche() {
   $('#ficheCorps').innerHTML = `
     <div class="etiquette">Compétences (${S.classe})</div>
     <div class="choix">${C().defis.map(k => pill('fcomp', k, FICHE.choix.has(k), DEFIS[k])).join('')}</div>
+    <div class="etiquette">Difficulté</div>
+    <div class="choix">${[1, 2, 3].map(n => pill('fniv', n, FICHE.niveau === n, n)).join('')}${pill('fniv', 0, FICHE.niveau === 0, '1 → 3')}</div>
     <div class="etiquette">Nombre d'exercices</div>
     <div class="choix">${[6, 8, 10, 12].map(n => pill('fnb', n, FICHE.nombre === n, n)).join('')}</div>
     <div class="etiquette">Ligne pour le prénom</div>
@@ -3464,10 +3473,12 @@ async function creerFicheWord() {
     const ordre = [];
     while (ordre.length < N) { const tour = [...ks].sort(() => Math.random() - .5); if (ordre.length && tour[0] === ordre.at(-1) && tour.length > 1) tour.push(tour.shift()); ordre.push(...tour); }
     PAPIER = true;   // sur papier, pas de défi à manipuler (sauf le tri, qui s'écrit aussi) : pour le tirage ET pour le dessin des exercices
-    for (let i = 0; i < N; i++) { const t = N > 1 ? i / (N - 1) : 0, k = ordre[i]; liste.push({ type: k, t, ...GEN[k](t) }); }
+    // la difficulté : t va de 0 (facile) à 1 (difficile) ; niveau 1, 2 ou 3 = un tiers de ce chemin ; « 1 → 3 » = tout le chemin
+    const avance = i => N > 1 ? i / (N - 1) : 0, tDe = i => FICHE.niveau ? (FICHE.niveau - 1 + avance(i)) / 3 : avance(i);
+    for (let i = 0; i < N; i++) { const t = tDe(i), k = ordre[i]; liste.push({ type: k, t, ...GEN[k](t) }); }
     const images = [];
     let corps = (FICHE.prenom ? paraTxt('Prénom : ……………………………………………', { size: 13, apres: 10 }) : '') +
-                paraTxt(`Les fractions  ·  ${S.classe}`, { size: 16, b: true, col: '2B2D42', apres: 6 });
+                paraTxt(`Les fractions  ·  ${S.classe}${FICHE.niveau ? `  ·  niveau ${FICHE.niveau}` : ''}`, { size: 16, b: true, col: '2B2D42', apres: 6 });
     const exos = [], corr = [];
     for (const [i, q] of liste.entries()) exos.push(await blocExercice(q, i + 1, false, images));
     const e1 = echelle(exos, FICHE.prenom ? 2.3 : 1.3);
