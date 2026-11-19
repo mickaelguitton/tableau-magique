@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
+  v1.09 dans le portail « Le tableau magique » (signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -249,7 +249,8 @@ svg{user-select:none;-webkit-user-select:none}
 /* Comparer : + et − pour créer les parts de chaque ligne */
 .caseSigne{width:min(100%,clamp(22rem,36vw,36rem))}
 .caseSigne svg{width:100%;height:auto;display:block}
-.caseSigne.defi{width:min(100%,46rem);margin:auto}   /* dans les défis : la case et les signes en grand */
+.caseSigne.defi{width:100%;margin:auto}   /* dans les défis : la hauteur est fixée (fractions ou décimaux, même taille, comme les autres défis) */
+.caseSigne.defi svg{height:clamp(110px,18vh,170px);width:auto;max-width:100%;margin:auto}
 .rowctl{flex:none;display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:3.2rem}
 .rowctl span{font-size:.85rem;font-weight:700;color:var(--muted)}
 .rowctl button{width:2.4rem;height:2.4rem;border-radius:50%;background:var(--c3);color:#fff;font-size:1.5rem;font-weight:700;line-height:1;box-shadow:0 .15rem 0 rgba(0,0,0,.2)}
@@ -368,7 +369,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.08</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.09</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
