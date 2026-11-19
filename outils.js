@@ -117,7 +117,7 @@ self.OUTILS = [
   {
     dossier: 'fractions',
     domaine: 'maths',
-    version: '1.11',
+    version: '1.12',
     nom: 'À parts égales',
     niveau: 'fractions et décimaux · du CE1 au CM2',
     texte: 'Les fractions et les décimaux à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '

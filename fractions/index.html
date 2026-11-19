@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.11 dans le portail « Le tableau magique » (clavier : Entrée et Espace activent le bouton choisi ; difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
+  v1.12 dans le portail « Le tableau magique » (fiche : 1, 2 ou 3 exercices par compétence ; « Comparer une fraction à 1 ou à 1/2 » ; écritures « 1 + 1/2 » dans les propositions et Ranger ; clavier : Entrée et Espace activent le bouton choisi ; difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.11</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.12</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -407,7 +407,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li>Pour introduire une notion en manipulant devant toute la classe.</li>
       <li>En rituel, avec les défis sur ardoise et la correction collective.</li>
-      <li>Avec des fiches Word à imprimer, de 6 à 12 exercices, de difficulté 1, 2 ou 3 (ou de plus en plus difficile), avec ligne pour le prénom et corrigé.</li>
+      <li>Avec des fiches Word à imprimer, de 1, 2 ou 3 exercices par compétence cochée, de difficulté 1, 2 ou 3 (ou de plus en plus difficile), avec ligne pour le prénom et corrigé.</li>
       <li>Dans le menu, « Difficulté » règle aussi les défis à l’écran : 1 (facile), 2, 3 (difficile), ou 1 → 3 pour une série qui monte peu à peu.</li>
     </ul>
     <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
@@ -479,7 +479,7 @@ const MODES = {
 
 const DEFIS = {
   nommer: 'Lire une fraction', colorier: 'Représenter une fraction', comparer: 'Comparer deux fractions',
-  trier: 'Trier des fractions', egales: 'Trouver des fractions égales', ajouter: 'Ajouter et retrancher', lire: 'Lire sur la droite graduée',
+  trier: 'Comparer une fraction à 1 ou à 1/2', egales: 'Trouver des fractions égales', ajouter: 'Ajouter et retrancher', lire: 'Lire sur la droite graduée',
   encadrer: 'Encadrer entre deux entiers', decomposer: 'Décomposer, recomposer', quantite: "Fraction d'une quantité", ranger: "Ranger dans l'ordre", probleme: 'Petits problèmes', produit: 'Entier × fraction', decimales: 'Fractions décimales'
 };
 
@@ -1875,6 +1875,9 @@ const GEN = {
         const d = same ? d0 : pick(fam), n = ri(1, d * lim); // au CE2, on peut aller jusqu'à 1 (d/d)
         add(n, d);
       }
+      // CM1-CM2, à partir du niveau 2 : un des nombres plus grands que 1 s'écrit « 1 + 1/4 » (partie entière + partie fractionnaire)
+      const grand = items.find(o => o.n > o.d && o.n % o.d);
+      if (lvl >= 2 && t > 0.35 && grand && Math.random() < 0.6) Object.assign(grand, { e: Math.floor(grand.n / grand.d), r: grand.n % grand.d, html: ENT(Math.floor(grand.n / grand.d), grand.n % grand.d, grand.d) });
     }
     return { items: items.sort(() => Math.random() - .5), desc: t > 0.75 && Math.random() < 0.4 };
   },
@@ -2161,7 +2164,7 @@ function scatterIdx(n, total) { // parts coloriées dispersées (pas forcément 
    - Fraction d'une quantité : partager des billes dans des assiettes          (manip « partage »)
    - Représenter sur la droite : glisser l'étiquette sur la bonne graduation  (manip « placer »)
    - Encadrer entre deux entiers : glisser la fraction sur la droite          (manip « glisse »)
-   - Trier des fractions : ranger des étiquettes dans des boîtes              (défi « trier »)
+   - Comparer une fraction à 1 ou à 1/2 : ranger des étiquettes dans des boîtes              (défi « trier »)
    - Lire une fraction : associer dessins et étiquettes                       (manip « associer »)
    - Décomposer : construire la fraction avec des unités et des parts         (manip « construire »)
    Dans les dessins SVG, chaque objet déplaçable est un <g data-drag="…">, chaque zone d'arrivée a data-drop="…".
@@ -2496,7 +2499,9 @@ const MANIP = {
       const ordre = [...items.keys()].sort((i, j) => cmp(items[i], items[j]));   // ordre[j] : l'étiquette qui va dans la case j
       const juste = (i, j) => items[i].n * items[ordre[j]].d === items[ordre[j]].n * items[i].d;
       // une étiquette : la fraction, ou le nombre écrit (2,45 ; 3) en texte
-      const etiq = (x, y, o, id, etat) => o.html.includes('<') ? etiquette(x, y, o.n, o.d, id, etat, 110)
+      const etiq = (x, y, o, id, etat) => o.e ? etiquette(x, y, o.r, o.d, id, etat, 170).replace(/<g fill="[^"]*" font-weight="700" font-size="32" text-anchor="middle">[\s\S]*?<\/g>/,
+            `<text x="${x - 12}" y="${y + 12}" text-anchor="end" font-size="34" font-weight="700" fill="${INK}">${o.e} +</text>` + svgFrac(x + 26, y, o.r, o.d, 32, INK))
+        : o.html.includes('<') ? etiquette(x, y, o.n, o.d, id, etat, 110)
         : etiquette(x, y, 0, 1, id, etat, Math.max(110, o.html.length * 26 + 30)).replace(/<g fill="[^"]*" font-weight="700" font-size="32" text-anchor="middle">[\s\S]*?<\/g>/,
             `<text x="${x}" y="${y + 12}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">${o.html}</text>`);
       // réserve en haut
@@ -2505,7 +2510,7 @@ const MANIP = {
       libres.forEach((i, j) => { s += etiq(20 + pasR * (j + 0.5) + (nb - libres.length) * pasR / 2, 70, items[i], i, ''); });
       // les cases, dans l'ordre, séparées par le signe
       const yC = 170, pas = 960 / nb, signe = q.desc ? '&gt;' : '&lt;';
-      const cw = Math.max(160, ...items.map(o => o.html.includes('<') ? 110 : o.html.length * 26 + 30)) + 24;   // une case assez large pour la plus longue étiquette
+      const cw = Math.max(160, ...items.map(o => o.e ? 170 : o.html.includes('<') ? 110 : o.html.length * 26 + 30)) + 24;   // une case assez large pour la plus longue étiquette
       for (let j = 0; j < nb; j++) {
         const X = 20 + pas * (j + 0.5);
         s += `<rect data-drop="c${j}" x="${X - cw / 2}" y="${yC}" width="${cw}" height="118" rx="18" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="8 6"/>`;
@@ -2615,9 +2620,24 @@ function genAssocier(t) {   // 3 ou 4 dessins, leurs fractions, et deux étiquet
    Les élèves peuvent répondre A, B, C ou D sur l'ardoise.
    PROPS[type](q) -> { bonne: html, pieges: [[html, explication], ...] } ou null (pas de propositions pour cette question).
    ========================================================= */
+/* Propositions écrites « partie entière + partie fractionnaire » (CM1-CM2, à partir du niveau 2, une fois sur deux) :
+   la bonne réponse 1 + 1/2 au lieu de 3/2 ; les erreurs : une unité de trop, les parts non coloriées, les parts comptées sur le total.
+   Une seule écriture par question : 3/2 et 1 + 1/2 ensemble seraient deux bonnes réponses. */
+const ENT = (e, r, d) => `${e} + ${F(r, d)}`;
+function propsMixtes(q, N, D) {
+  if (C().lvl < 2 || N <= D || N % D === 0 || (q.t ?? 1) < 0.3 || Math.random() < 0.5) return null;
+  const e = Math.floor(N / D), r = N % D;
+  return { bonne: ENT(e, r, D), pieges: [
+    [ENT(e + 1, r, D), 'une unité de trop : la dernière unité n\'est pas entière.'],
+    D - r !== r ? [ENT(e, D - r, D), 'ce sont les parts non coloriées de la dernière unité.'] : null,
+    [ENT(e, r, N), 'en bas, c\'est le nombre de parts d\'une unité, pas le total.'],
+    e > 1 ? [ENT(e - 1, r, D), 'une unité oubliée.'] : null] };
+}
+
 const PROPS = {
   nommer(q) {
     const D = q.d * q.k, N = q.n * q.k;
+    const ent = propsMixtes(q, N, D); if (ent) return ent;
     if (q.rep === 'droite') return { bonne: F(N, D), pieges: [
       [F(N + 1, D), 'tu as compté les traits, avec celui du 0 : on compte les intervalles.'],
       [F(N, D + 1), 'tu as compté les traits entre 0 et 1 : on compte les intervalles.'],
@@ -2630,6 +2650,7 @@ const PROPS = {
   ajouter(q) {
     if (q.comp || q.d2) return null;
     const { a, b, d, sub } = q;
+    const ent = !sub && propsMixtes(q, a + b, d); if (ent) return ent;   // 3/4 + 2/4 = 1 + 1/4
     return sub ? { bonne: F(a - b, d), pieges: [
       [F(a + b, d), 'tu as additionné au lieu de soustraire.'],
       [F(b, d), 'c\'est ce qu\'on enlève, pas ce qui reste.'],
@@ -2641,6 +2662,7 @@ const PROPS = {
   },
   produit(q) {
     const { m, a, d } = q;
+    const ent = propsMixtes(q, m * a, d); if (ent) return ent;   // 3 × 2/5 = 1 + 1/5
     return { bonne: F(m * a, d), pieges: [
       [F(m * a, m * d), `tu as aussi multiplié le dénominateur : ${m} fois ${denName(d, a > 1)}, ce sont toujours des ${denName(d, true)}.`],
       [F(m + a, d), `tu as ajouté ${m} au lieu de multiplier.`]] };
@@ -2658,6 +2680,7 @@ const PROPS = {
   lire(q) {
     const { n, d, st } = q;
     if (C().lvl === 1 && n > d) return null;   // au CE2, la réponse s'écrit « 2 unités et 1 quart »
+    const ent = propsMixtes(q, n - 0, d); if (ent && !st) return ent;
     const pieges = [[F(n + 1, d), 'tu as compté les traits, avec le premier : on compte les intervalles.'],
                     [F(n, d + 1), 'tu as compté les traits entre deux entiers : on compte les intervalles.']];
     pieges.push(st ? [F(n - st * d, d), `tu as compté depuis le début de la droite : elle commence à ${st}, pas à 0.`]
@@ -3231,7 +3254,7 @@ const ACT = {
   fclose() { $('#fiche').hidden = true; },
   fcreate() { creerFicheWord(); },
   fcomp(v) { FICHE.choix.has(v) ? FICHE.choix.delete(v) : FICHE.choix.add(v); majFiche(); },
-  fnb(v) { FICHE.nombre = +v; majFiche(); },
+  fnb(v) { FICHE.parComp = +v; majFiche(); },
   fniv(v) { FICHE.niveau = +v; majFiche(); },
   fpre(v) { FICHE.prenom = v === '1'; majFiche(); },
   fcor(v) { FICHE.corrige = v === '1'; majFiche(); },
@@ -3436,7 +3459,7 @@ document.addEventListener('keydown', e => {
    17. Fiche Word à imprimer (comme dans les autres outils) : fabriquée ici, sans connexion
    ========================================================= */
 
-const FICHE = { nombre: 8, prenom: true, corrige: true, choix: null, niveau: 0 };   // niveau : 1, 2 ou 3 ; 0 = de plus en plus difficile (1 → 3)
+const FICHE = { parComp: 1, prenom: true, corrige: true, choix: null, niveau: 0 };   // parComp : 1, 2 ou 3 exercices par compétence cochée   // niveau : 1, 2 ou 3 ; 0 = de plus en plus difficile (1 → 3)
 
 function ouvrirFiche() {
   FICHE.choix = new Set(S.defis.only ? [S.defis.only] : C().defis.filter(defiOn));
@@ -3451,8 +3474,8 @@ function majFiche() {
     <div class="choix">${C().defis.map(k => pill('fcomp', k, FICHE.choix.has(k), DEFIS[k])).join('')}</div>
     <div class="etiquette">Difficulté</div>
     <div class="choix">${[1, 2, 3].map(n => pill('fniv', n, FICHE.niveau === n, n)).join('')}${pill('fniv', 0, FICHE.niveau === 0, '1 → 3')}</div>
-    <div class="etiquette">Nombre d'exercices</div>
-    <div class="choix">${[6, 8, 10, 12].map(n => pill('fnb', n, FICHE.nombre === n, n)).join('')}</div>
+    <div class="etiquette">Exercices par compétence${FICHE.choix.size ? ` (soit ${FICHE.choix.size * FICHE.parComp} exercice${FICHE.choix.size * FICHE.parComp > 1 ? 's' : ''})` : ''}</div>
+    <div class="choix">${[1, 2, 3].map(n => pill('fnb', n, FICHE.parComp === n, n)).join('')}</div>
     <div class="etiquette">Ligne pour le prénom</div>
     <div class="choix">${pill('fpre', 1, FICHE.prenom, 'Oui')}${pill('fpre', 0, !FICHE.prenom, 'Non')}</div>
     <div class="etiquette">Corrigé (sur une nouvelle page)</div>
@@ -3591,8 +3614,8 @@ async function creerFicheWord() {
   try {
     // la fiche se prépare dans l'écran des défis (caché derrière la fenêtre)
     S.mode = 'defis'; S.screen = 'game'; $('#menu').classList.remove('active'); $('#game').className = 'screen active ' + MODE_COL.defis;
-    const ks = [...FICHE.choix], N = FICHE.nombre, liste = [];
-    // chaque compétence cochée revient autant de fois que possible, dans un ordre mélangé (et pas deux fois de suite)
+    const ks = [...FICHE.choix], N = ks.length * FICHE.parComp, liste = [];
+    // chaque compétence cochée revient 1, 2 ou 3 fois, dans un ordre mélangé (et pas deux fois de suite)
     const ordre = [];
     while (ordre.length < N) { const tour = [...ks].sort(() => Math.random() - .5); if (ordre.length && tour[0] === ordre.at(-1) && tour.length > 1) tour.push(tour.shift()); ordre.push(...tour); }
     PAPIER = true;   // sur papier, pas de défi à manipuler (sauf le tri, qui s'écrit aussi) : pour le tirage ET pour le dessin des exercices
