@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.09 dans le portail « Le tableau magique » (signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
+  v1.10 dans le portail « Le tableau magique » (difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -111,6 +111,9 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .tchip.on{background:var(--col);color:#fff}
 .skside{flex:none;display:flex;flex-direction:row-reverse;align-items:center;gap:.2rem}
 .dh-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.niveaux{display:inline-flex;align-items:center;gap:.3rem;font-size:.8em;font-weight:700}
+.niveaux .niv{border:.15rem solid #fff;border-radius:999px;padding:.05rem .7rem;font-weight:700;background:rgba(255,255,255,.35);color:inherit}
+.niveaux .niv.on{background:#fff;color:var(--c5)}
 .mixbtn{background:var(--mix);color:#fff;border:.15rem solid #fff;border-radius:999px;padding:.15rem 1rem;font-weight:700;font-size:.85em;box-shadow:0 .2rem 0 rgba(0,0,0,.18);text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .mixbtn:hover{filter:brightness(1.08)}
 .skinfo{flex:none;width:1.5em;height:1.5em;border-radius:50%;border:.15rem solid var(--col);background:#fff;color:var(--col);font-weight:800;font-size:.85em;line-height:1;display:grid;place-items:center;padding:0}
@@ -369,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.09</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.10</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -405,6 +408,7 @@ svg{user-select:none;-webkit-user-select:none}
       <li>Pour introduire une notion en manipulant devant toute la classe.</li>
       <li>En rituel, avec les défis sur ardoise et la correction collective.</li>
       <li>Avec des fiches Word à imprimer, de 6 à 12 exercices, de difficulté 1, 2 ou 3 (ou de plus en plus difficile), avec ligne pour le prénom et corrigé.</li>
+      <li>Dans le menu, « Difficulté » règle aussi les défis à l’écran : 1 (facile), 2, 3 (difficile), ou 1 → 3 pour une série qui monte peu à peu.</li>
     </ul>
     <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
   </article>
@@ -1020,7 +1024,8 @@ const S = {
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
   anim: true,   // corrections des défis toujours animées (elles ne se jouent qu'à « Voir la réponse »)
   propsOn: false,                   // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
-  gradsOn: false                    // « Encadrer entre deux entiers » : petites graduations sur la droite (décoché à l'ouverture)
+  gradsOn: false,                   // « Encadrer entre deux entiers » : petites graduations sur la droite (décoché à l'ouverture)
+  niveau: load('niveau', 0)         // difficulté des défis : 1, 2, 3, ou 0 = de plus en plus difficile (1 → 3) ; mémorisée
 };
 if (!CL[S.classe]) S.classe = 'CM2';
 
@@ -1057,7 +1062,9 @@ function pickDen(t, cap) {
   // au début de la série, les dénominateurs les plus simples ; plus la classe est grande, plus le choix de départ est large
   // (sinon la première question est presque toujours 1/2 + 1/2 ou 1/2 sur la droite)
   const k = clamp(Math.ceil(pool.length * (0.3 + 0.7 * t)), Math.min(3 + c.lvl, pool.length), pool.length);
-  return pick(pool.slice(0, k));
+  // en fin de série (niveau 3), on laisse de côté les dénominateurs les plus simples (plus de demis ni de tiers à t = 1)
+  const lo = Math.min(k - 2, Math.floor(pool.length * Math.max(0, t - 0.5)));
+  return pick(pool.slice(Math.max(0, lo), k));
 }
 
 const cmpSign = (a, b) => { const x = a.n * b.d, y = b.n * a.d; return x < y ? '<' : x > y ? '>' : '='; };
@@ -1066,11 +1073,13 @@ const SIGN_TXT = { '<': 'est plus petit que', '>': 'est plus grand que', '=': 'e
 
 function comparePair(t, useSubs = false, sansFacile = false) {   // sansFacile : écran Comparer en CM2, pas de même dénominateur
   const c = C(), lvl = c.lvl;
-  let kinds = [['memeDen', 'unit'], ['memeDen', 'unit', 'memeNum', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'mixte', 'unit', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'multiple', 'mixte', 'egal', 'commun', 'mixte']][lvl];
+  let kinds = [['memeDen', 'unit'], ['memeDen', 'unit', 'memeNum', 'multiple', 'egal'], ['memeDen', 'unit', 'un', 'memeNum', 'mixte', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'multiple', 'mixte', 'egal', 'commun', 'mixte']][lvl];
   if (useSubs) kinds = subPick('comparer', kinds);
   else kinds = kinds.filter(k => k !== 'mixte');   // l'atelier Comparer modifie les fractions à l'écran : pas d'écriture « 1 + 1/2 »
   if (sansFacile && lvl === 3) kinds = kinds.filter(k => k !== 'memeDen');
-  const k = pick(kinds.slice(0, Math.max(1, Math.ceil(kinds.length * (0.35 + 0.65 * t)))));
+  // les sortes de comparaison sont rangées de la plus simple à la plus difficile : la fenêtre avance dans la série
+  const fin = Math.max(1, Math.ceil(kinds.length * (0.35 + 0.65 * t))), debut = Math.min(fin - 2, Math.floor(kinds.length * Math.max(0, t - 0.55)));
+  const k = pick(kinds.slice(Math.max(0, debut), fin));
   const big = lvl >= 2 && Math.random() < 0.3 + 0.4 * t;
   let a, b, d;
   switch (k) {
@@ -1155,7 +1164,7 @@ function renderMenu() {
     <div id="acts"><div class="space"></div>
       <div class="domhead" style="--col:var(--c3)">Ateliers libres : découvrir et expliquer au tableau</div>
       <div class="sec-grid">${c.modes.filter(m => m !== 'defis').map(m => card(MODE_COL[m], 'go', m, MODES[m], MODE_SUB[m])).join('')}</div>
-      <div class="space"></div><div class="domhead dh-row" style="--col:var(--c5)"><span>Défis : s’entraîner, question après question</span><button class="mixbtn" data-act="gomix">Toutes les compétences cochées</button></div>
+      <div class="space"></div><div class="domhead dh-row" style="--col:var(--c5)"><span>Défis : s’entraîner, question après question</span><span class="niveaux">Difficulté ${[1, 2, 3, 0].map(n => `<button class="niv ${S.niveau === n ? 'on' : ''}" data-act="niveau" data-v="${n}">${n || '1 → 3'}</button>`).join('')}</span><button class="mixbtn" data-act="gomix">Toutes les compétences cochées</button></div>
       <div class="sec-grid">
       ${c.defis.map((k, i) => { const subs = subList(k), nOn = subs.filter(([v]) => subOn(k, v)).length;
         return `<div class="skill c${i % 6} ${defiOn(k) ? 'sel' : ''} ${subs.length ? 'withchips' : ''} ${ouvert === k ? 'ouvert' : ''}"><button class="skgo" data-act="solo" data-v="${k}"><span>${DEFIS[k]}</span>${subs.length ? '' : `<span class="sub">${DEFI_SUB[k]}</span>`}</button><div class="skside"><label class="chk" title="Inclure dans « Toutes les compétences cochées »"><input type="checkbox" data-chk="${k}" ${defiOn(k) ? 'checked' : ''}></label>${INFOS[k] && INFOS[k][S.classe] ? `<button class="skinfo" data-act="info" data-v="${k}" aria-label="Le programme">i</button>` : ''}</div>` +
@@ -1690,12 +1699,13 @@ const GEN = {
   nommer(t, comp = 'nommer', tries = 0) {
     // Une fraction n/d ; la figure peut être partagée plus finement (k parts pour une) : 3/4 sur des huitièmes.
     const c = C(), lvl = c.lvl;
-    let d = pickDen(t, 12), n = t < 0.2 ? 1 : ri(1, d - 1), k = 1;
+    let d = pickDen(t, 12), n = t < 0.2 ? 1 : t > 0.55 && d > 2 ? ri(2, d - 1) : ri(1, d - 1), k = 1;   // plus de numérateur 1 en fin de série
     // CE1 : la première question en numérateur 1, ensuite surtout des fractions comme 2/3 ou 3/4 (sinon trop de 1/2, 1/3, 1/4)
     if (lvl === 0) n = t < 0.1 ? 1 : d > 2 && Math.random() < 0.8 ? ri(2, d - 1) : ri(1, d - 1);
     if (t > 0.3 && Math.random() < 0.35) {
-      const bases = lvl === 0 ? [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4]]
+      const tout = lvl === 0 ? [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4]]
         : [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 6], [5, 6]];
+      const bases = lvl >= 1 && t > 0.6 ? tout.filter(([bn]) => bn > 1) : tout;   // fin de série : plus de 1/2, 1/4, 1/5 redécoupés
       const ok = bases.map(([bn, bd]) => [bn, bd, [2, 3, 4].filter(m => bd * m <= 12 && c.dens.includes(bd * m))]).filter(x => x[2].length);
       const [bn, bd, ks] = pick(ok);
       d = bd; n = bn; k = pick(ks);
@@ -1747,7 +1757,8 @@ const GEN = {
     const c = C(), maxD = [10, 12, 20, 30][c.lvl];
     const bases = [[1, 2], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5], [1, 6], [5, 6], [3, 5], [4, 5]]
       .concat(c.lvl >= 2 ? [[3, 2], [7, 2], [5, 4], [7, 4], [4, 3], [8, 3]] : []).filter(b => c.dens.includes(b[1]));
-    let base = pick(bases.slice(0, Math.max(3, Math.ceil(bases.length * (0.4 + 0.6 * t)))));
+    const fin = Math.max(3, Math.ceil(bases.length * (0.4 + 0.6 * t))), debut = Math.min(fin - 3, Math.floor(bases.length * Math.max(0, t - 0.5)));
+    let base = pick(bases.slice(Math.max(0, debut), fin));   // fin de série : plus de 1/2 ni 1/4, mais 3/5, 5/6, 7/4…
     // CE1 : 1/2 et 1 pour commencer, puis aussi les quarts, les tiers et les cinquièmes (2/8, 4/6, 4/10… : dénominateurs du CE1)
     // (CE1 : défi retiré du menu ; ces réglages servent si on le remet)
     if (c.lvl === 0) base = pick(t < 0.25 ? [[1, 2], [1, 1]] : [[1, 2], [1, 1], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5]]);
@@ -1825,12 +1836,13 @@ const GEN = {
         }
         tries = 0;
       }
-      do { g = pick(G); d = pick([2, 3, 4, 5, 6, 8, 10]); tries++; } while (g[0] % d && tries < 50);
+      const dsG = t > 0.6 ? [3, 4, 5, 6, 8, 10] : t > 0.3 ? [2, 3, 4, 5, 6, 8, 10] : [2, 3, 4, 5];   // les dénominateurs grandissent dans la série
+      do { g = pick(G); d = pick(dsG); tries++; } while (g[0] % d && tries < 50);
       if (g[0] % d) { g = G[0]; d = 4; }
       const n = c0.lvl === 3 && t > 0.3 && Math.random() < 0.7 ? ri(2, Math.max(2, d - 1)) : 1;
       return { grand: true, Q: g[0], unit: g[1], obj: g[2], d, k: g[0] / d, n: Math.min(n, d - 1) || 1 };
     }
-    const c = C(), d = pick([2, 3, 4, 5, 6, 8, 10].slice(0, t < 0.4 ? 3 : 7)), k = ri(2, c.lvl === 3 ? 8 : 6);
+    const c = C(), d = pick([2, 3, 4, 5, 6, 8, 10].slice(t > 0.7 ? 2 : 0, t < 0.4 ? 3 : 7)), k = ri(t > 0.6 ? 3 : 2, c.lvl === 3 ? 8 : 6);
     const n = c.lvl === 3 && t > 0.3 && Math.random() < 0.7 ? ri(2, Math.max(2, d - 1)) : 1;
     return { d, k, n: Math.min(n, d - 1) || 1, obj: pick(['billes', 'œufs', 'jetons', 'bonbons', 'images', 'crayons']) };
   },
@@ -1869,7 +1881,8 @@ const GEN = {
   probleme(t) { return makeProbleme(t); },
   produit(t) { // 3 × 5/4
     const m = ri(2, t < 0.4 ? 3 : t < 0.7 ? 4 : 5), d = pick(t < 0.4 ? [3, 4, 5, 6] : t < 0.7 ? [2, 3, 4, 5, 6, 8] : [3, 4, 5, 6, 8, 10]);   // la difficulté monte dans la série
-    let a = ri(1, t < 0.5 ? d - 1 : d + 2); while (m * a > (t < 0.4 ? d : 4 * d) || a % d === 0) a = ri(1, d - 1);   // au début, un résultat qui ne dépasse pas 1
+    let a = ri(1, t < 0.5 ? d - 1 : d + 2), essais = 0;
+    while ((m * a > (t < 0.4 ? d : 4 * d) || a % d === 0 || (t > 0.6 && m * a <= d)) && essais++ < 100) a = ri(1, d - 1);   // au début, un résultat qui ne dépasse pas 1 ; à la fin, toujours plus grand que 1
     return { m, a, d };
   },
   decimales(t) {
@@ -1896,7 +1909,7 @@ const GEN = {
       while ([P.u, P.d, P.c, P.m].filter(x => x).length < 2);   // au moins deux sortes de pièces
       return { k, v: P.u * 1000 + P.d * 100 + P.c * 10 + P.m };
     }
-    if (k === 'conv') return M && Math.random() < 0.5 ? { k, a: ri(1, 99), from: 100, to: 1000, rev: Math.random() < 0.4 } : { k, a: ri(1, 9), from: 10, to: 100, rev: Math.random() < 0.4 };
+    if (k === 'conv') return M && Math.random() < 0.5 ? { k, a: ri(t > 0.6 ? 11 : 1, 99), from: 100, to: 1000, rev: Math.random() < 0.4 } : { k, a: ri(t > 0.6 ? 2 : 1, 9), from: 10, to: 100, rev: Math.random() < 0.4 };   // fin de série : pas de « 1 dixième »
     if (k === 'decomp') {
       if (M && Math.random() < 0.5) { let n; do n = ri(101, 999); while (n % 10 === 0 || n % 100 < 10); return { k, n, d: 1000 }; }
       let n; do n = t > 0.6 ? ri(101, 399) : ri(11, 99); while (n % 10 === 0 || n % 100 < 10); return { k, n, d: 100 };
@@ -1922,7 +1935,8 @@ function newSeries() {
   if (!ks.length) return;
   let last = null;
   for (let i = 0; i < 10; i++) {
-    const t = i / 9;
+    // la difficulté : t va de 0 (facile) à 1 (difficile) ; niveau 1, 2 ou 3 = un tiers de ce chemin ; « 1 → 3 » = tout le chemin
+    const t = S.niveau ? (S.niveau - 1 + i / 9) / 3 : i / 9;
     let k; let tries = 0;
     do k = pick(ks); while (k === last && ks.length > 1 && tries++ < 5);
     // Variété : on retire une question déjà posée dans la série, et (fractions égales) la même fraction de départ deux fois de suite
@@ -3211,6 +3225,7 @@ addEventListener('resize', () => { clearTimeout(attenteTaille); attenteTaille = 
 const ACT = {
   menu() { S.screen = 'menu'; render(); },
   print() { ouvrirFiche(); },
+  niveau(v) { S.niveau = +v; save('niveau', S.niveau); renderMenu(); },   // difficulté des défis (et, par défaut, de la fiche)
   fclose() { $('#fiche').hidden = true; },
   fcreate() { creerFicheWord(); },
   fcomp(v) { FICHE.choix.has(v) ? FICHE.choix.delete(v) : FICHE.choix.add(v); majFiche(); },
@@ -3415,6 +3430,7 @@ const FICHE = { nombre: 8, prenom: true, corrige: true, choix: null, niveau: 0 }
 
 function ouvrirFiche() {
   FICHE.choix = new Set(S.defis.only ? [S.defis.only] : C().defis.filter(defiOn));
+  FICHE.niveau = S.niveau;   // par défaut, la difficulté choisie pour les défis
   $('#ficheErreur').hidden = true; majFiche(); $('#fiche').hidden = false;
 }
 
