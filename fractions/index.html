@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.12 dans le portail « Le tableau magique » (fiche : 1, 2 ou 3 exercices par compétence, à la suite ; « Comparer une fraction à l’unité » (et à 2 ou 3) ; « Quel nombre » ; écritures « 1 + 1/2 » dans les propositions et Ranger ; clavier : Entrée et Espace activent le bouton choisi ; difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
+  v1.13 dans le portail « Le tableau magique » (Représenter : « 2 + 1/4 » à colorier ; « 2 − 1/3 » ; fiche : 1, 2 ou 3 exercices par compétence, à la suite ; « Comparer une fraction à l’unité » (et à 2 ou 3) ; « Quel nombre » ; écritures « 1 + 1/2 » dans les propositions et Ranger ; clavier : Entrée et Espace activent le bouton choisi ; difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.12</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.13</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1724,11 +1724,15 @@ const GEN = {
   },
   colorier(t) {
     const q = GEN.nommer(t, 'colorier'), c = C();
+    // CM1-CM2, niveaux 2 et 3 : plus souvent une fraction plus grande que 1 (à écrire aussi « 2 + 1/4 »)
+    if (c.lvl >= 2 && t > 0.4 && q.n < q.d && q.rep !== 'droite' && Math.random() < 0.5 && (2 * q.d * q.k) <= 40) q.n += q.d * ri(1, Math.max(1, Math.min(2, c.maxU - 1)));
     q.u = Math.max(1, Math.ceil(q.n / q.d));
     // parfois plus d'unités que nécessaire, même quand la fraction est plus petite que 1 (CM1-CM2)
     if (c.lvl >= 2 && Math.random() < 0.45 && (q.u + 1) * q.d * q.k <= 40) q.u = Math.min(c.maxU, q.u + 1); // sans rendre les parts trop fines
     if (q.n === q.u * q.d && q.u < c.maxU && (q.u + 1) * q.d * q.k <= 40) q.u++;
     q.scatter = false;
+    // CM1-CM2 : la fraction à colorier écrite « 2 + 1/4 » (partie entière + partie fractionnaire), de plus en plus souvent
+    if (c.lvl >= 2 && q.rep !== 'droite' && q.n > q.d && q.n % q.d && Math.random() < (t < 0.34 ? 0.25 : t < 0.67 ? 0.5 : 0.8)) q.mixte = true;
     return q;
   },
   comparer(t) { return comparePair(t, true); },
@@ -1799,6 +1803,12 @@ const GEN = {
       while ((sub ? a * k - b <= 0 : a * k + b > lim) && tries < 50);
       if (sub ? a * k - b <= 0 : a * k + b > lim) { a = 1; b = 1; }
       return { a, d: d1, b, d2, k, sub };
+    }
+    // CM1-CM2 : retrancher une fraction d'un entier, « 2 − 1/3 », « 1 − 2/5 » (de plus en plus souvent dans la série)
+    // (pas « 1 + 3/4 » : c'est le travail de « Décomposer, recomposer »)
+    if (lvl >= 2 && ops.includes('moins') && t > 0.2 && Math.random() < (t > 0.66 ? 0.6 : 0.3)) {
+      const d = pickDen(t, 10), e = ri(1, t > 0.6 ? 3 : 2), b = ri(1, d - 1);
+      return { a: e * d, b, d, sub: true, ent: e };   // a = e en parts de d : le reste du défi (dessin, correction) est le même
     }
     let d = pickDen(t, 10);
     if (d === 2 && lvl >= 1) d = pickDen(t, 10);   // en demis, c'est toujours 1/2 + 1/2 : on en tire un autre (une fois)
@@ -2658,6 +2668,9 @@ const PROPS = {
   ajouter(q) {
     if (q.comp || q.d2) return null;
     const { a, b, d, sub } = q;
+    if (q.ent) { const e = q.ent; return sub   // 2 − 1/3 = 5/3
+      ? { bonne: F(a - b, d), pieges: [[F(Math.abs(e - b) || d - b, d), 'le 1 de l\'entier pris pour un numérateur.'], e > 1 ? [ENT(e - 1, b, d), 'on a gardé ce qu\'on enlève.'] : [F(b, d), 'c\'est ce qu\'on enlève.'], [F(a + b, d), 'addition au lieu de soustraction.']] }
+      : { bonne: F(a + b, d), pieges: [[F(e + b, d), 'l\'entier ajouté au numérateur.'], [F(e + b, d + e), 'entier ajouté en haut et en bas.'], [F(a - b, d), 'soustraction au lieu d\'addition.']] }; }
     const ent = !sub && propsMixtes(q, a + b, d); if (ent) return ent;   // 3/4 + 2/4 = 1 + 1/4
     return sub ? { bonne: F(a - b, d), pieges: [
       [F(a + b, d), 'tu as additionné au lieu de soustraire.'],
@@ -2839,13 +2852,17 @@ function renderDefi() {
       const D = q.d * q.k, N = q.n * q.k, st = S.defis.st;
       if (!st.set) st.set = new Set();
       const droite = q.rep === 'droite';
-      prompt = `${droite ? 'Place' : 'Colorie'} ${F(q.n, q.d)}${droite ? ' sur la droite graduée' : ''}`;
-      sub = [fracWords(q.n, q.d), q.k > 1 ? `Attention : ${droite ? "l'unité" : 'chaque unité'} est partagée en ${denName(D, true)}` : '',
+      const e = Math.floor(q.n / q.d), r = q.n % q.d;
+      prompt = `${droite ? 'Place' : 'Colorie'} ${q.mixte ? ENT(e, r, q.d) : F(q.n, q.d)}${droite ? ' sur la droite graduée' : ''}`;
+      const motsEnt = `${e === 1 ? 'une unité' : words(e) + ' unités'} et ${fracWords(r, q.d)}`;   // « deux unités et un quart »
+      sub = [q.mixte ? motsEnt : fracWords(q.n, q.d), q.k > 1 ? `Attention : ${droite ? "l'unité" : 'chaque unité'} est partagée en ${denName(D, true)}` : '',
              q.u > 1 && !droite ? `Chaque ${q.rep === 'disque' ? 'disque' : 'barre'} est une unité` : ''].filter(Boolean).join('. ') + '.';
       const cnt = droite ? (st.g || 0) : st.set.size;
       steps = q.k > 1
         ? [I(`Attention : chaque unité est partagée en ${denName(D, true)}, pas en ${denName(q.d, true)}.`), Dn(`${F(1, q.d)} = ${F(q.k, D)} : il faut ${q.k} petites parts pour faire ${F(1, q.d)}.`), M(`${F(q.n, q.d)}, c'est ${q.n} fois ${F(1, q.d)}, donc ${q.n} fois ${q.k} petites parts.`)]
         : [I(`Le dénominateur, ${q.d}, dit en combien de parts égales on partage l'unité.`), M(`Le numérateur, ${q.n}, dit combien de parts il faut ${droite ? 'compter depuis 0' : 'colorier'}${q.n > q.d ? ' : il faut plus d\'une unité' : ''}.`)];
+      if (q.mixte) steps = [I(`${e} : colorie ${e === 1 ? 'une unité entière' : words(e) + ' unités entières'}.`),
+                            M(`Puis ${F(r, q.d)} de l'unité suivante : ${r * q.k} part${r * q.k > 1 ? 's' : ''} sur ${D}.`)];
       animable = true;
       if (droite && qm === 'placer' && !R) {   // l'étiquette de la fraction se fait glisser sur la droite (on peut aussi cliquer une graduation)
         const x = 60, L = 840, y = 160, place = st.g !== undefined, X = place ? lx(x, L, q.u, D, st.g) : 500;
@@ -2862,7 +2879,7 @@ function renderDefi() {
         const bilan = R && q.rep === 'barre' && N > D ? N : 0;
         viz = drawRep(q.rep, { d: D, u: q.u, fill, interactive: !R, bilan, bilanDe: AN && bilan ? fill.fin : 0 }); }
       if (st.checked && !R) {
-        ans = cnt === N ? `<div class="pill">Bravo ! C'est bien ${fracWords(q.n, q.d)}.</div>`
+        ans = cnt === N ? `<div class="pill">Bravo ! C'est bien ${q.mixte ? motsEnt : fracWords(q.n, q.d)}.</div>`
                         : `<div class="pill ko">${droite ? 'Ton point est à' : 'Tu as colorié'} ${fracWords(cnt, D)}. Il faut ${fracWords(q.n, q.d)}.</div>`;
       } else if (q.k > 1) ans = `<div class="pill">${F(q.n, q.d)} = ${F(N, D)} : ${droite ? 'on avance de' : 'on colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''}</div>`;
       else ans = `<div class="pill">${droite ? 'On avance de' : 'On colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''} : ${fracWords(q.n, q.d)}</div>`;
@@ -2967,9 +2984,9 @@ function renderDefi() {
         ans = `<div class="pill">${F(a, d)} = ${F(a * k, d2)} &nbsp;donc&nbsp; ${F(a * k, d2)} ${moins ? '−' : '+'} ${F(b, d2)} = ${F(res, d2)}</div>` + finPill(res, d2);
         break;
       }
-      const { a, b, d, sub: moins } = q, res = moins ? a - b : a + b;
-      prompt = `${F(a, d)} ${moins ? '−' : '+'} ${F(b, d)} = ${R ? F(res, d) : BOX}`;
-      steps = [I(`Les parts ont la même taille : ce sont des ${denName(d, true)}.`),
+      const { a, b, d, sub: moins } = q, res = moins ? a - b : a + b, e = q.ent;
+      prompt = `${e ? e : F(a, d)} ${moins ? '−' : '+'} ${F(b, d)} = ${R ? F(res, d) : BOX}`;   // « 2 − 1/3 » : l'entier écrit tel quel
+      steps = [e ? I(`${e} = ${F(a, d)} : ${e === 1 ? 'une unité, c\'est' : 'chaque unité fait'} ${d} ${denName(d, true)}.`) : I(`Les parts ont la même taille : ce sont des ${denName(d, true)}.`),
                Dn(moins ? `Dessine ${F(a, d)} :` : `Dessine ${F(a, d)}, puis ${F(b, d)} à la suite :`,
                   drawRep('barre', { d, u: Math.min(Math.max(1, Math.ceil((moins ? a : a + b) / d)), C().maxU), fill: moins ? (i => i < a ? A : null) : (i => i < a ? A : i < a + b ? B : null) })),
                M(moins ? `On enlève ${b} ${denName(d, b > 1)} aux ${a} : le dénominateur ne change pas.` : `On ajoute les numérateurs : ${a} ${denName(d, a > 1)} et ${b} ${denName(d, b > 1)}. Le dénominateur ne change pas.`)];
@@ -2978,7 +2995,8 @@ function renderDefi() {
         const fill = fillAnime(a, b, moins, A, B, AN);
         viz = drawRep('barre', { d, u: Math.min(u, C().maxU), fill, bilan: res >= d ? res : 0, bilanDe: fill.fin });
       }
-      ans = `<div class="pill">${fracWords(a, d)} ${moins ? 'moins' : 'plus'} ${fracWords(b, d)}, ça fait ${fracWords(res, d)}</div>` + finPill(res, d);
+      ans = e ? `<div class="pill">${e} = ${F(a, d)} &nbsp;donc&nbsp; ${F(a, d)} ${moins ? '−' : '+'} ${F(b, d)} = ${F(res, d)}</div>` + finPill(res, d)
+        : `<div class="pill">${fracWords(a, d)} ${moins ? 'moins' : 'plus'} ${fracWords(b, d)}, ça fait ${fracWords(res, d)}</div>` + finPill(res, d);
       break;
     }
     case 'lire': {
