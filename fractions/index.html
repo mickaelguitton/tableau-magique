@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout)
+  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -394,7 +394,7 @@ svg{user-select:none;-webkit-user-select:none}
     <ul>
       <li><b>Une compétence par tuile,</b> choisie selon la classe, d’après les programmes 2024-2025 (fractions dès le CE1) et les exemples de réussite d’Éduscol : lire, représenter, comparer, ranger, trier, fractions égales, ajouter et retrancher, entier × fraction, encadrer, décomposer, fraction d’une quantité, petits problèmes, fractions décimales.</li>
       <li><b>Des séries de dix questions,</b> du plus simple au plus difficile, avec un pas à pas en plusieurs étapes avant la réponse.</li>
-      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts. Ces questions se manipulent d’office ; cocher « Propositions » les remet en question classique. Pour « Encadrer entre deux entiers », le bouton « Graduations » ajoute les petites graduations sur la droite.</li>
+      <li><b>Des défis à manipuler au tableau, au doigt :</b> partager des billes en parts égales (on choisit le nombre de parts), couper une bande (500 g, 10 m, 20 €…) en parts égales, poser une fraction sur la droite graduée, trier des étiquettes dans des boîtes, associer dessins et fractions, construire 7/4 avec des unités et des quarts, glisser le bon signe pour comparer, ranger des étiquettes dans l’ordre, poser 3 fois 2/5 bout à bout sur la droite. Ces questions se manipulent d’office ; cocher « Propositions » les remet en question classique. Pour « Encadrer entre deux entiers », le bouton « Graduations » ajoute les petites graduations sur la droite.</li>
       <li><b>Des propositions de réponses,</b> si on le souhaite (bouton « Propositions », le seul réglage des défis) : la bonne et des erreurs fréquentes des élèves (fraction retournée, dénominateurs additionnés…). Les élèves répondent A, B, C ou D sur l’ardoise.</li>
       <li><b>La correction en images, animée :</b> schéma en barres, disques ou droite graduée pour comprendre la réponse. On voit les parts se colorier, se découper ou s’enlever, les bonds avancer sur la droite et les objets se distribuer.</li>
     </ul>
@@ -2229,6 +2229,8 @@ function manipDe(q, avecReglage = true) {
   if (q.type === 'encadrer' && q.U) return 'glisse';
   if (q.type === 'comparer' || (q.type === 'decimales' && q.k === 'dcmp')) return 'signe';   // comme dans l'atelier : le signe glissé dans la case
   if (q.type === 'decomposer' && !q.inverse && q.d <= 8) return 'construire';
+  if (q.type === 'ranger') return 'ranger';                     // les étiquettes glissées dans les cases, dans l'ordre
+  if (q.type === 'produit' && q.d <= 10) return 'produit';      // des morceaux de a/d posés bout à bout sur la droite
   if (q.type === 'nommer' && q.assoc) return 'associer';
   return null;
 }
@@ -2278,6 +2280,20 @@ const LACHER = {
   },
   // pièces : une unité (u) ou une part (p) prise dans la boîte à pièces et posée sur la bande (z) ;
   // une pièce de la bande (bu, bp) posée ailleurs est retirée
+  // ranger : étiquette i dans une case (c0…c3) ; celle qui y était retourne à la réserve ; ou retour à la réserve (r)
+  ranger(q, st, de, vers) {
+    if (!vers) return;
+    const i = +de;
+    if (vers === 'r') delete st.pos[i];
+    else if (vers[0] === 'c') { const j = +vers.slice(1); for (const k in st.pos) if (st.pos[k] === j) delete st.pos[k]; st.pos[i] = j; }
+    st.checked = false;
+  },
+  // produit : un morceau pris dans la réserve et posé sur la droite (ou touché) s'ajoute au bout ; le dernier morceau repris s'en va
+  produit(q, st, de, vers, p, bouge) {
+    if (de === 'src' && (vers === 'z' || !bouge)) st.k = Math.min((st.k || 0) + 1, q.m + 4);
+    if (de === 'pc' && (vers !== 'z' || !bouge)) st.k = Math.max((st.k || 0) - 1, 0);
+    st.checked = false;
+  },
   construire(q, st, de, vers) {
     const tot = st.u * q.d + st.p, max = (q.e + 2) * q.d;
     if ((de === 'u' || de === 'p') && vers === 'z') {
@@ -2454,6 +2470,68 @@ const MANIP = {
         steps: [I("Le nombre du bas (dénominateur) dit en combien de parts égales l'unité est partagée."),
                 M('Le nombre du haut (numérateur) dit combien de parts sont coloriées. Méfie-toi des étiquettes pièges.')],
         boutons: R ? '' : BTN.verifier('dcheck') + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  ranger: {
+    dessin(q, st, R, { I, M }) {
+      if (!st.pos) st.pos = {};
+      const { items } = q, nb = items.length, cmp = (a, b) => q.desc ? b.n * a.d - a.n * b.d : a.n * b.d - b.n * a.d;
+      const ordre = [...items.keys()].sort((i, j) => cmp(items[i], items[j]));   // ordre[j] : l'étiquette qui va dans la case j
+      const juste = (i, j) => items[i].n * items[ordre[j]].d === items[ordre[j]].n * items[i].d;
+      // une étiquette : la fraction, ou le nombre écrit (2,45 ; 3) en texte
+      const etiq = (x, y, o, id, etat) => o.html.includes('<') ? etiquette(x, y, o.n, o.d, id, etat, 110)
+        : etiquette(x, y, 0, 1, id, etat, Math.max(110, o.html.length * 26 + 30)).replace(/<g fill="[^"]*" font-weight="700" font-size="32" text-anchor="middle">[\s\S]*?<\/g>/,
+            `<text x="${x}" y="${y + 12}" text-anchor="middle" font-size="36" font-weight="700" fill="${INK}">${o.html}</text>`);
+      // réserve en haut
+      const libres = items.map((_, i) => i).filter(i => st.pos[i] === undefined), pasR = 960 / nb;
+      let s = `<rect data-drop="r" x="20" y="6" width="960" height="120" rx="22" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="10 8"/>`;
+      libres.forEach((i, j) => { s += etiq(20 + pasR * (j + 0.5) + (nb - libres.length) * pasR / 2, 70, items[i], i, ''); });
+      // les cases, dans l'ordre, séparées par le signe
+      const yC = 170, pas = 960 / nb, signe = q.desc ? '&gt;' : '&lt;';
+      const cw = Math.max(160, ...items.map(o => o.html.includes('<') ? 110 : o.html.length * 26 + 30)) + 24;   // une case assez large pour la plus longue étiquette
+      for (let j = 0; j < nb; j++) {
+        const X = 20 + pas * (j + 0.5);
+        s += `<rect data-drop="c${j}" x="${X - cw / 2}" y="${yC}" width="${cw}" height="118" rx="18" fill="${soft('--c1', .12)}" stroke="#cfc6b6" stroke-width="3" stroke-dasharray="8 6"/>`;
+        if (j) s += `<text x="${X - pas / 2}" y="${yC + 78}" text-anchor="middle" font-size="56" font-weight="700" fill="${INK}">${signe}</text>`;
+      }
+      for (const i in st.pos) { const j = st.pos[i]; s += etiq(20 + pas * (j + 0.5), yC + 62, items[i], i, st.checked ? (juste(+i, j) ? 'ok' : 'ko') : ''); }
+      const tout = Object.keys(st.pos).length === nb && Object.entries(st.pos).every(([i, j]) => juste(+i, j));
+      return {
+        prompt: `Range dans l'ordre ${q.desc ? 'décroissant' : 'croissant'}`,
+        sub: `${q.desc ? 'Du plus grand au plus petit' : 'Du plus petit au plus grand'} : fais glisser chaque étiquette dans une case.`,
+        viz: svg(1000, yC + 130, s, GLISSABLE),
+        ans: st.checked && tout ? `<div class="pill">${ordre.map(i => items[i].html).join(q.desc ? ' &gt; ' : ' &lt; ')}</div>` : '',
+        steps: [I("Cherche d'abord le plus petit et le plus grand."), M('Écris-les de la même façon (même dénominateur, ou avec une virgule), puis compare.')],
+        boutons: BTN.verifier('dcheck') + BTN.effacer('dvider')
+      };
+    }
+  },
+
+  produit: {
+    dessin(q, st, R, { I, M }) {
+      const { m, a, d } = q, k = st.k || 0, res = m * a;
+      const U = Math.max(2, Math.ceil((m + 2) * a / d)), x0 = 60, L = 880, uw = L / U, w = a / d * uw, y = 250, h = 54;
+      const etat = st.checked ? (k === m ? 'ok' : 'ko') : '';
+      // la réserve : un morceau de a/d, à faire glisser (ou à toucher) autant de fois qu'il faut
+      let s = `<g data-drag="src" class="piece"><rect x="${x0 - 10}" y="0" width="${Math.max(w, 60) + 20}" height="120" fill="transparent"/>
+               <rect x="${x0}" y="58" width="${w}" height="${h}" rx="6" fill="var(--a)" stroke="${INK}" stroke-width="3"/>
+               ${svgFrac(x0 + Math.max(w, 60) + 50, 85, a, d, 44, INK)}</g>`;
+      s += `<rect data-drop="z" x="0" y="140" width="1000" height="180" fill="transparent"/>` + lineG({ x: x0, y, L, u: U, d });
+      // les morceaux posés bout à bout, au-dessus de la droite (on reprend le dernier pour l'enlever)
+      let g = '';
+      for (let j = 0; j < k; j++) g += `<rect x="${x0 + j * w}" y="${y - h - 18}" width="${w}" height="${h}" rx="4" fill="${j % 2 ? 'var(--c3)' : 'var(--a)'}" stroke="${INK}" stroke-width="2.5"/>`;
+      if (k) s += `<g data-drag="pc" class="piece">${g}</g>`;
+      if (etat) s += `<rect x="${x0 - 6}" y="${y - h - 24}" width="${k * w + 12}" height="${h + 12}" rx="8" fill="none" stroke="var(--c${etat === 'ok' ? 2 : 5})" stroke-width="5"/>`;
+      return {
+        prompt: `${m} × ${F(a, d)} = ?`,
+        sub: `Pose les morceaux de ${F(a, d)} bout à bout sur la droite, puis lis le résultat.`,
+        viz: svg(1000, 330, s, GLISSABLE),
+        ans: etat === 'ok' ? `<div class="pill">${Array(m).fill(F(a, d)).join(' + ')} = ${F(res, d)}</div>` : '',
+        steps: [I(`${m} × ${F(a, d)}, c'est ${Array(m).fill(F(a, d)).join(' + ')}.`),
+                M(`On ajoute les numérateurs : ${m} fois ${a} ${denName(d, a > 1)}. Le dénominateur ne change pas.`)],
+        boutons: BTN.verifier('dcheck') + BTN.effacer('dvider')
       };
     }
   },
