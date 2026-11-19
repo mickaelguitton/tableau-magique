@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries)
+  v1.08 dans le portail « Le tableau magique » (fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout)
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -793,7 +793,8 @@ function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false, compact = fa
   for (let k = 0; k < u; k++) s += piece('u', quadPiece(x0 + Math.floor(k / 2) * (uw + 24), y0 + (k % 2) * (uh + gap), uw, uh, QCOL.u));
   const xmin = x0 + Math.ceil(u / 2) * (uw + 24) + (u ? 16 : 0), xmax = 982;
   let X = xmin, Y = y0, haut = 0;
-  const place = (w, h) => { if (X + w > xmax && X > xmin) { X = xmin; Y += haut + gap; haut = 0; } const p = [X, Y]; X += w + 12; haut = Math.max(haut, h); return p; };
+  let droite = u ? xmin - 16 : x0;   // le bord droit du dessin (pour le centrer dans les défis)
+  const place = (w, h) => { if (X + w > xmax && X > xmin) { X = xmin; Y += haut + gap; haut = 0; } const p = [X, Y]; X += w + 12; haut = Math.max(haut, h); droite = Math.max(droite, p[0] + w); return p; };
   const sorte = () => { if (X > xmin) X += 16; };   // un petit écart entre deux sortes de pièces
   for (let k = 0; k < d; k++) { const [a, b] = place(cell, cell); s += piece('d', quadPiece(a, b, cell, cell, QCOL.d)); }
   sorte();
@@ -811,13 +812,15 @@ function quadPieces({ u, d, c, m }, { x0 = 2, y0 = 2, drag = false, compact = fa
     s += piece('m', g);
   }
   const hautU = u ? y0 + Math.min(u, 2) * (uh + gap) - gap : 0;   // la colonne des unités (deux au plus en hauteur)
-  return { s, H: Math.max(compact ? hautU : y0 + QUAD_H, Y + haut) };
+  return { s, H: Math.max(compact ? hautU : y0 + QUAD_H, Y + haut), W: droite };
 }
 
 // Lire : le nombre en pièces, dans un cadre de taille fixe (compact : sans la place réservée aux unités, pour les défis)
 function quadSVG(P, compact = false) {
-  const { s, H } = quadPieces(P, { compact });
-  return svg(984, H + 4, s, 'class="quad"');
+  const { s, H, W } = quadPieces(P, { compact });
+  // largeur fixe : une pièce garde la même taille partout ; dans les défis (compact), le dessin est décalé pour être centré
+  const dx = compact ? Math.max(0, (984 - W) / 2) : 0;
+  return svg(984, H + 4, dx ? `<g transform="translate(${dx} 0)">${s}</g>` : s, 'class="quad"');
 }
 
 /* Représenter : en haut la réserve (une pièce de chaque sorte, à faire glisser ou à toucher),
@@ -1062,8 +1065,9 @@ const SIGN_TXT = { '<': 'est plus petit que', '>': 'est plus grand que', '=': 'e
 
 function comparePair(t, useSubs = false, sansFacile = false) {   // sansFacile : écran Comparer en CM2, pas de même dénominateur
   const c = C(), lvl = c.lvl;
-  let kinds = [['memeDen', 'unit'], ['memeDen', 'unit', 'memeNum', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'unit', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'multiple', 'egal', 'commun']][lvl];
+  let kinds = [['memeDen', 'unit'], ['memeDen', 'unit', 'memeNum', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'mixte', 'unit', 'multiple', 'egal'], ['memeDen', 'un', 'memeNum', 'multiple', 'mixte', 'egal', 'commun', 'mixte']][lvl];
   if (useSubs) kinds = subPick('comparer', kinds);
+  else kinds = kinds.filter(k => k !== 'mixte');   // l'atelier Comparer modifie les fractions à l'écran : pas d'écriture « 1 + 1/2 »
   if (sansFacile && lvl === 3) kinds = kinds.filter(k => k !== 'memeDen');
   const k = pick(kinds.slice(0, Math.max(1, Math.ceil(kinds.length * (0.35 + 0.65 * t)))));
   const big = lvl >= 2 && Math.random() < 0.3 + 0.4 * t;
@@ -1078,6 +1082,13 @@ function comparePair(t, useSubs = false, sansFacile = false) {   // sansFacile :
       do { d1 = pick(L); d2 = pick(L); } while (d1 === d2 || d1 % d2 === 0 || d2 % d1 === 0 || d1 * d2 / gcd(d1, d2) > 60);
       const n1 = ri(d1 + 1, 2 * d1 - 1); let n2 = Math.round(n1 / d1 * d2); if (n2 % d2 === 0) n2++;
       a = { n: n1, d: d1 }; b = { n: n2, d: d2 }; break; }
+    case 'mixte': { // 1 + 1/2 et 3/2 ; 2 + 1/4 et 7/4 (CM1-CM2) : un entier plus une fraction, face à une fraction plus grande que 1
+      const dd = [2, 3, 4, 5, 6, 8, 10].filter(x => c.dens.includes(x)), d0 = pick(dd), e = ri(1, lvl === 3 ? 3 : 2), r = ri(1, d0 - 1), v = e * d0 + r;
+      a = { n: v, d: d0, e, r, mixte: true };   // n/d garde la valeur (dessins, signe) ; e et r servent à l'écrire « e + r/d »
+      const m = lvl === 3 && Math.random() < 0.4 && c.dens.includes(d0 * 2) ? 2 : 1;   // CM2 : parfois l'autre en dénominateur double (7/4 et 1 + 3/8)
+      const ecart = Math.random() < 0.35 ? 0 : pick([-2, -1, 1, 2]);   // égales une fois sur trois, sinon tout près
+      b = { n: Math.max(1, v * m + ecart), d: d0 * m };
+      break; }
     case 'egal': { const base = pick([[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5]]); const kk = pick([2, 3, 4, 5].filter(m => c.dens.includes(base[1] * m) && base[1] * m <= 12 + lvl * 4)) || 2; a = { n: base[0], d: base[1] }; b = { n: base[0] * kk, d: base[1] * kk }; break; }
     default: { d = pickDen(t); const max = big ? 2 * d : d - 1; const n1 = ri(1, max); let n2; do n2 = ri(1, Math.max(2, max)); while (n2 === n1); a = { n: n1, d }; b = { n: n2, d }; }
   }
@@ -1209,7 +1220,7 @@ function renderTools() {
     h += toggle('Graduations', 'pgrads', p.grads);
     if (p.task === 'placer') h += BTN.effacer('pclear');
     if (p.task === 'placer') h += BTN.verifier('pverif');
-    if ((p.task === 'lire' || p.verif === 'ko') && !p.revealed) h += BTN.voir('preveal');
+    if (!p.revealed) h += BTN.voir('preveal');   // à tout moment, comme dans les défis
     h += BTN.neuf('pnew');
   }
   if (S.mode === 'deci') {
@@ -1222,7 +1233,7 @@ function renderTools() {
     }
     h += toggle('Écriture à virgule', 'dvirg', q.virgule);
     h += BTN.effacer('dclear');
-    if (q.tache === 'rep') h += BTN.verifier('dverif');
+    if (q.tache === 'rep') h += BTN.verifier('dverif') + BTN.voir('dvoir');
     h += BTN.neuf('drandom');
   }
   if (S.mode === 'ddroite') {
@@ -1231,7 +1242,7 @@ function renderTools() {
     h += seg('ddech', q.ech, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes'], ...(c.deciMax === 1000 ? [['millieme', 'Millièmes']] : [])]);
     h += toggle('Écriture à virgule', 'ddvirg', q.virgule);
     if (q.tache === 'placer') h += BTN.effacer('ddclear') + BTN.verifier('ddverif');
-    if (q.tache === 'lire' || q.verif === 'ko') h += q.revealed ? '' : BTN.voir('ddvoir');
+    if (!q.revealed) h += BTN.voir('ddvoir');   // à tout moment, comme dans les défis
     h += BTN.neuf('ddnew');
   }
   if (S.mode === 'defis') h += BTN.neuf('dnew', 'Nouvelle série'); // les autres boutons des défis s'ajoutent dans renderDefi
@@ -1329,8 +1340,10 @@ function cmpVide() {
 const SIGNE_TXT = { '<': '&lt;', '=': '=', '>': '&gt;' }, SIGNE_ID = { '<': 'lt', '=': 'eq', '>': 'gt' };
 function signesSVG(a, b, signe, etat) {
   const couleur = etat === 'ok' ? 'var(--c2)' : etat === 'ko' ? 'var(--c5)' : signe ? INK : 'var(--muted)';
-  const large = o => o.txt ? Math.max(100, o.txt.length * 36) : 100;   // la place que prend un nombre
-  const nombre = (x, o, col) => o.txt ? `<text x="${x}" y="84" text-anchor="middle" font-size="64" font-weight="700" fill="${col}">${o.txt}</text>` : svgFrac(x, 66, o.n, o.d, 60, col);
+  const large = o => o.txt ? Math.max(100, o.txt.length * 36) : o.mixte ? 190 : 100;   // la place que prend un nombre
+  const nombre = (x, o, col) => o.txt ? `<text x="${x}" y="84" text-anchor="middle" font-size="64" font-weight="700" fill="${col}">${o.txt}</text>`
+    : o.mixte ? `<text x="${x + 18}" y="84" text-anchor="end" font-size="64" font-weight="700" fill="${col}">${o.e} +</text>` + svgFrac(x + 62, 66, o.r, o.d, 60, col)   // « 1 + 1/2 », serré
+    : svgFrac(x, 66, o.n, o.d, 60, col);
   const wa = large(a), wb = large(b), xa = 10 + wa / 2, c0 = 10 + wa + 15, xb = c0 + 110 + 15 + wb / 2, sep = xb + wb / 2 + 45;
   let v = nombre(xa, a, 'var(--a)') + nombre(xb, b, 'var(--b)')
         + `<rect data-drop="case" x="${c0}" y="6" width="110" height="110" rx="20" fill="${signe ? '#fff' : soft('--c1', .15)}" stroke="${couleur}" stroke-width="5" ${signe ? '' : 'stroke-dasharray="12 8"'}/>`
@@ -1579,7 +1592,7 @@ const SUBS = {
   nommer: l => [['barre', 'barre'], ['disque', 'disque'], ...(l >= 1 ? [['droite', 'droite graduée']] : [])],
   colorier: l => [['barre', 'barre'], ['disque', 'disque'], ...(l >= 1 ? [['droite', 'droite graduée']] : [])],
   comparer: l => [['memeDen', 'même dénominateur'], ['unit', 'numérateur 1'], ...(l >= 1 ? [['memeNum', 'même numérateur'], ['multiple', 'dénominateur multiple'], ['egal', 'fractions égales']] : []),
-                  ...(l >= 2 ? [['un', 'comparer à 1']] : []), ...(l >= 3 ? [['commun', 'dénominateurs différents']] : [])],
+                  ...(l >= 2 ? [['un', 'comparer à 1'], ['mixte', 'entier + fraction']] : []), ...(l >= 3 ? [['commun', 'dénominateurs différents']] : [])],
   ranger: l => l >= 2 ? [['fr', 'fractions'], ['dec', 'nombres décimaux']] : [],
   trier: l => [['tri1', 'par rapport à 1'], ['tri2', 'égal à 1/2 ou pas']],
   egales: l => [['comp', 'nombre manquant'], ['parmi', 'choisir parmi plusieurs']],
@@ -2734,7 +2747,8 @@ function renderDefi() {
     }
     case 'comparer': {
       const { a, b } = q, real = cmpSign(a, b);
-      prompt = `<span style="color:${A}">${F(a.n, a.d)}</span> <span class="box">${R ? (real === '<' ? '&lt;' : real === '>' ? '&gt;' : '=') : '?'}</span> <span style="color:${B}">${F(b.n, b.d)}</span>`;
+      const ecr = o => o.mixte ? `${o.e} + ${F(o.r, o.d)}` : F(o.n, o.d);   // « 1 + 1/2 » ou « 3/2 »
+      prompt = `<span style="color:${A}">${ecr(a)}</span> <span class="box">${R ? (real === '<' ? '&lt;' : real === '>' ? '&gt;' : '=') : '?'}</span> <span style="color:${B}">${ecr(b)}</span>`;
       sub = 'Écris le bon signe : &lt;, = ou &gt;';
       viz = R ? `<div class="cmp" style="width:100%">${cmpRows(a, b, 'barre', true)}</div>` : '';
       { const [p, g] = a.d <= b.d ? [a, b] : [b, a], km = g.d / p.d, L = a.d * b.d / gcd(a.d, b.d);
@@ -2744,20 +2758,22 @@ function renderDefi() {
                       un: `Combien de ${denName(a.d === 1 ? b.d : a.d, true)} faut-il pour faire 1 ?`,
                       multiple: `${g.d} est un multiple de ${p.d} : on peut écrire les deux fractions avec le même dénominateur.`,
                       egal: `${g.d} est un multiple de ${p.d} : on peut écrire les deux fractions avec le même dénominateur.`,
-                      commun: 'Les dénominateurs sont différents : cherche un dénominateur commun.' }[q.kind] || 'Compare chaque fraction à 1.';
+                      commun: 'Les dénominateurs sont différents : cherche un dénominateur commun.',
+                      mixte: `Combien de ${denName(a.mixte ? a.d : b.d, true)} y a-t-il dans ${(a.mixte ? a : b).e} ?` }[q.kind] || 'Compare chaque fraction à 1.';
         const met = { memeDen: 'Celle qui a le plus grand numérateur est la plus grande.',
                       unit: 'Plus on partage en un grand nombre de parts, plus chaque part est petite.',
                       memeNum: 'Plus le dénominateur est grand, plus les parts sont petites.',
                       un: `1 = ${F(a.d === 1 ? b.d : a.d, a.d === 1 ? b.d : a.d)} : compare les numérateurs.`,
                       multiple: `Partage chaque ${denName(p.d, false)} en ${km} : ${F(p.n, p.d)} = ${Fbox(null, g.d)}, puis compare les numérateurs.`,
                       egal: `Partage chaque ${denName(p.d, false)} en ${km} : ${F(p.n, p.d)} = ${Fbox(null, g.d)}, puis compare les numérateurs.`,
-                      commun: `Écris les deux fractions en ${denName(L, true)}, puis compare les numérateurs.` }[q.kind] || 'Compare les numérateurs.';
+                      commun: `Écris les deux fractions en ${denName(L, true)}, puis compare les numérateurs.`,
+                      mixte: (o => `${o.e} = ${F(o.e * o.d, o.d)}, donc ${o.e} + ${F(o.r, o.d)} = ${F(o.n, o.d)} : compare ensuite les deux fractions.`)(a.mixte ? a : b) }[q.kind] || 'Compare les numérateurs.';
         steps = [I(ind), Dn('Dessine les deux fractions avec la même unité.', `<div class="cmp" style="width:100%">${cmpRows(a, b, 'barre', true)}</div>`), M(met)]; }
-      const wa = a.d === 1 ? String(a.n) : fracWords(a.n, a.d), wb = b.d === 1 ? String(b.n) : fracWords(b.n, b.d);
+      const mots = o => o.mixte ? `${o.e} + ${fracWords(o.r, o.d)}` : o.d === 1 ? String(o.n) : fracWords(o.n, o.d), wa = mots(a), wb = mots(b);
       ans = `<div class="pill">${wa} ${SIGN_TXT[real]} ${wb}</div>`;
       if (qm === 'signe' && !R) {   // à manipuler : la case et les signes, puis Vérifier (vert ou rouge, sans explication)
         const st = D.st, etat = st.checked && st.sign ? (st.sign === real ? 'ok' : 'ko') : '';
-        prompt = 'Quelle fraction est la plus grande ?';
+        prompt = 'Quel nombre est le plus grand ?';
         sub = 'Fais glisser le bon signe dans la case.';
         viz = `<div class="caseSigne defi">${signesSVG(a, b, st.sign, etat)}</div>`;
         if (etat !== 'ok') ans = '';
@@ -3191,6 +3207,7 @@ const ACT = {
   pgrads() { S.placer.grads = !S.placer.grads; render(); },
   dtache(v) { S.deci.tache = v; render(); },
   dclear() { const q = S.deci; if (q.tache === 'rep') { q.plateau = { u: 0, d: 0, c: 0, m: 0 }; q.verif = null; } else q.pieces = { u: 0, d: 0, c: 0, m: 0 }; render(); },
+  dvoir() { const q = S.deci, v = q.cible; q.plateau = { u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }; q.verif = 'ok'; render(); },   // les bonnes pièces sur le plateau
   dverif() { const q = S.deci; q.verif = valPlateau(q.plateau) === q.cible ? 'ok' : 'ko'; render(); },   // les échanges comptent : 12 dixièmes, c'est 1,2
   ddtache(v) { S.dd.tache = v; ddNew(); render(); },
   ddech(v) { S.dd.ech = v; ddNew(); render(); },
