@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.13 dans le portail « Le tableau magique » (Représenter : « 2 + 1/4 » à colorier ; « 2 − 1/3 » ; fiche : 1, 2 ou 3 exercices par compétence, à la suite ; « Comparer une fraction à l’unité » (et à 2 ou 3) ; « Quel nombre » ; écritures « 1 + 1/2 » dans les propositions et Ranger ; clavier : Entrée et Espace activent le bouton choisi ; difficulté 1, 2, 3 des défis à l'écran, niveau 3 recalibré ; signes de comparaison un peu plus petits ; fiche Word : difficulté 1, 2, 3 ; progression des séries ; comparer 1 + 1/2 et 3/2 ; Vérifier et Voir la réponse partout ; ranger et entier × fraction à manipuler)
+  v1.14 dans le portail « Le tableau magique » (fiche d'évaluation : questions en colonnes, pointillés, tableau de tri, même taille d'écriture, dessins en gris clair).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.13</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.14</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -3517,9 +3517,9 @@ const RUN_FONT = '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>';
 
 const wRun = (t, o = {}) => t === '' ? '' : `<w:r><w:rPr>${RUN_FONT}${o.b ? '<w:b/>' : ''}${o.col ? `<w:color w:val="${o.col}"/>` : ''}<w:sz w:val="${(o.size || 13) * 2}"/></w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
 
-const mRun = (t, size) => `<m:r><w:rPr>${RUN_FONT}<w:b/><w:sz w:val="${size * 2}"/></w:rPr><m:t>${xmlEsc(t)}</m:t></m:r>`;
+const mRun = (t, size, col) => `<m:r><w:rPr>${RUN_FONT}<w:b/>${col ? `<w:color w:val="${col}"/>` : ''}<w:sz w:val="${size * 2}"/></w:rPr><m:t>${xmlEsc(t)}</m:t></m:r>`;
 
-const TROU = '……';
+const TROU = '………';
 
 function htmlToRuns(node, o) {
   let out = '';
@@ -3530,8 +3530,8 @@ function htmlToRuns(node, o) {
     if (ch.tagName === 'BR') out += '<w:r><w:br/></w:r>';
     else if (cl.contains('frac')) {
       const part = s => { const e = ch.querySelector(s); return e ? (e.querySelector('.box') ? (/^\s*\?\s*$/.test(e.textContent) ? '…' : e.textContent.trim()) : e.textContent.trim()) : ''; };
-      const d = part('.d'), n = part('.n'), size = (o.size || 13) + 1;
-      out += d === '' ? wRun(n, { ...o, b: true }) : `<m:oMath><m:f><m:num>${mRun(n, size)}</m:num><m:den>${mRun(d, size)}</m:den></m:f></m:oMath>`;
+      const d = part('.d'), n = part('.n'), size = o.size || 13;   // même taille que le texte
+      out += d === '' ? wRun(n, { ...o, b: true }) : `<m:oMath><m:f><m:num>${mRun(n, size, o.col)}</m:num><m:den>${mRun(d, size, o.col)}</m:den></m:f></m:oMath>`;
     }
     else if (cl.contains('box')) out += wRun(/^\s*\?\s*$/.test(ch.textContent) ? ` ${TROU} ` : ch.textContent, { ...o, b: true });
     else out += htmlToRuns(ch, o);
@@ -3573,41 +3573,109 @@ function paraImage(id, rapport, largeurCm, hauteurMaxCm, keep = false) {
     `</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
 }
 
-/* ----- Un exercice : consigne, dessin(s), ligne de réponse ----- */
-async function blocExercice(q, num, corrige, images) {
-  const D = S.defis;
-  // parts coloriées dispersées : tirées une seule fois, pour que le corrigé montre le même dessin que l'exercice
-  if (q.type === 'nommer' && q.scatter && !q.parts) q.parts = scatterIdx(q.n * q.k, q.d * q.k);
-  D.list = [q]; D.i = 0; D.st = q.parts ? { set: q.parts } : {}; D.revealed = corrige;
-  renderDefi();
-  const st = $('#stage'), prompt = st.querySelector('.prompt'), sub = st.querySelector('.sub'), viz = st.querySelector('.dviz'), ans = st.querySelector('.answer');
-  // Chaque morceau sait se fabriquer (keep, échelle des dessins) et estimer sa hauteur en cm,
-  // pour répartir les exercices sur les pages sans laisser une page presque vide.
-  const blocs = [];
-  const texte = (el, size, avant, apres, fab) => { // hauteur : lignes de texte (plus hautes s'il y a des fractions)
-    const lignes = Math.max(1, Math.ceil(el.textContent.length * size * 0.021 / 18)) + (el.querySelectorAll('br').length);
-    const h = lignes * size * 0.045 * (el.querySelector('.frac') ? 1.9 : 1) + (avant + apres) * 0.035;
-    blocs.push({ h: () => h, x: fab });
-  };
-  texte(prompt, 13, 8, 2, k => para(wRun(num + '. ', { b: true, size: 13 }) + htmlToRuns(prompt, { size: 13 }), { keep: k, avant: 8, apres: 2 }));
-  if (sub && sub.textContent.trim() && !corrige) texte(sub, 10, 0, 2, k => para(htmlToRuns(sub, { size: 10, col: '666666' }), { keep: k, apres: 2 }));
-  // textes posés à côté des dessins (étiquettes à ranger, fractions à choisir)
-  const chips = viz.querySelector('.mini');
-  if (chips && !viz.querySelector('svg')) texte(chips, 14, 0, 6, k => para([...chips.children].map(c => htmlToRuns(c, { size: 14 }) + wRun('        ')).join(''), { keep: k, centre: true, apres: 6 }));
-  for (const s of viz.querySelectorAll('svg')) {
-    const im = await svgToPng(s); im.id = images.length + 1; images.push(im);
-    // dessins très larges et peu hauts (droites, rangements) : toute la largeur, sinon ils deviennent minuscules
-    const L = corrige ? (im.rapport < 0.35 ? 15 : 12) : 15, Hm = corrige ? 4 : 5.2, taille = e => Math.min(L * e, Hm * e / im.rapport);
-    blocs.push({ h: e => taille(e) * im.rapport + 0.3, x: (k, e) => paraImage(im.id, im.rapport, L * e, Hm * e, k) });
-  }
-  if (corrige) for (const p of ans.querySelectorAll('.pill')) texte(p, 12, 0, 2, k => para(htmlToRuns(p, { size: 12, col: '1D6B33' }), { keep: k, apres: 2 }));
-  else if (!prompt.querySelector('.box') && q.type !== 'colorier') blocs.push({ h: () => 0.75, x: k => paraTxt('Réponse : ……………………………………………', { keep: k, size: 12, apres: 8 }) });
-  return {
-    h: e => blocs.reduce((t, b) => t + b.h(e), 0) + 0.1,
-    // un exercice = une ligne de tableau invisible qui ne se coupe jamais entre deux pages (Word et LibreOffice)
-    x: e => blocInsecable(blocs.map((b, i) => b.x(i < blocs.length - 1, e)).join(''))
-  };
+
+/* =========================================================
+   Fiche d'évaluation : chaque compétence a sa mise en page papier
+   (3 ou 2 questions en colonnes, pointillés, tableau Word pour le tri),
+   une seule taille d'écriture, dessins en gris clair, jamais le mot « Réponse ».
+   ========================================================= */
+const PT = 12, GRIS = '#c9c9c9', VERT = '1D6B33', POINTS = '……………';
+const PAR_LIGNE = { nommer: 3, colorier: 3, comparer: 3, egales: 3, ajouter: 3, produit: 3, encadrer: 2, decomposer: 2, quantite: 2, probleme: 2 };
+
+const runsDe = (html, o = {}) => { const el = document.createElement('div'); el.innerHTML = html; return htmlToRuns(el, { size: PT, ...o }); };
+const pP = (runs, o = {}) => para(runs, { apres: 2, ...o });               // un paragraphe de la fiche
+const pPoints = (centre = true) => pP(wRun(POINTS, { size: PT }), { centre, avant: 4 });
+const pLigne = (court = false) => pP(wRun(court ? '…………………………………………………' : '……………………………………………………………………………………………………', { size: PT }), { avant: 10, apres: 4 });
+
+// une ligne de tableau : invisible (colonnes) ou avec bordures (tableau à remplir)
+function tableau(cellules, { bordures = false, entetes = null, hauteurCm = 0 } = {}) {
+  const k = cellules.length, w = Math.floor(10206 / k), b = bordures ? 'single' : 'nil';
+  const bord = `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(c => `<w:${c} w:val="${b}" w:sz="8" w:space="0" w:color="2B2D42"/>`).join('')}</w:tblBorders>`;
+  const ligne = (cs, h) => `<w:tr><w:trPr><w:cantSplit/>${h ? `<w:trHeight w:val="${Math.round(h * 567)}"/>` : ''}</w:trPr>${cs.map(c => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:vAlign w:val="${bordures ? 'top' : 'bottom'}"/></w:tcPr>${c || '<w:p><w:pPr></w:pPr></w:p>'}</w:tc>`).join('')}</w:tr>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/>${bord}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>` +
+    `<w:tblGrid>${cellules.map(() => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>` +
+    (entetes ? ligne(entetes.map(t => pP(wRun(t, { size: PT, b: true }), { centre: true })), 0) : '') + ligne(cellules, hauteurCm) + '</w:tbl>';
 }
+
+// un dessin (SVG en texte) devient une image PNG de la fiche
+async function imagePapier(svgTxt, images) {
+  const box = document.createElement('div'); box.style.cssText = 'position:absolute;left:-9999px;width:600px'; box.innerHTML = svgTxt; document.body.appendChild(box);
+  try { const im = await svgToPng(box.querySelector('svg')); im.id = images.length + 1; images.push(im); return im; } finally { box.remove(); }
+}
+const pImage = (im, lCm, hMaxCm) => paraImage(im.id, im.rapport, lCm, hMaxCm, true);
+const hImage = (im, lCm, hMaxCm) => Math.min(lCm * im.rapport, hMaxCm) + 0.35;
+
+// les dessins des colonnes : petits viewBox (500) pour que les nombres restent lisibles une fois imprimés
+const flecheP = (X, y, lettre = '') => `<path d="M ${X} ${y - 46} V ${y - 9} M ${X - 9} ${y - 19} L ${X} ${y - 8} L ${X + 9} ${y - 19}" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>` +
+  (lettre ? `<text x="${X}" y="${y - 54}" text-anchor="middle" font-size="30" font-weight="700" fill="${INK}">${lettre}</text>` : '');
+function droiteP({ u, d, start = 0, fleches = [], W = 500 }) {   // fleches : [[graduation, lettre]]
+  const x = 30, L = W - 90, y = fleches.some(f => f[1]) ? 110 : 80;
+  let s = lineG({ x, y, L, u, d, start });
+  for (const [g, l] of fleches) s += flecheP(x + g * L / (u * d), y, l);
+  return svg(W, y + 60, s);
+}
+function dessinP(rep, n, D, u, plein, scatter) {   // la fraction n/D coloriée (plein) ou à colorier
+  if (rep === 'droite') return droiteP({ u, d: D, fleches: plein ? [[n, '']] : [] });
+  const parts = scatter ? new Set(scatterIdx(n, D)) : null;
+  return drawRep(rep, { d: D, u, W: rep === 'disque' ? 1000 : u > 1 ? 700 : 450, fill: i => plein && (parts ? parts.has(i) : i < n) ? GRIS : null });
+}
+
+// une question de l'écran (consigne, réponse) lue sur la version papier du défi
+function lirePapier(q, R) {
+  S.defis.list = [q]; S.defis.i = 0; S.defis.st = {}; S.defis.revealed = R; renderDefi();
+  const st = $('#stage'), pr = st.querySelector('.prompt'), su = st.querySelector('.sub'), pill = st.querySelector('.answer .pill');
+  return { prompt: pr ? pr.innerHTML : '', trou: !!pr?.querySelector('.box') || /…/.test(pr?.textContent || ''), sub: su ? su.textContent.trim() : '', pill: pill ? pill.innerHTML : '', pills: [...st.querySelectorAll('.answer .pill')].map(x => x.innerHTML), svg: st.querySelectorAll('.dviz svg').length };
+}
+
+/* Le tirage d'un exercice de la fiche : les questions sont tirées une fois, pour l'exercice et pour son corrigé */
+function tirerExercice(k, t) {
+  const c = C(), cle = q => JSON.stringify({ ...q, t: 0 }), vus = new Set();
+  const plusieurs = (nb, gen, ok = () => true) => { const out = []; for (let i = 0; out.length < nb && i < 200; i++) { const q = { type: k, t, ...gen() }; if (ok(q, out) && !vus.has(cle(q))) { vus.add(cle(q)); out.push(q); } } return out; };
+  const valeur = q => q.n / q.d;
+  if (k === 'nommer' || k === 'colorier') {   // trois fractions bien différentes : disque, barre, droite
+    const reps = c.lvl >= 1 ? ['disque', 'barre', 'droite'] : ['disque', 'barre', 'barre'];
+    const out = [];
+    for (const rep of reps) for (let i = 0; i < 200; i++) {
+      const q = { type: k, t, ...GEN[k](t) }; delete q.assoc;
+      if (rep === 'droite') { q.k = 1; q.scatter = false; q.mixte = false; }
+      if (rep === 'disque' && q.d * q.k > 10) continue;
+      if (out.some(o => Math.abs(valeur(o) - valeur(q)) < 1e-9 || o.d === q.d)) continue;
+      q.rep = rep; q.u = Math.max(q.u || 1, Math.ceil(q.n / q.d)) + (rep === 'droite' && q.n % q.d === 0 ? 1 : 0); out.push(q); break;
+    }
+    return { k, qs: out };
+  }
+  if (k === 'comparer') return { k, qs: plusieurs(3, () => GEN.comparer(t), (q, out) => !out.some(o => o.kind === q.kind) || out.length >= 2) };
+  if (k === 'ranger') return { k, qs: [{ type: k, t, ...GEN.ranger(t) }] };
+  if (k === 'trier') {   // six étiquettes, chaque case du tableau en reçoit au moins une
+    const q = { type: k, t, ...GEN.trier(t) }, nb = q.boites.length, parBoite = Array.from({ length: nb }, (_, b) => q.items.filter(f => boiteDe(q.sorte, f, q.ref) === b));
+    const six = []; for (let r = 0; six.length < 6 && r < 6; r++) parBoite.forEach(l => { if (six.length < 6 && l[r]) six.push(l[r]); });
+    return { k, qs: [{ ...q, items: melange(six) }] };
+  }
+  if (k === 'lire') {   // une seule droite, trois nombres à trouver
+    const q = { type: k, t, ...GEN.lire(t) }, st = q.st || 0, D = q.d, u = Math.max(2, q.u);
+    const libres = []; for (let g = 1; g < u * D; g++) if (g % D) libres.push(g);
+    const trois = melange(libres).slice(0, 3).sort((a, b) => a - b);
+    return { k, qs: [{ ...q, u, st, gs: trois }] };
+  }
+  if (k === 'decomposer') {   // une décomposition et une recomposition
+    const a = plusieurs(1, () => GEN.decomposer(t), q => !q.inverse), b = plusieurs(1, () => GEN.decomposer(t), q => q.inverse);
+    return { k, qs: [...a, ...b] };
+  }
+  if (k === 'decimales') {   // le matériel de numération, et une question écrite d'une autre sorte
+    const a = plusieurs(1, () => GEN.decimales(t), q => q.k === 'carre');
+    PAPIER = true; const b = plusieurs(1, () => GEN.decimales(t), q => q.k !== 'carre' && lirePapier(q, false).svg === 0);
+    return { k, qs: [...a, ...b] };
+  }
+  // sur papier : seulement les questions écrites (ni choix parmi plusieurs, ni dessin à compléter)
+  PAPIER = true; return { k, qs: plusieurs(PAR_LIGNE[k] || 2, () => GEN[k](t), (q, out) => !q.parmi && lirePapier(q, false).svg === 0 && !out.some(o => o.a === q.a && o.b === q.b && o.d === q.d)) };   // trois questions bien différentes
+}
+
+const CONSIGNES = {
+  nommer: 'Écris la fraction représentée sous chaque dessin.', colorier: 'Représente chaque fraction.',
+  comparer: 'Écris <, = ou >.', egales: 'Complète les égalités.', ajouter: 'Calcule.', produit: 'Calcule.',
+  lire: 'Écris les nombres repérés par les lettres.', encadrer: 'Encadre chaque fraction entre deux nombres entiers qui se suivent.',
+  decomposer: 'Complète.', quantite: 'Calcule.', probleme: 'Résous les problèmes.'
+};
 
 /* Répartit des exercices insécables sur des pages de hauteur PAGE_CM ; renvoie le nombre de pages et le remplissage de la dernière */
 const PAGE_CM = 26.6; // A4 moins les marges
@@ -3628,12 +3696,85 @@ function echelle(exos, debut, mini = 0.72) {
   return best;
 }
 
-const blocInsecable = contenu => '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/>' +
-  '<w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>' +
-  '<w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
-  '<w:tblGrid><w:gridCol w:w="10206"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr>' +
-  `<w:tc><w:tcPr><w:tcW w:w="10206" w:type="dxa"/></w:tcPr>${contenu}</w:tc></w:tr></w:tbl>` +
-  '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="40" w:lineRule="exact"/></w:pPr></w:p>'; // un paragraphe minuscule entre deux exercices : sinon les tableaux se collent en un seul
+/* Un exercice de la fiche (ou son corrigé) : renvoie { h(e) en cm, x(e) en Word } */
+async function exercicePapier(ex, num, corrige, images) {
+  const { k, qs } = ex, rep = { size: PT, col: VERT }, txt = { size: PT };
+  const blocs = [];   // { h: e => cm, x: e => xml }
+  const ajoute = (h, x) => blocs.push({ h: typeof h === 'function' ? h : () => h, x: typeof x === 'function' ? x : () => x });
+  const consigne = html => ajoute(0.85, pP(wRun(num + '. ', { size: PT, b: true }) + runsDe(html, txt), { avant: 8, apres: 6, keep: true }));   // la consigne reste avec la suite
+  const colonnes = (cells, h) => ajoute(h, e => tableau(cells.map(f => typeof f === 'function' ? f(e) : f)));
+  const ent = q => q.mixte ? ENT(Math.floor(q.n / q.d), q.n % q.d, q.d) : F(q.n, q.d);
+
+  if (k === 'nommer' || k === 'colorier') {
+    consigne(CONSIGNES[k]);
+    const ims = [];
+    for (const q of qs) {
+      const D = q.d * q.k, N = q.n * q.k, plein = k === 'nommer' || corrige;
+      ims.push(await imagePapier(dessinP(q.rep, N, D, q.u, plein, k === 'nommer' && q.scatter), images));
+    }
+    const lC = 5.6, hC = 3.6;
+    const hMax = e => Math.max(...ims.map(im => hImage(im, lC * e, hC * e)));
+    // sous chaque dessin, sur une même ligne : la fraction à représenter, ou les pointillés (la fraction au corrigé)
+    colonnes(qs.map((q, i) => e => pImage(ims[i], lC * e, hC * e) +
+      (k === 'colorier' ? pP(runsDe(ent(q), txt), { centre: true }) : corrige ? pP(runsDe(F(q.n, q.d), rep), { centre: true }) : pPoints())), e => hMax(e) + 1.1);
+  }
+  else if (k === 'comparer') {
+    consigne(CONSIGNES.comparer);
+    const ecr = o => o.mixte ? ENT(o.e, o.r, o.d) : F(o.n, o.d);
+    colonnes(qs.map(q => pP(runsDe(ecr(q.a), txt) + wRun('  ', txt) + (corrige ? wRun({ '<': '<', '=': '=', '>': '>' }[cmpSign(q.a, q.b)], { ...rep, b: true }) : wRun('………', txt)) + wRun('  ', txt) + runsDe(ecr(q.b), txt), { centre: true })), 1.2);
+  }
+  else if (k === 'ranger') {
+    const q = qs[0], cmp = (a, b) => q.desc ? b.n * a.d - a.n * b.d : a.n * b.d - b.n * a.d;
+    // les nombres à ranger, bien espacés
+    ajoute(0.85, pP(wRun(num + '. ', { size: PT, b: true }) + wRun(`Range dans l'ordre ${q.desc ? 'décroissant' : 'croissant'} :      `, txt) +
+      q.items.map(o => runsDe(o.html, txt)).join(wRun('\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0', txt)), { avant: 8, apres: 6, keep: true }));
+    ajoute(1.1, corrige ? pP(runsDe([...q.items].sort(cmp).map(o => o.html).join(q.desc ? '  &gt;  ' : '  &lt;  '), rep), { centre: true, avant: 6 }) : pLigne());
+  }
+  else if (k === 'trier') {
+    const q = qs[0];
+    consigne(q.sorte === 'un' ? `Écris chaque fraction dans la bonne colonne du tableau.` : 'Écris chaque fraction dans la bonne colonne du tableau.');
+    ajoute(1.2, pP(q.items.map(f => runsDe(F(f[0], f[1]), txt)).join(wRun('          ', txt)), { centre: true, apres: 8 }));
+    const cases = q.boites.map((_, b) => corrige ? pP(q.items.filter(f => boiteDe(q.sorte, f, q.ref) === b).map(f => runsDe(F(f[0], f[1]), rep)).join(wRun('     ', rep)), { centre: true, avant: 6 }) : '');
+    ajoute(2.6, tableau(cases, { bordures: true, entetes: q.boites, hauteurCm: 1.6 }));
+  }
+  else if (k === 'lire') {
+    const q = qs[0], L = ['A', 'B', 'C'];
+    consigne(CONSIGNES.lire);
+    const im = await imagePapier(droiteP({ u: q.u, d: q.d, start: q.st, fleches: q.gs.map((g, i) => [g, L[i]]), W: 700 }), images);
+    ajoute(e => hImage(im, 12 * e, 4 * e), e => pImage(im, 12 * e, 4 * e));
+    colonnes(q.gs.map((g, i) => pP(wRun(`${L[i]} = `, txt) + (corrige ? runsDe(F(q.st * q.d + g, q.d), rep) : wRun(POINTS, txt)), { centre: true })), 1.1);
+  }
+  else if (k === 'decimales') {
+    consigne('Écris chaque nombre demandé.');
+    const [a, b] = qs;
+    if (a) {   // le matériel de numération à gauche, la réponse à droite
+      a.sub = lirePapier(a, false).sub; const v = a.v, [n, d] = deciBest(v), im = await imagePapier(quadSVG({ u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }, true), images);
+      ajoute(e => hImage(im, 12.5 * e, 5 * e) + 0.6, e => `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="7406"/><w:gridCol w:w="2800"/></w:tblGrid><w:tr>` +
+        `<w:tc><w:tcPr><w:tcW w:w="7406" w:type="dxa"/></w:tcPr>${pP(wRun(a.sub, { size: 10 }))}${pImage(im, 12.5 * e, 5 * e)}</w:tc><w:tc><w:tcPr><w:tcW w:w="2800" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${corrige ? pP(runsDe(`${F(n, d)} = ${comma(v)}`, rep), { centre: true }) : pPoints()}</w:tc></w:tr></w:tbl>`);
+    }
+    if (b) {
+      const L0 = lirePapier(b, false), L1 = lirePapier(b, true);
+      const gauche = (L0.sub ? pP(wRun(L0.sub, txt)) : '') + pP(runsDe(L0.prompt, txt));
+      const droite = corrige ? (b.k === 'arrondi' ? L1.pills.map(x => pP(runsDe(x, rep), { centre: true })).join('') : pP(runsDe(L0.trou && !L1.trou ? L1.prompt : L1.pill, rep), { centre: true })) : L0.trou ? '' : b.k === 'arrondi' ? pPoints() + pPoints() : pPoints();   // l'arrondi : deux réponses
+      ajoute(1.6, `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="7406"/><w:gridCol w:w="2800"/></w:tblGrid><w:tr>` +
+        `<w:tc><w:tcPr><w:tcW w:w="7406" w:type="dxa"/></w:tcPr>${gauche}</w:tc><w:tc><w:tcPr><w:tcW w:w="2800" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${droite || '<w:p><w:pPr></w:pPr></w:p>'}</w:tc></w:tr></w:tbl>`);
+    }
+  }
+  else {   // égalités, calculs, encadrements, décompositions, quantités, problèmes : la question de l'écran, en colonnes
+    consigne(CONSIGNES[k] || 'Réponds.');
+    const texteLong = k === 'quantite' || k === 'probleme';
+    const cells = qs.map(q => {
+      const L0 = lirePapier(q, false);
+      if (!corrige) return pP(runsDe(L0.prompt, txt), { centre: !texteLong }) + (L0.trou ? '' : pLigne(true));
+      const L1 = lirePapier(q, true);
+      return L0.trou && !L1.trou ? pP(runsDe(L1.prompt, rep), { centre: !texteLong }) : L0.trou ? pP(runsDe(L0.prompt, txt), { centre: true }) + pP(runsDe(L1.pill, rep), { centre: true, avant: 4 }) : pP(runsDe(L0.prompt, txt)) + pP(runsDe(L1.pill, rep), { avant: 4 });
+    });
+    colonnes(cells, texteLong ? 2.6 : 1.3);
+  }
+  // pas de tableau englobant (LibreOffice coupe ceux qui contiennent d'autres tableaux) : chaque paragraphe reste avec le suivant
+  const garde = x => x.replace(/<w:pPr>(?!<w:keepNext\/>)/g, '<w:pPr><w:keepNext/>');
+  return { h: e => blocs.reduce((s, b) => s + b.h(e), 0) + 0.2, x: e => garde(blocs.map(b => b.x(e)).join('')) + '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="120" w:lineRule="exact"/></w:pPr></w:p>' };
+}
 
 async function creerFicheWord() {
   const btn = $('#ficheCreer'); btn.disabled = true; btn.textContent = 'Création…'; $('#ficheErreur').hidden = true;
@@ -3649,19 +3790,19 @@ async function creerFicheWord() {
     // « 1 → 3 » : la difficulté monte au fil de la fiche ; et dans une même compétence, du 1er au dernier exercice
     const rang = i => { const p = FICHE.parComp; return p > 1 ? (i % p) / (p - 1) : (N > 1 ? i / (N - 1) : 0); };
     const avance = i => rang(i), tDe = i => FICHE.niveau ? (FICHE.niveau - 1 + avance(i)) / 3 : avance(i);
-    for (let i = 0; i < N; i++) { const t = tDe(i), k = ordre[i]; liste.push({ type: k, t, ...GEN[k](t) }); }
+    for (let i = 0; i < N; i++) liste.push(tirerExercice(ordre[i], tDe(i)));   // chaque exercice : 1 à 3 questions de la même compétence
     const images = [];
-    let corps = (FICHE.prenom ? paraTxt('Prénom : ……………………………………………', { size: 13, apres: 10 }) : '') +
-                paraTxt(`Les fractions  ·  ${S.classe}${FICHE.niveau ? `  ·  niveau ${FICHE.niveau}` : ''}`, { size: 16, b: true, col: '2B2D42', apres: 6 });
+    let corps = paraTxt(`Les fractions  ·  ${S.classe}${FICHE.niveau ? `  ·  niveau ${FICHE.niveau}` : ''}`, { size: 16, b: true, col: '2B2D42', apres: 6 }) +
+                (FICHE.prenom ? paraTxt('Prénom : ……………………………………   Date : ……………………', { size: PT, apres: 10 }) : '');
     const exos = [], corr = [];
-    for (const [i, q] of liste.entries()) exos.push(await blocExercice(q, i + 1, false, images));
+    for (const [i, ex] of liste.entries()) exos.push(await exercicePapier(ex, i + 1, false, images));
     const e1 = echelle(exos, FICHE.prenom ? 2.3 : 1.3, 0.65);   // les exercices : dessins un peu plus petits plutôt qu'un exercice seul sur une page
     // le dernier exercice sans « garder avec le suivant » : sinon LibreOffice le colle au corrigé et l'envoie seul sur une page
     // (la ligne du tableau reste insécable : l'exercice n'est jamais coupé)
     corps += exos.map((x, i) => i === exos.length - 1 ? x.x(e1).replaceAll('<w:keepNext/>', '') : x.x(e1)).join('');
     if (FICHE.corrige) {
       corps += paraTxt('Corrigé', { size: 16, b: true, col: '2F80C3', page: true, apres: 6 });
-      for (const [i, q] of liste.entries()) corr.push(await blocExercice(q, i + 1, true, images));
+      for (const [i, ex] of liste.entries()) corr.push(await exercicePapier(ex, i + 1, true, images));
       const e2 = echelle(corr, 1.4, 0.6);
       corps += corr.map(x => x.x(e2)).join('');
     }
