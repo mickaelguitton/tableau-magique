@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.14 dans le portail « Le tableau magique » (fiche d'évaluation : questions en colonnes, pointillés, tableau de tri, même taille d'écriture, dessins en gris clair).
+  v1.15 dans le portail « Le tableau magique » (fiche d'évaluation : les nombres décimaux en un exercice par sous-compétence, 2 ou 3 questions chacun).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.14</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.15</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1903,10 +1903,10 @@ const GEN = {
     while ((m * a > (t < 0.4 ? d : 4 * d) || a % d === 0 || (t > 0.6 && m * a <= d)) && essais++ < 100) a = ri(1, d - 1);   // au début, un résultat qui ne dépasse pas 1 ; à la fin, toujours plus grand que 1
     return { m, a, d };
   },
-  decimales(t) {
+  decimales(t, sorte = null) {   // sorte : imposée par la fiche papier (une sous-compétence après l'autre)
     const c = C(), M = c.deciMax === 1000 && t > 0.5;
     const kinds = subPick('decimales', ['carre', 'conv', 'decomp', 'virgule', 'dcmp', 'intercaler', 'encadrerDec', 'arrondi']);
-    const k = pick(kinds.slice(0, Math.max(1, Math.ceil(kinds.length * (0.3 + 0.7 * t)))));
+    const k = sorte || pick(kinds.slice(0, Math.max(1, Math.ceil(kinds.length * (0.3 + 0.7 * t)))));
     const step = M ? 1 : 10; // en millièmes
     if (k === 'dcmp') { // 67/10 et 607/100 ; 4,52 et 4,7
       const e = ri(0, 9), v1 = e * 1000 + ri(1, 99) * 10;
@@ -3496,12 +3496,15 @@ function ouvrirFiche() {
 
 function majFiche() {
   const pill = (act, v, on, txt) => `<button class="${on ? 'on' : ''}" data-act="${act}" data-v="${v}">${txt}</button>`;
+  // les nombres décimaux comptent un exercice par sous-compétence allumée, une seule fois
+  const allumees = new Set(subPick('decimales', DECI_PAPIER.map(x => x[0])));
+  const nb = [...FICHE.choix].reduce((s, k) => s + (k === 'decimales' ? DECI_PAPIER.filter(x => allumees.has(x[0])).length : FICHE.parComp), 0);
   $('#ficheCorps').innerHTML = `
     <div class="etiquette">Compétences (${S.classe})</div>
     <div class="choix">${C().defis.map(k => pill('fcomp', k, FICHE.choix.has(k), DEFIS[k])).join('')}</div>
     <div class="etiquette">Difficulté</div>
     <div class="choix">${[1, 2, 3].map(n => pill('fniv', n, FICHE.niveau === n, n)).join('')}${pill('fniv', 0, FICHE.niveau === 0, '1 → 3')}</div>
-    <div class="etiquette">Exercices par compétence${FICHE.choix.size ? ` (soit ${FICHE.choix.size * FICHE.parComp} exercice${FICHE.choix.size * FICHE.parComp > 1 ? 's' : ''})` : ''}</div>
+    <div class="etiquette">Exercices par compétence${nb ? ` (soit ${nb} exercice${nb > 1 ? 's' : ''})` : ''}</div>
     <div class="choix">${[1, 2, 3].map(n => pill('fnb', n, FICHE.parComp === n, n)).join('')}</div>
     <div class="etiquette">Ligne pour le prénom</div>
     <div class="choix">${pill('fpre', 1, FICHE.prenom, 'Oui')}${pill('fpre', 0, !FICHE.prenom, 'Non')}</div>
@@ -3588,10 +3591,10 @@ const pPoints = (centre = true) => pP(wRun(POINTS, { size: PT }), { centre, avan
 const pLigne = (court = false) => pP(wRun(court ? '…………………………………………………' : '……………………………………………………………………………………………………', { size: PT }), { avant: 10, apres: 4 });
 
 // une ligne de tableau : invisible (colonnes) ou avec bordures (tableau à remplir)
-function tableau(cellules, { bordures = false, entetes = null, hauteurCm = 0 } = {}) {
+function tableau(cellules, { bordures = false, entetes = null, hauteurCm = 0, align = null } = {}) {
   const k = cellules.length, w = Math.floor(10206 / k), b = bordures ? 'single' : 'nil';
   const bord = `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(c => `<w:${c} w:val="${b}" w:sz="8" w:space="0" w:color="2B2D42"/>`).join('')}</w:tblBorders>`;
-  const ligne = (cs, h) => `<w:tr><w:trPr><w:cantSplit/>${h ? `<w:trHeight w:val="${Math.round(h * 567)}"/>` : ''}</w:trPr>${cs.map(c => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:vAlign w:val="${bordures ? 'top' : 'bottom'}"/></w:tcPr>${c || '<w:p><w:pPr></w:pPr></w:p>'}</w:tc>`).join('')}</w:tr>`;
+  const ligne = (cs, h) => `<w:tr><w:trPr><w:cantSplit/>${h ? `<w:trHeight w:val="${Math.round(h * 567)}"/>` : ''}</w:trPr>${cs.map(c => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:vAlign w:val="${align || (bordures ? 'top' : 'bottom')}"/></w:tcPr>${c || '<w:p><w:pPr></w:pPr></w:p>'}</w:tc>`).join('')}</w:tr>`;
   return `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/>${bord}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>` +
     `<w:tblGrid>${cellules.map(() => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>` +
     (entetes ? ligne(entetes.map(t => pP(wRun(t, { size: PT, b: true }), { centre: true })), 0) : '') + ligne(cellules, hauteurCm) + '</w:tbl>';
@@ -3625,6 +3628,49 @@ function lirePapier(q, R) {
   S.defis.list = [q]; S.defis.i = 0; S.defis.st = {}; S.defis.revealed = R; renderDefi();
   const st = $('#stage'), pr = st.querySelector('.prompt'), su = st.querySelector('.sub'), pill = st.querySelector('.answer .pill');
   return { prompt: pr ? pr.innerHTML : '', trou: !!pr?.querySelector('.box') || /…/.test(pr?.textContent || ''), sub: su ? su.textContent.trim() : '', pill: pill ? pill.innerHTML : '', pills: [...st.querySelectorAll('.answer .pill')].map(x => x.innerHTML), svg: st.querySelectorAll('.dviz svg').length };
+}
+
+/* Les nombres décimaux sur papier : presque une évaluation à part.
+   Un exercice par sous-compétence (celles de la tuile qui sont allumées), 2 ou 3 questions bien différentes chacune. */
+const DECI_PAPIER = [   // [sous-compétence, nombre de questions, consigne, condition sur la question]
+  ['carre', 2, 'Écris le nombre représenté sous chaque dessin.'],
+  ['virgule', 3, 'Écris chaque nombre avec une virgule.', q => !q.rev],
+  ['virgule', 3, 'Écris chaque nombre sous forme de fraction décimale.', q => q.rev],
+  ['conv', 3, 'Trouve le nombre qui manque.'],
+  ['decomp', 2, 'Décompose en unités, dixièmes, centièmes, millièmes.'],
+  ['dcmp', 3, 'Écris <, = ou >.'],
+  ['intercaler', 3, 'Trouve un nombre entre les deux.'],
+  ['encadrerDec', 2, null],   // la consigne dit la précision (au dixième, au centième...)
+  ['arrondi', 2, "Donne la partie entière, puis l'arrondi à l'unité."]
+];
+function tirerDecimaux(t) {
+  const c = C(), allumees = new Set(subPick('decimales', ['carre', 'conv', 'decomp', 'virgule', 'dcmp', 'intercaler', 'encadrerDec', 'arrondi']));
+  const tj = (j, nb) => Math.min(1, Math.max(0, t - 0.12 + 0.24 * j / Math.max(1, nb - 1)));   // un peu plus difficile d'une question à l'autre
+  const exos = [];
+  for (const [sorte, nb, consigne, cond = () => true] of DECI_PAPIER) {
+    if (!allumees.has(sorte)) continue;
+    if (sorte === 'carre') {   // deux nombres bien différents : l'un plus petit que 1, l'autre avec des unités (et un zéro piège au niveau 3)
+      const mille = c.deciMax === 1000 && t > 0.3;
+      const P1 = { u: 0, d: ri(1, 9), c: ri(1, 9), m: mille ? ri(1, 9) : 0 };
+      const P2 = { u: ri(1, 2), d: t > 0.66 ? 0 : ri(1, 9), c: ri(1, 9), m: mille && t > 0.66 ? ri(1, 9) : 0 };
+      exos.push({ k: 'deci', sorte, consigne, qs: [P1, P2].map(P => ({ type: 'decimales', t, k: 'carre', v: P.u * 1000 + P.d * 100 + P.c * 10 + P.m })) });
+      continue;
+    }
+    const qs = [], vus = new Set();
+    let prec = null;
+    for (let i = 0; qs.length < nb && i < 400; i++) {
+      const j = qs.length, q = { type: 'decimales', t: tj(j, nb), ...GEN.decimales(tj(j, nb), sorte) };
+      if (!cond(q) || q.k !== sorte) continue;
+      if (sorte === 'encadrerDec' && prec && q.prec !== prec) continue;   // la même précision pour tout l'exercice
+      const cle = JSON.stringify({ ...q, t: 0, _props: 0 }), ordre = String(q.d || q.from || '') + (q.v ? Math.floor(q.v / 1000) > 0 : '');
+      if (vus.has(cle)) continue;
+      if (i < 250 && qs.some(o => (String(o.d || o.from || '') + (o.v ? Math.floor(o.v / 1000) > 0 : '')) === ordre) && j < 2) continue;   // bien différentes : autre dénominateur, ou avec / sans unités
+      vus.add(cle); qs.push(q); prec = prec || q.prec;
+    }
+    const cons = consigne || `Encadre au ${{ unite: 'nombre entier', dixieme: 'dixième', centieme: 'centième' }[prec] || 'dixième'} près.`;
+    if (qs.length) exos.push({ k: 'deci', sorte, consigne: cons, qs });
+  }
+  return exos;
 }
 
 /* Le tirage d'un exercice de la fiche : les questions sont tirées une fois, pour l'exercice et pour son corrigé */
@@ -3661,11 +3707,7 @@ function tirerExercice(k, t) {
     const a = plusieurs(1, () => GEN.decomposer(t), q => !q.inverse), b = plusieurs(1, () => GEN.decomposer(t), q => q.inverse);
     return { k, qs: [...a, ...b] };
   }
-  if (k === 'decimales') {   // le matériel de numération, et une question écrite d'une autre sorte
-    const a = plusieurs(1, () => GEN.decimales(t), q => q.k === 'carre');
-    PAPIER = true; const b = plusieurs(1, () => GEN.decimales(t), q => q.k !== 'carre' && lirePapier(q, false).svg === 0);
-    return { k, qs: [...a, ...b] };
-  }
+  if (k === 'decimales') return tirerDecimaux(t);
   // sur papier : seulement les questions écrites (ni choix parmi plusieurs, ni dessin à compléter)
   PAPIER = true; return { k, qs: plusieurs(PAR_LIGNE[k] || 2, () => GEN[k](t), (q, out) => !q.parmi && lirePapier(q, false).svg === 0 && !out.some(o => o.a === q.a && o.b === q.b && o.d === q.d)) };   // trois questions bien différentes
 }
@@ -3702,7 +3744,7 @@ async function exercicePapier(ex, num, corrige, images) {
   const blocs = [];   // { h: e => cm, x: e => xml }
   const ajoute = (h, x) => blocs.push({ h: typeof h === 'function' ? h : () => h, x: typeof x === 'function' ? x : () => x });
   const consigne = html => ajoute(0.85, pP(wRun(num + '. ', { size: PT, b: true }) + runsDe(html, txt), { avant: 8, apres: 6, keep: true }));   // la consigne reste avec la suite
-  const colonnes = (cells, h) => ajoute(h, e => tableau(cells.map(f => typeof f === 'function' ? f(e) : f)));
+  const colonnes = (cells, h, align = null) => ajoute(h, e => tableau(cells.map(f => typeof f === 'function' ? f(e) : f), { align }));
   const ent = q => q.mixte ? ENT(Math.floor(q.n / q.d), q.n % q.d, q.d) : F(q.n, q.d);
 
   if (k === 'nommer' || k === 'colorier') {
@@ -3744,20 +3786,25 @@ async function exercicePapier(ex, num, corrige, images) {
     ajoute(e => hImage(im, 12 * e, 4 * e), e => pImage(im, 12 * e, 4 * e));
     colonnes(q.gs.map((g, i) => pP(wRun(`${L[i]} = `, txt) + (corrige ? runsDe(F(q.st * q.d + g, q.d), rep) : wRun(POINTS, txt)), { centre: true })), 1.1);
   }
-  else if (k === 'decimales') {
-    consigne('Écris chaque nombre demandé.');
-    const [a, b] = qs;
-    if (a) {   // le matériel de numération à gauche, la réponse à droite
-      a.sub = lirePapier(a, false).sub; const v = a.v, [n, d] = deciBest(v), im = await imagePapier(quadSVG({ u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }, true), images);
-      ajoute(e => hImage(im, 12.5 * e, 5 * e) + 0.6, e => `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="7406"/><w:gridCol w:w="2800"/></w:tblGrid><w:tr>` +
-        `<w:tc><w:tcPr><w:tcW w:w="7406" w:type="dxa"/></w:tcPr>${pP(wRun(a.sub, { size: 10 }))}${pImage(im, 12.5 * e, 5 * e)}</w:tc><w:tc><w:tcPr><w:tcW w:w="2800" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${corrige ? pP(runsDe(`${F(n, d)} = ${comma(v)}`, rep), { centre: true }) : pPoints()}</w:tc></w:tr></w:tbl>`);
-    }
-    if (b) {
-      const L0 = lirePapier(b, false), L1 = lirePapier(b, true);
-      const gauche = (L0.sub ? pP(wRun(L0.sub, txt)) : '') + pP(runsDe(L0.prompt, txt));
-      const droite = corrige ? (b.k === 'arrondi' ? L1.pills.map(x => pP(runsDe(x, rep), { centre: true })).join('') : pP(runsDe(L0.trou && !L1.trou ? L1.prompt : L1.pill, rep), { centre: true })) : L0.trou ? '' : b.k === 'arrondi' ? pPoints() + pPoints() : pPoints();   // l'arrondi : deux réponses
-      ajoute(1.6, `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="7406"/><w:gridCol w:w="2800"/></w:tblGrid><w:tr>` +
-        `<w:tc><w:tcPr><w:tcW w:w="7406" w:type="dxa"/></w:tcPr>${gauche}</w:tc><w:tc><w:tcPr><w:tcW w:w="2800" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${droite || '<w:p><w:pPr></w:pPr></w:p>'}</w:tc></w:tr></w:tbl>`);
+  else if (k === 'deci') {   // une sous-compétence des nombres décimaux : 2 ou 3 questions en colonnes
+    consigne(ex.consigne);
+    if (ex.sorte === 'carre') {   // le matériel de numération : le dessin, et la réponse en dessous
+      ajoute(0.55, pP(wRun(lirePapier(qs[0], false).sub, { size: 10 }), { apres: 4 }));
+      const ims = [];
+      for (const q of qs) { const v = q.v; ims.push(await imagePapier(quadSVG({ u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }, true), images)); }
+      const lC = 8.2, hC = 4.2, hMax = e => Math.max(...ims.map(im => hImage(im, lC * e, hC * e)));
+      colonnes(qs.map((q, i) => e => { const [n, d] = deciBest(q.v); return pImage(ims[i], lC * e, hC * e) + (corrige ? pP(runsDe(`${F(n, d)} = ${comma(q.v)}`, rep), { centre: true }) : pPoints()); }), e => hMax(e) + 1.1, "top");
+    } else if (ex.sorte === 'arrondi') {   // deux réponses par nombre
+      colonnes(qs.map(q => { const ent = Math.floor(q.v / 1000), arr = Math.floor(q.v / 1000 + 0.5);
+        return pP(wRun(comma(q.v), { ...txt, b: true }), { centre: true, apres: 6 }) +
+          pP(wRun('Partie entière : ', txt) + (corrige ? wRun(String(ent), rep) : wRun(POINTS, txt)), { centre: true, apres: 6 }) +
+          pP(wRun("Arrondi à l'unité : ", txt) + (corrige ? wRun(String(arr), rep) : wRun(POINTS, txt)), { centre: true }); }), 2.4);
+    } else {   // la question de l'écran : la case devient des pointillés ; au corrigé, l'énoncé complété (ou un exemple en vert)
+      colonnes(qs.map(q => {
+        const L0 = lirePapier(q, false); if (!corrige) return pP(runsDe(L0.prompt, txt), { centre: true });
+        const L1 = lirePapier(q, true);
+        return L1.trou ? pP(runsDe(L0.prompt, txt), { centre: true }) + pP(runsDe(L1.pill, rep), { centre: true, avant: 2 }) : pP(runsDe(L1.prompt, rep), { centre: true });
+      }), ex.sorte === 'intercaler' ? 1.9 : 1.3);
     }
   }
   else {   // égalités, calculs, encadrements, décompositions, quantités, problèmes : la question de l'écran, en colonnes
@@ -3782,15 +3829,19 @@ async function creerFicheWord() {
   try {
     // la fiche se prépare dans l'écran des défis (caché derrière la fenêtre)
     S.mode = 'defis'; S.screen = 'game'; $('#menu').classList.remove('active'); $('#game').className = 'screen active ' + MODE_COL.defis;
-    const ks = [...FICHE.choix], N = ks.length * FICHE.parComp, liste = [];
+    const liste = [];
     // chaque compétence cochée, dans l'ordre du menu, avec ses 1, 2 ou 3 exercices à la suite
-    const ordre = C().defis.filter(k => FICHE.choix.has(k)).flatMap(k => Array(FICHE.parComp).fill(k));
+    // les nombres décimaux une seule fois : c'est déjà un exercice par sous-compétence
+    const ordre = C().defis.filter(k => FICHE.choix.has(k)).flatMap(k => Array(k === 'decimales' ? 1 : FICHE.parComp).fill(k)), N = ordre.length;
     PAPIER = true;   // sur papier, pas de défi à manipuler (sauf le tri, qui s'écrit aussi) : pour le tirage ET pour le dessin des exercices
     // la difficulté : t va de 0 (facile) à 1 (difficile) ; niveau 1, 2 ou 3 = un tiers de ce chemin ; « 1 → 3 » = tout le chemin
     // « 1 → 3 » : la difficulté monte au fil de la fiche ; et dans une même compétence, du 1er au dernier exercice
     const rang = i => { const p = FICHE.parComp; return p > 1 ? (i % p) / (p - 1) : (N > 1 ? i / (N - 1) : 0); };
     const avance = i => rang(i), tDe = i => FICHE.niveau ? (FICHE.niveau - 1 + avance(i)) / 3 : avance(i);
-    for (let i = 0; i < N; i++) liste.push(tirerExercice(ordre[i], tDe(i)));   // chaque exercice : 1 à 3 questions de la même compétence
+    for (let i = 0; i < N; i++) {   // chaque exercice : 1 à 3 questions de la même compétence (les décimaux : plusieurs exercices)
+      const t = ordre[i] === 'decimales' ? (FICHE.niveau ? (FICHE.niveau - 0.5) / 3 : 0.5) : tDe(i);
+      liste.push(...[].concat(tirerExercice(ordre[i], t)));
+    }
     const images = [];
     let corps = paraTxt(`Les fractions  ·  ${S.classe}${FICHE.niveau ? `  ·  niveau ${FICHE.niveau}` : ''}`, { size: 16, b: true, col: '2B2D42', apres: 6 }) +
                 (FICHE.prenom ? paraTxt('Prénom : ……………………………………   Date : ……………………', { size: PT, apres: 10 }) : '');
