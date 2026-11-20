@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.15 dans le portail « Le tableau magique » (fiche d'évaluation : les nombres décimaux en un exercice par sous-compétence, 2 ou 3 questions chacun).
+  v1.16 dans le portail « Le tableau magique » (Arrondir : à l'unité et au dixième, sans la partie entière).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.15</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.16</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -1617,7 +1617,7 @@ const SUB_EX = {
   fr: '9/10 ; 14/10 ; 2', dec: '1,8 ; 1,54 ; 128/100', comp: '3/4 = ?/8', parmi: 'Lesquelles sont égales à 1/2 ?', plus: '2/5 + 1/5', moins: '4/5 − 1/5',
   diff: '2/3 − 1/6', rec: '2 + 2/3 = ?/3', obj: '1/3 de 12 billes', gr: '1/4 de 10 m', carre: 'quel nombre est représenté ?', conv: '3/10 = ?/100',
   tri1: '3/4 ; 5/5 ; 7/4', tri2: '2/4 ; 3/8 ; 5/10',
-  virgule: '254/100 = 2,54', dcmp: '67/10 et 6,07', intercaler: '1,4 < ? < 1,5', encadrerDec: '17,4 < 17,48 < 17,5', arrondi: '5,78 → 6'
+  virgule: '254/100 = 2,54', dcmp: '67/10 et 6,07', intercaler: '1,4 < ? < 1,5', encadrerDec: '17,4 < 17,48 < 17,5', arrondi: '5,78 → 6 et 5,8'
 };
 
 const subList = k => (SUBS[k] ? SUBS[k](C().lvl) : []);
@@ -1920,7 +1920,7 @@ const GEN = {
       return { k, v, prec };
     }
     if (k === 'intercaler') { const v = ri(1, 49) * (M ? 10 : 100); return { k, v, w: v + (M ? 10 : 100), fr: Math.random() < .5 }; }
-    if (k === 'arrondi') { let v; do v = ri(1000, 19999) * 10 / (M ? 10 : 1) | 0; while (v % 1000 === 0); v = M ? v : Math.round(v / 10) * 10; return { k, v }; }
+    if (k === 'arrondi') { let v; do v = ri(1000, 19999) * 10 / (M ? 10 : 1) | 0; while (v % 1000 === 0); v = M ? v : Math.round(v / 10) * 10; if (v % 100 === 0 || Math.round(v / 100) % 10 === 0) return GEN.decimales(t, k); return { k, v }; }   // l'arrondi au dixième ne doit pas tomber sur un entier ni être exact
     if (k === 'carre') {   // un nombre en quadrillages : unités (dès le milieu de la série), dixièmes, centièmes, et millièmes au CM2 ; v en millièmes
       let P;
       do P = { u: t > 0.35 ? ri(0, 2) : 0, d: ri(0, 9), c: ri(0, 9), m: M && t > 0.25 && Math.random() < 0.6 ? ri(1, 9) : 0 };
@@ -2767,11 +2767,11 @@ PROPS.decimales = q => {
       [ec(lo + pas, lo + 2 * pas), 'décalé d\'un cran.'],
       lo >= pas ? [ec(lo - pas, lo), 'décalé d\'un cran.'] : null] };
   }
-  if (k === 'arrondi') { const e = Math.floor(q.v / 1000), up = q.v % 1000 >= 500 ? e + 1 : e, et = (a, b) => `${a} et ${b}`;
-    return { bonne: et(e, up), pieges: [
-      [et(e, up === e ? e + 1 : e), 'l\'arrondi va au plus proche.'],
-      [et(e + 1, e + 1), 'la partie entière, c\'est le nombre avant la virgule.'],
-      [et(e, comma(Math.round(q.v / 100) * 100)), 'arrondi au dixième, pas à l\'unité.']] }; }
+  if (k === 'arrondi') { const up = Math.floor((q.v + 500) / 1000), bas = Math.floor(q.v / 100) * 100, dix = Math.round(q.v / 100) * 100, autre = dix === bas ? bas + 100 : bas, et = (a, b) => `${a} et ${comma(b)}`;
+    return { bonne: et(up, dix), pieges: [
+      [et(up === Math.floor(q.v / 1000) ? up + 1 : Math.floor(q.v / 1000), dix), "l'arrondi va au plus proche."],
+      [et(up, autre), 'regarde le chiffre suivant : à partir de 5, on arrondit au-dessus.'],
+      [`${comma(dix)} et ${up}`, "l'unité d'abord, puis le dixième."]] }; }
   // écriture à virgule (254/100 = 2,54) ou fraction décimale (2,54 = ?/100)
   const { n, d } = q, v = d === 100 ? n * 10 : n, e = Math.floor(n / d);
   if (q.rev) return { bonne: F(n, d), pieges: [
@@ -3113,7 +3113,7 @@ function renderDefi() {
                  intercaler: [I('Il y a toujours des nombres entre deux nombres décimaux.'), M('Ajoute un zéro après la virgule : 1,4 = 1,40 et 1,5 = 1,50.')],
                  encadrerDec: [I({ unite: 'Regarde la partie entière.', dixieme: 'Garde un seul chiffre après la virgule.', centieme: 'Garde deux chiffres après la virgule.' }[q.prec]),
                                M('En dessous : on coupe le nombre. Au-dessus : on ajoute 1 au dernier chiffre gardé.')],
-                 arrondi: [I("La partie entière, c'est le nombre avant la virgule."), M('Regarde le chiffre des dixièmes : à partir de 5, on arrondit au-dessus.')] })[k]
+                 arrondi: [I("À l'unité : regarde le chiffre des dixièmes. À partir de 5, on arrondit à l'entier au-dessus."), M('Au dixième : regarde le chiffre des centièmes, de la même façon.')] })[k]
         || [I('Après la virgule : 1er chiffre, les dixièmes ; 2e, les centièmes ; 3e, les millièmes.'),
             M(q.rev ? 'Le dernier chiffre après la virgule dit le dénominateur : dixièmes, centièmes ou millièmes.' : `Des ${denName(q.d, true)} : il faut ${q.d === 100 ? 'deux' : 'trois'} chiffres après la virgule.`)];
       if (k === 'carre') {
@@ -3169,11 +3169,11 @@ function renderDefi() {
         if (R) viz = deciLines(q.v, 1, q.prec !== 'unite', q.prec === 'centieme', false, Math.floor(q.v / 1000));
         ans = `<div class="pill">${comma(lo)} &lt; ${comma(q.v)} &lt; ${comma(lo + step)}</div>`;
       } else if (k === 'arrondi') {
-        const e = Math.floor(q.v / 1000), up = q.v % 1000 >= 500 ? e + 1 : e;
+        const e = Math.floor(q.v / 1000), up = Math.floor((q.v + 500) / 1000), dix = Math.round(q.v / 100) * 100;
         prompt = `${comma(q.v)}`;
-        sub = 'Donne la partie entière, puis l\'arrondi à l\'unité.';
-        if (R) viz = deciLines(q.v, 1, false, false, false, e);
-        ans = `<div class="pill">Partie entière : ${e}</div><div class="pill">Arrondi à l'unité : ${up}</div>`;
+        sub = 'Arrondis à l\'unité, puis au dixième.';
+        if (R) viz = deciLines(q.v, 1, true, false, false, e);
+        ans = `<div class="pill">Arrondi à l'unité : ${up}</div><div class="pill">Arrondi au dixième : ${comma(dix)}</div>`;
       } else {
         const v = q.d === 100 ? q.n * 10 : q.n;
         prompt = q.rev ? `${comma(v)} = ${Fbox(R ? q.n : null, q.d)}` : `${F(q.n, q.d)} = ${R ? comma(v) : BOX}`;
@@ -3641,7 +3641,7 @@ const DECI_PAPIER = [   // [sous-compétence, nombre de questions, consigne, con
   ['dcmp', 3, 'Écris <, = ou >.'],
   ['intercaler', 3, 'Trouve un nombre entre les deux.'],
   ['encadrerDec', 2, null],   // la consigne dit la précision (au dixième, au centième...)
-  ['arrondi', 2, "Donne la partie entière, puis l'arrondi à l'unité."]
+  ['arrondi', 2, "Arrondis chaque nombre à l'unité, puis au dixième."]
 ];
 function tirerDecimaux(t) {
   const c = C(), allumees = new Set(subPick('decimales', ['carre', 'conv', 'decomp', 'virgule', 'dcmp', 'intercaler', 'encadrerDec', 'arrondi']));
@@ -3795,10 +3795,10 @@ async function exercicePapier(ex, num, corrige, images) {
       const lC = 8.2, hC = 4.2, hMax = e => Math.max(...ims.map(im => hImage(im, lC * e, hC * e)));
       colonnes(qs.map((q, i) => e => { const [n, d] = deciBest(q.v); return pImage(ims[i], lC * e, hC * e) + (corrige ? pP(runsDe(`${F(n, d)} = ${comma(q.v)}`, rep), { centre: true }) : pPoints()); }), e => hMax(e) + 1.1, "top");
     } else if (ex.sorte === 'arrondi') {   // deux réponses par nombre
-      colonnes(qs.map(q => { const ent = Math.floor(q.v / 1000), arr = Math.floor(q.v / 1000 + 0.5);
+      colonnes(qs.map(q => { const unite = Math.floor((q.v + 500) / 1000), dixieme = Math.round(q.v / 100) * 100;
         return pP(wRun(comma(q.v), { ...txt, b: true }), { centre: true, apres: 6 }) +
-          pP(wRun('Partie entière : ', txt) + (corrige ? wRun(String(ent), rep) : wRun(POINTS, txt)), { centre: true, apres: 6 }) +
-          pP(wRun("Arrondi à l'unité : ", txt) + (corrige ? wRun(String(arr), rep) : wRun(POINTS, txt)), { centre: true }); }), 2.4);
+          pP(wRun("À l'unité : ", txt) + (corrige ? wRun(String(unite), rep) : wRun(POINTS, txt)), { centre: true, apres: 6 }) +
+          pP(wRun('Au dixième : ', txt) + (corrige ? wRun(comma(dixieme), rep) : wRun(POINTS, txt)), { centre: true }); }), 2.4);
     } else {   // la question de l'écran : la case devient des pointillés ; au corrigé, l'énoncé complété (ou un exemple en vert)
       colonnes(qs.map(q => {
         const L0 = lirePapier(q, false); if (!corrige) return pP(runsDe(L0.prompt, txt), { centre: true });
