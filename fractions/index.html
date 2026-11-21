@@ -1032,9 +1032,9 @@ const S = {
   // tache 'lire' : quel nombre est représenté ? ; tache 'rep' : on montre un nombre, on dépose les bonnes pièces
   deci: { tache: 'lire', virgule: true, show: false, pieces: { u: 1, d: 3, c: 4, m: 0 },
           cible: 2470, plateau: { u: 0, d: 0, c: 0, m: 0 }, verif: null },
-  // décimaux sur la droite : une droite de 0 à u, graduée en dixièmes ; dec décimales (1, 2 ou 3) : on zoome dec - 1 fois ;
+  // décimaux sur la droite : une droite de s à s + u (entiers), graduée en dixièmes ; dec décimales (1, 2 ou 3) : on zoome dec - 1 fois ;
   // v en millièmes, z : les graduations des zooms choisis (dixième puis centième), guess : la graduation de la dernière droite
-  dd: { tache: 'placer', dec: 1, u: 2, v: 700, z: [], guess: null, verif: null, revealed: false, virgule: true },
+  dd: { tache: 'placer', dec: 1, u: 2, s: 0, v: 700, z: [], guess: null, verif: null, revealed: false, virgule: true },
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
   anim: true,   // corrections des défis toujours animées (elles ne se jouent qu'à « Voir la réponse »)
   propsOn: false,                   // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
@@ -1583,22 +1583,23 @@ function ddNew() {
   if (q.dec === 3 && c.deciMax !== 1000) q.dec = 2;   // les millièmes : au CM2
   q.u = clamp(q.u, 1, Math.min(c.maxU, 3));
   const pas = [0, 100, 10, 1][q.dec];   // une graduation de la dernière droite, en millièmes
-  let v; do v = ri(1, q.u * 10 ** q.dec - 1) * pas; while ((v / pas) % 10 === 0 || v === q.v);   // jamais un entier, ni un nombre qui finit par 0
-  Object.assign(q, { v, z: [], guess: null, verif: null, revealed: false });
+  q.s = ri(0, 9);   // la droite commence à un entier au hasard
+  let w; do w = ri(1, q.u * 10 ** q.dec - 1) * pas; while ((w / pas) % 10 === 0 || q.s * 1000 + w === q.v);   // jamais un entier, ni un nombre qui finit par 0
+  Object.assign(q, { v: q.s * 1000 + w, z: [], guess: null, verif: null, revealed: false });
 }
-const ddChemin = q => [Math.floor(q.v / 100), Math.floor(q.v / 10) % 10].slice(0, q.dec - 1);   // les zooms qui mènent au nombre
+const ddChemin = q => { const w = q.v - q.s * 1000; return [Math.floor(w / 100), Math.floor(w / 10) % 10].slice(0, q.dec - 1); };   // les zooms qui mènent au nombre
 // le nombre (en millièmes) où l'élève a posé sa flèche, ou null s'il n'a pas fini de zoomer
 function ddEleve(q) {
   if (q.guess === null || q.z.length < q.dec - 1) return null;
   const debut = q.dec === 1 ? 0 : q.dec === 2 ? q.z[0] * 100 : q.z[0] * 100 + q.z[1] * 10;
-  return debut + q.guess * [0, 100, 10, 1][q.dec];
+  return q.s * 1000 + debut + q.guess * [0, 100, 10, 1][q.dec];
 }
 const ddEcritV = (q, v) => { const [n, d] = deciBest(v); return q.virgule || v % 1000 === 0 ? comma(v) : `${n}/${d}`; };
 
 function renderDdroite() {
   const q = S.dd, x = 60, L = 860, ys = [90, 250, 410], rev = q.revealed;
   const chemin = rev ? ddChemin(q) : q.z, nbl = Math.min(q.dec, chemin.length + 1);
-  let s = '', a = 0, span = q.u * 1000, n = q.u * 10;   // a : début de la droite, span : sa longueur, n : son nombre d'intervalles
+  let s = '', a = q.s * 1000, span = q.u * 1000, n = q.u * 10;   // a : début de la droite, span : sa longueur, n : son nombre d'intervalles
   for (let i = 0; i < nbl; i++) {
     const y = ys[i], last = i === q.dec - 1, step = L / n, X = g => x + g * step, val = g => a + g * span / n;
     if (i < nbl - 1) s += `<rect x="${X(chemin[i])}" y="${y - 26}" width="${step}" height="52" rx="6" fill="${soft('--c3', .2)}" stroke="var(--c3)" stroke-width="2.5" pointer-events="none"/>`;   // l'intervalle choisi
@@ -1613,7 +1614,7 @@ function renderDdroite() {
     if (!rev && !last) for (let g = 0; g < n; g++) s += `<g class="zoom" data-zl="${i}:${g}"><rect x="${X(g)}" y="${y - 44}" width="${step}" height="88" fill="transparent"/></g>`;
     if (!rev && last && q.tache === 'placer') for (let g = 0; g <= n; g++) s += `<g class="zoom" data-zl="${i}:${g}"><rect x="${X(g) - step / 2}" y="${y - 44}" width="${step}" height="88" fill="transparent"/></g>`;
     // les flèches
-    if (q.tache === 'lire') { const f = (q.v - a) / span; if (f >= 0 && f <= 1) s += arrowG(x + f * L, y, 'var(--a)', ''); }
+    if (q.tache === 'lire') { const f = (q.v - a) / span; if (i === nbl - 1) if (f >= 0 && f <= 1) s += arrowG(x + f * L, y, 'var(--a)', ''); }   // la flèche seulement sur la droite où l'on travaille ; les autres montrent la zone bleue
     else if (last) {
       if (rev) s += arrowG(X((q.v - a) / (span / n)), y, 'var(--c2)', '');
       if (q.guess !== null && (!rev || q.z.join() === chemin.join())) s += arrowG(X(q.guess), y, q.verif === 'ok' ? 'var(--c2)' : q.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
