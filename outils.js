@@ -23,7 +23,7 @@ self.OUTILS = [
   {
     dossier: 'nature-des-mots',
     domaine: 'francais',
-    version: '1.5',
+    version: '1.6',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de la grammaire gym du blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '

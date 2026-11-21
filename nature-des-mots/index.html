@@ -79,6 +79,13 @@ h1,h2,p{margin:0}
 #menu .btn:hover{transform:none;background:#eef3fc}
 #menu .btn:active{transform:none;box-shadow:none}
 #menu .btn.small{font-size:.92rem;padding:.35em .8em;box-shadow:none}
+/* Boutons du menu bien visibles (contour marine + relief, comme dans le reste de l'appli) et choix actif de « Phrases » cerné de marine */
+#menu .btn.small{border:2px solid #26215c;color:#26215c;box-shadow:0 3px 0 #26215c}
+#menu .btn.small:hover{transform:translateY(-1px);background:#fff4f8}
+#menu .btn.small:active{transform:translateY(2px);box-shadow:0 1px 0 #26215c}
+#menu .inset .seg{border:2px solid #26215c}
+#menu .inset .seg span{color:#26215c}
+#menu .inset .seg input:checked + span{box-shadow:0 0 0 2px #26215c,0 3px 0 2px #26215c}
 #chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{border:2px solid #26215c;border-radius:12px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;min-width:110px;background:#fff}
 .chip b{font-size:1.05rem}
@@ -316,14 +323,14 @@ h1,h2,p{margin:0}
   <section class="panel">
     <h2><i>3</i>Déroulement</h2>
     <div class="modes">
-      <label class="mode"><input type="radio" name="mode" value="manual" checked><b>Je mène le jeu</b>
+      <label class="mode"><input type="radio" name="mode" value="manual"><b>Je mène le jeu</b>
         <span>Je clique pour passer d’un mot à l’autre, dans l’ordre de la phrase, avec la réponse quand je le décide.</span></label>
       <label class="mode"><input type="radio" name="mode" value="pick"><b>Je choisis le mot</b>
         <span>Je clique sur un mot de la phrase et les élèves font la posture.</span></label>
-      <label class="mode"><input type="radio" name="mode" value="auto"><b>Automatique</b>
+      <label class="mode"><input type="radio" name="mode" value="auto" checked><b>Automatique</b>
         <span>La phrase est refaite plusieurs fois, de plus en plus vite.</span></label>
     </div>
-    <div id="autoOpts" class="hidden">
+    <div id="autoOpts">
       <div class="grid2">
         <label>Nombre de tours
           <select id="tours"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
@@ -926,7 +933,7 @@ $('#delSaved').addEventListener('click', () => {
    État du jeu
    ============================================================ */
 const S = {
-  tokens:[], enabled:new Set(), mode:'manual', source:'rand', kind:'sent', wcount:10,
+  tokens:[], enabled:new Set(), mode:'auto', source:'rand', kind:'sent', wcount:10,
   idx:-1, revealed:false, shown:[], tour:1, totalTours:4,
   theme:'bulles', baseDelay:6, delay:6, shuf:false, order:[], pos:0, factor:.8, showAns:true, sound:true, help:true,
   running:false, finished:false, timers:[]
