@@ -117,11 +117,11 @@ self.OUTILS = [
   {
     dossier: 'fractions',
     domaine: 'maths',
-    version: '1.17',
+    version: '1.18',
     nom: 'À parts égales',
     niveau: 'fractions et décimaux · du CE1 au CM2',
     texte: 'Les fractions et les décimaux à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
-         + 'fractions à comparer, mur des fractions, fractions décimales avec le matériel de numération, décimaux sur la droite graduée avec la loupe. '
+         + 'fractions à comparer, mur des fractions, fractions décimales avec le matériel de numération, décimaux sur la droite graduée, droite à loupe. '
          + 'Des défis d’après les programmes, à manipuler au doigt, avec pas à pas, propositions de réponses et correction en images, et des fiches Word à imprimer.',
     donnees: ['fractions-'],
     couleur: '#23887C', ombre: '#B5E3DC'
