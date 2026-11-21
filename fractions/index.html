@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.18 dans le portail « Le tableau magique » (droite à loupe rétablie dans l'atelier libre, défi Placer et lire un décimal sans loupe).
+  v1.19 dans le portail « Le tableau magique » (propositions en flèches A, B, C, D pour placer un nombre sur une droite).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.18</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.19</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -666,6 +666,18 @@ function pointG(X, y, color, label) {
 
 /* Flèche verticale qui pointe une graduation (comme dans La route des nombres).
    lab : null -> « ? » dans un cadre ; {n, d} -> la fraction ; texte -> ce texte */
+/* Les flèches lettrées d'une question à propositions : gs = les graduations, dans l'ordre des lettres A, B, C, D.
+   Les lettres voisines se font de la place en alternant deux hauteurs. etat(i) : '', 'ok', 'ko' ou 'eteint'. */
+function flechesLettrees(gs, X, y, etat) {
+  const rang = [...gs.keys()].sort((a, b) => gs[a] - gs[b]);
+  return gs.map((g, i) => {
+    const haut = rang.indexOf(i) % 2 ? 44 : 0, e = etat(i);
+    const col = e === 'ok' ? 'var(--c2)' : e === 'ko' ? 'var(--c5)' : 'var(--c4)';
+    return `<g opacity="${e === 'eteint' ? .3 : 1}" pointer-events="none"><path d="M ${X(g)} ${y - 78 - haut} V ${y - 14}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>
+      <path d="M ${X(g) - 13} ${y - 30} L ${X(g)} ${y - 10} L ${X(g) + 13} ${y - 30}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="${X(g)}" y="${y - 90 - haut}" text-anchor="middle" font-size="40" font-weight="700" fill="${col}">${'ABCD'[i]}</text></g>`;
+  }).join('');
+}
 function arrowG(X, y, col, lab) {
   let s = `<path d="M ${X} ${y - 78} V ${y - 14}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>
            <path d="M ${X - 13} ${y - 30} L ${X} ${y - 10} L ${X + 13} ${y - 30}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -2763,6 +2775,11 @@ const PROPS = {
       [ec(e + 1, e + 2), `décalé d'un cran : ${e + 1} = ${F((e + 1) * d, d)}, c'est plus que ${F(n, d)}.`],
       e > 1 ? [ec(e - 1, e), `décalé d'un cran : ${e} = ${F(e * d, d)}, c'est moins que ${F(n, d)}.`] : null] };
   },
+  colorier(q) {   // à placer sur la droite : quatre flèches (voir propsFleches)
+    if (q.rep !== 'droite') return null;
+    const D = q.d * q.k, N = q.n * q.k, max = q.u * D;
+    return propsFleches(N, max, [N + 1, N - 1, N + q.k, N - q.k, q.k > 1 ? q.n : N + 2, max - N]);
+  },
   quantite(q) {
     if (q.grand) {
       const { Q, unit, d, n } = q, cent = Math.round(Q * 100 / d), v = x => `${comma(x * 10)} ${unit}`;
@@ -2780,8 +2797,15 @@ const PROPS = {
 };
 
 // Fractions décimales : 8 formes, chacune avec ses erreurs (valeurs en millièmes, écrites avec comma)
-PROPS.ddec = q => {   // placer : on clique sur la droite ; lire : quatre nombres possibles
-  if (q.tache !== 'lire') return null;
+/* Placer un nombre sur une droite : quatre flèches A, B, C, D, une seule au bon endroit (on ne les écrit pas : le texte de la proposition est sa graduation).
+   Les fausses : une graduation de trop ou de moins, deux d'écart, le milieu de la droite. Leur écart reste d'au moins une graduation. */
+const FLECHES = q => (q.type === 'ddec' && q.tache === 'placer') || (q.type === 'colorier' && q.rep === 'droite');
+function propsFleches(bonne, max, autres) {
+  const gs = [...new Set(autres.filter(g => g > 0 && g <= max && g !== bonne))];
+  return { bonne: String(bonne), pieges: gs.map(g => [String(g), 'flèche mal placée.']) };
+}
+PROPS.ddec = q => {   // placer : quatre flèches ; lire : quatre nombres possibles
+  if (q.tache === 'placer') return propsFleches(q.v, 19, [q.v + 1, q.v - 1, q.v + 2, q.v - 2, q.v < 10 ? q.v + 10 : q.v - 10].filter(g => g !== 10));
   const val = g => ddVal(q, g), ch = g => (g > 0 && g < 20 && g !== 10 ? ddEcrit(q, val(g)) : null);
   const pieges = [[ch(q.v + 1), 'une graduation de trop.'], [ch(q.v - 1), 'une graduation de moins.'], [ch(q.v + 2) ?? ch(q.v - 2), 'deux graduations d\'écart.'], [ch(q.v + 10 < 20 ? q.v + 10 : q.v - 10), 'la graduation du milieu n\'est pas le point.']];
   return { bonne: ddEcrit(q, val(q.v)), pieges: pieges.filter(x => x[0] !== null) };
@@ -2904,7 +2928,7 @@ function renderDefi() {
     case 'colorier': {
       const D = q.d * q.k, N = q.n * q.k, st = S.defis.st;
       if (!st.set) st.set = new Set();
-      const droite = q.rep === 'droite';
+      const droite = q.rep === 'droite', PRf = droite && S.propsOn && propositions(q);   // PRf : les propositions en flèches A, B, C, D
       const e = Math.floor(q.n / q.d), r = q.n % q.d;
       prompt = `${droite ? 'Place' : 'Colorie'} ${q.mixte ? ENT(e, r, q.d) : F(q.n, q.d)}${droite ? ' sur la droite graduée' : ''}`;
       const motsEnt = `${e === 1 ? 'une unité' : words(e) + ' unités'} et ${fracWords(r, q.d)}`;   // « deux unités et un quart »
@@ -2926,18 +2950,23 @@ function renderDefi() {
         viz = svg(1000, 230, s2, GLISSABLE);
         sub += ' Fais glisser l\'étiquette sur la droite.';
       }
+      else if (droite && PRf) {   // propositions : la droite sans point, quatre flèches lettrées
+        const x = 60, L = 840, y = 200;
+        viz = svg(1000, 250, lineG({ x, y, L, u: q.u, d: D }) + flechesLettrees(PRf.map(p => +p.html), g => lx(x, L, q.u, D, g), y, i => R ? (PRf[i].ok ? 'ok' : 'eteint') : st.choix === i ? (PRf[i].ok ? 'ok' : 'ko') : ''));
+      }
       else if (droite) viz = drawRep('droite', { d: D, u: q.u, n: R ? N : cnt, click: !R, anim: AN && !st.checked });
       else { const fill = R ? (AN ? fillUneAUne(N, A) : (i => i < N ? A : null)) : (i => st.set.has(i) ? A : null);
         // plus d'une unité (barre) : le bilan « 1 + 1 + 4/8 » s'écrit sous les barres, à la fin de l'animation
         const bilan = R && q.rep === 'barre' && N > D ? N : 0;
         viz = drawRep(q.rep, { d: D, u: q.u, fill, interactive: !R, bilan, bilanDe: AN && bilan ? fill.fin : 0 }); }
-      if (st.checked && !R) {
+      if (PRf) { if (R) ans = `<div class="pill">${F(N, D)} &nbsp;${fracWords(N, D)}</div>`; }
+      else if (st.checked && !R) {
         ans = cnt === N ? `<div class="pill">Bravo ! C'est bien ${q.mixte ? motsEnt : fracWords(q.n, q.d)}.</div>`
                         : `<div class="pill ko">${droite ? 'Ton point est à' : 'Tu as colorié'} ${fracWords(cnt, D)}. Il faut ${fracWords(q.n, q.d)}.</div>`;
       } else if (q.k > 1) ans = `<div class="pill">${F(q.n, q.d)} = ${F(N, D)} : ${droite ? 'on avance de' : 'on colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''}</div>`;
       else ans = `<div class="pill">${droite ? 'On avance de' : 'On colorie'} ${N === 1 ? 'une' : words(N)} part${N > 1 ? 's' : ''} : ${fracWords(q.n, q.d)}</div>`;
       if (R && q.n > q.d) ans += `<div class="pill">${decompTxt(q.n, q.d)}</div>`;   // plus d'une unité : 20/8 = 2 + 4/8 = 2 + 1/2
-      if (!R) extraBtn = BTN.verifier('dcheck');
+      if (!R && !PRf) extraBtn = BTN.verifier('dcheck');
       break;
     }
     case 'comparer': {
@@ -3076,15 +3105,19 @@ function renderDefi() {
       const st = S.defis.st, placer = q.tache === 'placer', x = 70, L = 840, y = 200, X = g => x + g * L / 20;
       const val = g => ddVal(q, g), cible = ddEcrit(q, val(q.v)), [n, d] = deciBest(val(q.v));
       const labels = [0, 10, 20].map(g => ddEcrit(q, val(g)));
-      let s = dlineG(x, y, L, labels, placer && !R);
+      const PRf = placer && S.propsOn && propositions(q);   // quatre flèches lettrées : on choisit la bonne lettre
+      let s = dlineG(x, y, L, labels, placer && !R && !PRf);
       steps = [I(q.ech === 'dixieme' ? 'Entre deux nombres entiers, la droite est partagée en 10 dixièmes.' : q.ech === 'centieme' ? 'Entre deux dixièmes, la droite est partagée en 10 centièmes.' : 'Entre deux centièmes, la droite est partagée en 10 millièmes.'),
                M('Compte les graduations depuis le nombre écrit à gauche.')];
       animable = false;
       if (placer) {
         prompt = `Place <span class="nbcible">${cible}</span> sur la droite graduée`;
-        if (R) s += arrowG(X(q.v), y, 'var(--c2)', '');
-        if (st.g !== undefined) s += arrowG(X(st.g), y, st.checked ? (st.g === q.v ? 'var(--c2)' : 'var(--c5)') : 'var(--c1)', '');
-        if (!R) extraBtn = BTN.verifier('dcheck') + BTN.effacer('dvider');
+        if (PRf) s += flechesLettrees(PRf.map(p => +p.html), X, y + 20, i => R ? (PRf[i].ok ? 'ok' : 'eteint') : st.choix === i ? (PRf[i].ok ? 'ok' : 'ko') : '');
+        else {
+          if (R) s += arrowG(X(q.v), y, 'var(--c2)', '');
+          if (st.g !== undefined) s += arrowG(X(st.g), y, st.checked ? (st.g === q.v ? 'var(--c2)' : 'var(--c5)') : 'var(--c1)', '');
+          if (!R) extraBtn = BTN.verifier('dcheck') + BTN.effacer('dvider');
+        }
         if (R) ans = `<div class="pill">${cible} = ${F(n, d)}</div>`;
       } else {
         prompt = 'Quel nombre est repéré par la flèche ?';
@@ -3285,7 +3318,7 @@ function renderDefi() {
   let propsHTML = '';
   if (PR && S.propsOn) {
     const ch = D.st.choix, L = 'ABCD';
-    propsHTML = `<div class="props">${PR.map((p, i) => `<button class="prop ${R ? (p.ok ? 'ok' : 'eteint') : ch === i ? (p.ok ? 'ok' : 'ko') : ''}" data-act="dprop" data-v="${i}"><b>${L[i]}</b>${p.html}</button>`).join('')}</div>`;
+    propsHTML = `<div class="props">${PR.map((p, i) => `<button class="prop ${R ? (p.ok ? 'ok' : 'eteint') : ch === i ? (p.ok ? 'ok' : 'ko') : ''}" data-act="dprop" data-v="${i}"><b>${L[i]}</b>${FLECHES(q) ? '' : p.html}</button>`).join('')}</div>`;
   }
   $('#stage').innerHTML = `<div class="defi ${R ? 'rev' : ''}">
       <div class="dtop"><div class="dots">${dots}</div><span style="color:var(--muted);font-weight:700">${D.i + 1} / ${D.list.length}</span></div>
