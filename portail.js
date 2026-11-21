@@ -135,8 +135,6 @@
     const style = document.createElement('style');
     style.textContent = `
       .signature-bas{position:fixed;right:16px;bottom:5px;z-index:20;font:11px/1.3 "Segoe UI",Arial,sans-serif;text-align:right}
-      .lien-a-propos{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;color:${c}}
-      .lien-a-propos:focus-visible{outline:2px solid ${c};outline-offset:2px}
       #aPropos{position:fixed!important;inset:0!important;margin:auto!important;height:fit-content;border:none!important;border-radius:22px;padding:0!important;width:min(760px,94vw)!important;max-width:none!important;max-height:88vh;color:#222!important;background:#fff!important;
         box-shadow:0 10px 40px rgba(0,0,0,.25);font:16px/1.5 "Segoe UI","Helvetica Neue",Arial,sans-serif;text-align:left}
       #aPropos article:focus,#aPropos:focus{outline:none}

@@ -23,7 +23,7 @@ self.OUTILS = [
   {
     dossier: 'nature-des-mots',
     domaine: 'francais',
-    version: '1.4',
+    version: '1.5',
     nom: 'La gym des mots',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de la grammaire gym du blog Charivari à l’école. Les élèves identifient la nature de chaque mot de la phrase '
@@ -37,7 +37,7 @@ self.OUTILS = [
   {
     dossier: 'machine-conjugaison',
     domaine: 'francais',
-    version: '1.2',
+    version: '1.3',
     nom: 'Machine à conjuguer',
     niveau: 'cycles 2 et 3',
     texte: 'La machine tire au sort un sujet, un verbe et un temps. Les élèves conjuguent sur l’ardoise puis on affiche '
@@ -49,7 +49,7 @@ self.OUTILS = [
   {
     dossier: 'copie-guidee',
     domaine: 'francais',
-    version: '1.2',
+    version: '1.3',
     nom: 'La copie guidée',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil Copilote de Mathilde Lollier, pour faciliter la copie d’un texte. '
@@ -64,7 +64,7 @@ self.OUTILS = [
   {
     dossier: 'syllabes-en-couleur',
     domaine: 'francais',
-    version: '1.1',
+    version: '1.2',
     nom: 'Syllabes en couleur',
     niveau: 'adapter un texte · dys',
     texte: 'Pour préparer des textes adaptés à la lecture des élèves avec des troubles d’apprentissage / dys. '
@@ -78,7 +78,7 @@ self.OUTILS = [
   {
     dossier: 'calcul-mental',
     domaine: 'maths',
-    version: '1.4',                             // numéro de CET outil : à changer quand on le modifie
+    version: '1.5',                             // numéro de CET outil : à changer quand on le modifie
     nom: 'Calculs en tête',
     niveau: 'calcul mental · du CP au CM2',
     texte: 'Compétences du programme. Projection de calculs au tableau. Les élèves répondent sur leur ardoise. '
@@ -90,7 +90,7 @@ self.OUTILS = [
   {
     dossier: 'geometrie',
     domaine: 'maths',
-    version: '2.3',
+    version: '2.4',
     nom: 'La fabrique à figures',
     niveau: 'cycle 3',
     texte: 'Un outil de géométrie plus simple et plus facile à utiliser au tableau interactif que GeoGebra. '
@@ -104,7 +104,7 @@ self.OUTILS = [
   {
     dossier: 'droites-graduees',
     domaine: 'maths',
-    version: '1.7',
+    version: '1.8',
     nom: 'La route des nombres',
     niveau: 'droites graduées · du CP au CM2',
     texte: 'Des droites graduées à projeter, sur le modèle des évaluations nationales. Trouver le nombre montré par la flèche, '
@@ -117,7 +117,7 @@ self.OUTILS = [
   {
     dossier: 'fractions',
     domaine: 'maths',
-    version: '1.20',
+    version: '1.21',
     nom: 'À parts égales',
     niveau: 'fractions et décimaux · du CE1 au CM2',
     texte: 'Les fractions et les décimaux à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
@@ -130,7 +130,7 @@ self.OUTILS = [
   {
     dossier: 'lire-l-heure',
     domaine: 'maths',
-    version: '1.7',
+    version: '1.8',
     nom: 'Les aiguilles du temps\u00a0· Tic\u2011Tac\u00a0Time',   // coupure seulement après « · »
     niveau: 'lire l’heure · français et anglais',
     texte: 'Une horloge à aiguilles à faire tourner au tableau pour apprendre à lire l’heure en français et en anglais, '
@@ -144,7 +144,7 @@ self.OUTILS = [
   {
     dossier: 'cartes-a-la-carte',
     domaine: 'classe',
-    version: '1.1',
+    version: '1.2',
     nom: 'Cartes à la carte',
     niveau: 'du CP à la 6e',
     texte: 'Cartes de France, d’Europe et du monde à projeter, classées selon les thèmes du programme de géographie. '
@@ -157,7 +157,7 @@ self.OUTILS = [
   {
     dossier: 'tirage-au-sort',
     domaine: 'classe',
-    version: '1.1',
+    version: '1.2',
     nom: 'À qui le tour ?',
     niveau: 'tous niveaux',
     texte: 'Une roue colorée tire au sort un élève de la liste de la classe, avec l’historique des tirages.',
@@ -168,7 +168,7 @@ self.OUTILS = [
   {
     dossier: 'minuteur-visuel',
     domaine: 'classe',
-    version: '1.0',
+    version: '1.1',
     nom: 'Le temps en couleur',
     niveau: 'minuteur visuel · tous niveaux',
     texte: 'Un minuteur visuel à projeter : le temps qui reste se voit sur un disque qui se vide, une barre ou un sablier. '
@@ -181,7 +181,7 @@ self.OUTILS = [
   {
     dossier: 'jeu-de-revision',
     domaine: 'classe',
-    version: '1.2',
+    version: '1.3',
     nom: 'À la poursuite des diamants',
     niveau: 'jeu de révision · tous niveaux',
     texte: 'Jeu de révision en équipes. Trois ou quatre équipages de pirates tournent autour de l’île : une bonne réponse '
