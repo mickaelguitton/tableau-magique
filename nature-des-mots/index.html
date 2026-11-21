@@ -70,16 +70,16 @@ h1,h2,p{margin:0}
 .panel h2{display:flex;align-items:center;gap:12px;font-size:1.15rem;font-weight:800;margin:0}
 .panel h2 i{font-style:normal;width:28px;height:28px;border-radius:50%;background:#26215c;color:#fff;display:grid;place-items:center;font-size:.9rem}
 .panel select,.panel textarea{
-  width:100%;font:inherit;font-weight:600;padding:.5em .8em;border:1.5px solid #b9c6e6;border-radius:12px;background:#fff;color:var(--m-ink)
+  width:100%;font:inherit;font-weight:600;padding:.5em .8em;border:2px solid #26215c;border-radius:12px;background:#fff;color:var(--m-ink)
 }
 .panel textarea{min-height:70px;resize:vertical}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
 .muted{color:var(--m-soft);font-size:.9rem;font-weight:600}
-#menu .btn{border:1.5px solid #b9c6e6;background:#fff;color:var(--m-ink);border-radius:12px;padding:.45em .9em;font-weight:700;font-size:1rem;box-shadow:none;text-shadow:none}
+#menu .btn{border:2px solid #26215c;background:#fff;color:var(--m-ink);border-radius:12px;padding:.45em .9em;font-weight:700;font-size:1rem;box-shadow:none;text-shadow:none}
 #menu .btn:hover{transform:none;background:#eef3fc}
 #menu .btn:active{transform:none;box-shadow:none}
 #menu .btn.small{font-size:.92rem;padding:.35em .8em;box-shadow:none}
-/* Boutons du menu bien visibles (contour marine + relief, comme dans le reste de l'appli) et choix actif de « Phrases » cerné de marine */
+/* Harmonie du menu : tout ce qui se clique ou se règle a un contour marine ; le choix actif est rose avec du relief ; les cadres de regroupement restent bleu pâle. */
 #menu .btn.small{border:2px solid #26215c;color:#26215c;box-shadow:0 3px 0 #26215c}
 #menu .btn.small:hover{transform:translateY(-1px);background:#fff4f8}
 #menu .btn.small:active{transform:translateY(2px);box-shadow:0 1px 0 #26215c}
@@ -100,7 +100,7 @@ h1,h2,p{margin:0}
 /* natures : pastilles à cocher */
 .natGrid{display:flex;flex-wrap:wrap;gap:8px}
 /* natures : blanc = non révisée, rose pâle (même rose que les autres choix du menu) = révisée */
-.natItem{position:relative;display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 15px;border-radius:12px;border:2px solid #c3d0ea;background:#fff;color:#4a4876;cursor:pointer;user-select:none;font-weight:700;font-size:.98rem}
+.natItem{position:relative;display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 15px;border-radius:12px;border:2px solid #26215c;background:#fff;color:#4a4876;cursor:pointer;user-select:none;font-weight:700;font-size:.98rem}
 .natItem input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .natItem.on{border-color:#26215c;background:var(--m-tint);color:#26215c;box-shadow:0 3px 0 #26215c}
 .natItem:focus-within{outline:3px solid #ff4f8b;outline-offset:2px}
@@ -110,7 +110,7 @@ h1,h2,p{margin:0}
 .natItem.fixed input{display:none}
 /* sélecteurs à deux choix */
 .kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.kind{position:relative;display:flex;flex-direction:column;gap:3px;padding:12px 15px;border:2px solid #c3d0ea;border-radius:14px;background:#fff;cursor:pointer}
+.kind{position:relative;display:flex;flex-direction:column;gap:3px;padding:12px 15px;border:2px solid #26215c;border-radius:14px;background:#fff;cursor:pointer}
 .kind input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .kind b{font-size:1.05rem}
 .kind span{font-size:.88rem;color:var(--m-soft);font-weight:700}
@@ -128,7 +128,7 @@ h1,h2,p{margin:0}
 .seg label:focus-within span{outline:3px solid #ff4f8b;outline-offset:1px}
 /* déroulement : trois cartes de choix */
 .modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.mode{position:relative;display:flex;flex-direction:column;gap:5px;padding:14px 15px;border:2px solid #c3d0ea;border-radius:14px;background:#fff;cursor:pointer}
+.mode{position:relative;display:flex;flex-direction:column;gap:5px;padding:14px 15px;border:2px solid #26215c;border-radius:14px;background:#fff;cursor:pointer}
 .mode input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .mode b{font-size:1.15rem;font-weight:800}
 .mode span{font-size:.98rem;line-height:1.35;font-weight:600;color:var(--m-soft)}
