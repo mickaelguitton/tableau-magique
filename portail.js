@@ -166,6 +166,25 @@
         + '<span>Le tableau <b>magique</b> · voir tous les outils</span>';
       pied.prepend(lien);
     }
+    // Le bouton rond « ? » en haut à droite, le même dans tous les outils : le lien de la signature est trop discret.
+    // Il pulse doucement à la première visite de l'outil, puis plus jamais (marque gardée dans le navigateur).
+    const aide = document.createElement('button');
+    aide.type = 'button'; aide.className = 'bouton-aide'; aide.setAttribute('data-a-propos', '');
+    aide.setAttribute('aria-label', 'À propos de l\'outil : explications'); aide.title = 'À propos de l\'outil';
+    aide.textContent = '?';
+    let dejaVu = false; try { dejaVu = localStorage.getItem('aideVue:' + dossier) === '1'; localStorage.setItem('aideVue:' + dossier, '1'); } catch (e) {}
+    if (!dejaVu) aide.classList.add('pulse');
+    document.body.appendChild(aide);
+    style.textContent += `
+      .bouton-aide{all:unset;box-sizing:border-box;position:fixed;bottom:46px;right:12px;z-index:25;width:46px;height:46px;border-radius:50%;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;background:${c};color:#fff;font:700 26px/1 "Fredoka","Segoe UI",Arial,sans-serif;
+        border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.28)}
+      .bouton-aide:hover{filter:brightness(1.1)}
+      .bouton-aide:focus-visible{outline:3px solid ${c};outline-offset:3px}
+      .bouton-aide.pulse{animation:pulse-aide 1.4s ease-in-out 3}
+      @keyframes pulse-aide{0%,100%{transform:scale(1);box-shadow:0 3px 10px rgba(0,0,0,.28)}50%{transform:scale(1.22);box-shadow:0 0 0 10px rgba(255,255,255,.55),0 3px 10px rgba(0,0,0,.28)}}
+      @media (max-width:1100px){.bouton-aide{width:38px;height:38px;right:6px;bottom:42px;font-size:22px}}
+      @media print{.bouton-aide{display:none}}`;
     document.querySelectorAll('[data-a-propos]').forEach(b => b.addEventListener('click', e => {
       e.stopPropagation();
       fenetre.showModal();
