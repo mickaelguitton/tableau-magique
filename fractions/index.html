@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.21 dans le portail « Le tableau magique » (bouton « ? » à la place du lien « À propos de l’outil » ; atelier Décimaux sur la droite : zoom sur l'intervalle, placer et lire).
+  v1.22 dans le portail « Le tableau magique » (corrections : partie entière et décimale, 9,6 = 9 + 6/10).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -310,7 +310,7 @@ svg{user-select:none;-webkit-user-select:none}
 .dzone>.dviz{flex:1;min-width:0}
 .dzone>.dactions{flex-direction:column;justify-content:center;margin:0}
 .zone-aide .hint{margin-top:.3em;font-size:clamp(1.05rem,2.6vh,1.45rem)}
-.answer .pill{background:var(--ok-soft);color:#1d6b33;padding:.35rem 1.1rem;border-radius:1.2rem;display:flex;align-items:center;gap:.3em;border:.15rem solid #b9e8c6}
+.answer .pill{background:var(--ok-soft);color:#1d6b33;padding:.15rem 1.1rem;border-radius:1.2rem;display:flex;align-items:center;gap:.3em;border:.15rem solid #b9e8c6}
 .answer .frac{font-size:1.05em}
 .answer .pill.ko{background:#fde3e6;color:#9b1c2e}
 .erreur{margin:.6rem 0;padding:.6rem .9rem;border-radius:.8rem;background:#fde6e3;color:#a3271b;font-weight:600;line-height:1.35}
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas">M. Guitton<span class="app-version"> – v1.21</span></div>
+<div class="signature-bas">M. Guitton<span class="app-version"> – v1.22</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -520,6 +520,15 @@ function denName(d, plural) {
   return plural ? w + 's' : w;
 }
 
+/* La partie entière puis chaque rang non nul : 9,6 = 9 + 6/10 ; 2,37 = 2 + 3/10 + 7/100. Rien sous 1 ni pour un entier.
+   decSuite(v) donne « = 9 + 6/10 » à coller derrière un nombre décimal (v en millièmes). */
+function decDec(v) {
+  if (v < 1000 || v % 1000 === 0) return '';
+  const parts = [Math.floor(v / 1000)];
+  [[100, 10], [10, 100], [1, 1000]].forEach(([u, d]) => { const c = Math.floor(v / u) % 10; if (c) parts.push(F(c, d)); });
+  return parts.join(' + ');
+}
+const decSuite = v => decDec(v) ? ` = ${decDec(v)}` : '';
 function fracWords(n, d) {
   if (d === 1) return String(n);
   return words(n) + ' ' + denName(d, n > 1);
@@ -1629,7 +1638,7 @@ function renderDdroite() {
   const cible = ddEcritV(q, q.v), zoome = q.z.length >= q.dec - 1;
   const aide = rev ? '' : q.dec === 1 ? '' : zoome ? '' : `<small>Clique sur l'intervalle où ${q.tache === 'lire' ? 'se trouve la flèche' : 'se trouve le nombre'}, pour zoomer.</small>`;
   const titre = q.tache === 'placer' ? `Place <span class="nbcible">${cible}</span> sur la droite graduée.`
-    : rev ? `La flèche repère <span class="nbcible">${cible}</span>` : 'Quel nombre est repéré par la flèche ?';
+    : rev ? `La flèche repère <span class="nbcible">${cible}</span>${decSuite(q.v)}` : 'Quel nombre est repéré par la flèche ?';
   const ligne = q.tache === 'placer' || rev ? ' style="flex-direction:row;justify-content:center;align-items:baseline;gap:.3em;flex-wrap:wrap;font-size:clamp(1.6rem,4.2vh,2.5rem)"' : '';
   $('#stage').innerHTML = `<div class="title"${ligne}>${titre}${aide}</div><div class="viz">${svg(1000, ys[q.dec - 1] + 80, s, 'class="ddroite"')}</div>`;
 }
@@ -3097,7 +3106,7 @@ function renderDefi() {
     }
     case 'ddec': {   // un décimal sur la droite graduée : placer (clics) ou lire la flèche
       const st = S.defis.st, placer = q.tache === 'placer', x = 70, L = 840, y = 200, X = g => x + g * L / 20;
-      const val = g => ddVal(q, g), cible = ddEcrit(q, val(q.v)), [n, d] = deciBest(val(q.v));
+      const val = g => ddVal(q, g), cible = ddEcrit(q, val(q.v)), [n, d] = deciBest(val(q.v)), suite = decSuite(val(q.v));
       const labels = [0, 10, 20].map(g => ddEcrit(q, val(g)));
       const PRf = placer && S.propsOn && propositions(q);   // quatre flèches lettrées : on choisit la bonne lettre
       let s = dlineG(x, y, L, labels, placer && !R && !PRf);
@@ -3112,11 +3121,11 @@ function renderDefi() {
           if (st.g !== undefined) s += arrowG(X(st.g), y, st.checked ? (st.g === q.v ? 'var(--c2)' : 'var(--c5)') : 'var(--c1)', '');
           if (!R) extraBtn = BTN.verifier('dcheck') + BTN.effacer('dvider');
         }
-        if (R) ans = `<div class="pill">${cible} = ${F(n, d)}</div>`;
+        if (R) ans = `<div class="pill">${cible}${suite} = ${F(n, d)}</div>`;
       } else {
         prompt = 'Quel nombre est repéré par la flèche ?';
         s += arrowG(X(q.v), y, 'var(--a)', '');
-        ans = `<div class="pill">${cible} = ${F(n, d)}</div>`;
+        ans = `<div class="pill">${cible}${suite} = ${F(n, d)}</div>`;
       }
       viz = svg(1000, 280, s, 'class="ddroite"');
       break;
@@ -3224,7 +3233,7 @@ function renderDefi() {
         // la phrase sur la bande bleue seulement si une bande est dessinée
         sub = `${v >= 1000 ? "La bande bleue est l'unité." : "Une unité, c'est 10 grands carrés."} Grand carré : un dixième · barre : un centième${mille ? ' · petit carré : un millième' : ''}.`;
         viz = quadSVG({ u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }, true);
-        ans = `<div class="pill">${F(n, d)} = ${comma(v)}</div>`;
+        ans = `<div class="pill">${F(n, d)} = ${comma(v)}${decSuite(v)}</div>`;
       } else if (k === 'conv') {
         const m = q.to / q.from;
         prompt = q.rev ? `${Fbox(R ? q.a : null, q.from)} = ${F(q.a * m, q.to)}` : `${F(q.a, q.from)} = ${Fbox(R ? q.a * m : null, q.to)}`;
@@ -3281,7 +3290,7 @@ function renderDefi() {
         prompt = q.rev ? `${comma(v)} = ${Fbox(R ? q.n : null, q.d)}` : `${F(q.n, q.d)} = ${R ? comma(v) : BOX}`;
         sub = q.rev ? 'Écris ce nombre sous forme de fraction décimale.' : 'Écris ce nombre avec une virgule.';
         if (R) viz = deciLines(v, Math.max(1, Math.ceil(v / 1000)), true, q.d === 1000, false);
-        ans = `<div class="pill">${fracWords(q.n, q.d)}</div>`;
+        ans = `<div class="pill">${fracWords(q.n, q.d)}</div>` + (decDec(v) ? `<div class="pill">${comma(v)}${decSuite(v)}</div>` : '');
       }
       break;
     }
@@ -3902,7 +3911,7 @@ async function exercicePapier(ex, num, corrige, images) {
     const labels = [0, 10, 20].map(g => ddEcrit(q, ddVal(q, g)));
     const im = await imagePapier(svg(1000, 230, dlineG(x, y, W, labels, false) + q.gs.map((g, i) => flecheP(x + g * W / 20, y, L[i])).join('')), images);
     ajoute(e => hImage(im, 15 * e, 4 * e), e => pImage(im, 15 * e, 4 * e));
-    colonnes(q.gs.map((g, i) => pP(wRun(`${L[i]} = `, txt) + (corrige ? wRun(ddEcrit(q, ddVal(q, g)), rep) : wRun(POINTS, txt)), { centre: true })), 1.1);
+    colonnes(q.gs.map((g, i) => pP(wRun(`${L[i]} = `, txt) + (corrige ? runsDe(ddEcrit(q, ddVal(q, g)) + decSuite(ddVal(q, g)), rep) : wRun(POINTS, txt)), { centre: true })), 1.1);
   }
   else if (k === 'deci') {   // une sous-compétence des nombres décimaux : 2 ou 3 questions en colonnes
     consigne(ex.consigne);
@@ -3911,7 +3920,7 @@ async function exercicePapier(ex, num, corrige, images) {
       const ims = [];
       for (const q of qs) { const v = q.v; ims.push(await imagePapier(quadSVG({ u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }, true), images)); }
       const lC = 8.2, hC = 4.2, hMax = e => Math.max(...ims.map(im => hImage(im, lC * e, hC * e)));
-      colonnes(qs.map((q, i) => e => { const [n, d] = deciBest(q.v); return pImage(ims[i], lC * e, hC * e) + (corrige ? pP(runsDe(`${F(n, d)} = ${comma(q.v)}`, rep), { centre: true }) : pPoints()); }), e => hMax(e) + 1.1, "top");
+      colonnes(qs.map((q, i) => e => { const [n, d] = deciBest(q.v); return pImage(ims[i], lC * e, hC * e) + (corrige ? pP(runsDe(`${F(n, d)} = ${comma(q.v)}${decSuite(q.v)}`, rep), { centre: true }) : pPoints()); }), e => hMax(e) + 1.1, "top");
     } else if (ex.sorte === 'arrondi') {   // deux réponses par nombre
       colonnes(qs.map(q => { const unite = Math.floor((q.v + 500) / 1000), dixieme = Math.round(q.v / 100) * 100;
         return pP(wRun(comma(q.v), { ...txt, b: true }), { centre: true, apres: 6 }) +
