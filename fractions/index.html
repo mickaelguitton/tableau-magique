@@ -27,7 +27,7 @@
 <style>.portail-accueil{display:none!important}html.dans-portail .portail-accueil{display:inline-flex!important}</style>
 <!--
   À parts égales : fractions et décimaux, du CE1 au CM2
-  v1.19 dans le portail « Le tableau magique » (propositions en flèches A, B, C, D pour placer un nombre sur une droite).
+  v1.20 dans le portail « Le tableau magique » (atelier Décimaux sur la droite : zoom sur l'intervalle, placer et lire).
   Mickaël Guitton, licence CC BY-NC 4.0
   Mis au point avec l'aide de Claude AI
   (plan du code : au début du script)
@@ -372,7 +372,7 @@ svg{user-select:none;-webkit-user-select:none}
   <div class="boutons"><button class="btn small" data-act="fclose">Annuler</button><button class="btn green" id="ficheCreer" data-act="fcreate">Créer la fiche Word</button></div>
 </div></div>
 <div id="tip" class="pop" hidden></div>
-<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.19</span></div>
+<div class="signature-bas"><button type="button" class="lien-a-propos" data-a-propos>À propos de l’outil</button> · M. Guitton<span class="app-version"> – v1.20</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (lien « À propos de l'outil » de la signature)
      et par les moteurs de recherche. Mise en forme et ouverture : portail.js -->
@@ -391,7 +391,7 @@ svg{user-select:none;-webkit-user-select:none}
       <li><b>Le mur des fractions :</b> une couleur par ligne, une case cliquée se met en valeur, et une règle qu’on fait glisser pour voir que 1/2 = 2/4 = 3/6. L’option « Mur blanc » permet de faire colorier les élèves.</li>
       <li><b>Fractions sur la droite :</b> on construit sa droite, toujours à partir de 0 (parts, unités), pour placer une fraction, ou pour lire celle que montre la flèche, posée d’un clic sur une graduation. La correction montre les sauts depuis 0 ; le bouton « Graduations » cache les petites graduations.</li>
       <li><b>Fractions décimales :</b> le matériel de numération, comme dans les manuels (la bande est l’unité, le grand carré un dixième, la barre un centième, le petit carré un millième). « Lire » : quel est le nombre représenté ? « Représenter » : on montre un nombre, les élèves font glisser les bonnes pièces sur le plateau, puis Vérifier (les échanges comptent : 12 dixièmes, c’est 1,2).</li>
-      <li><b>Décimaux sur la droite :</b> une droite graduée en dixièmes, en centièmes ou, au CM2, en millièmes : on place une flèche, ou on lit le nombre qu’elle montre. Un troisième réglage, la droite à loupe, agrandit un dixième (puis, au CM2, un centième) pour lire les centièmes et les millièmes. Les nombres écrits sur la droite changent à chaque situation.</li>
+      <li><b>Décimaux sur la droite :</b> une droite de 0 à 2 : on place une flèche, ou on lit le nombre qu’elle montre (dixièmes, centièmes ou, au CM2, millièmes). Pour les centièmes et les millièmes, on clique sur l'intervalle où se trouve le nombre : une nouvelle droite l'agrandit 10 fois. Les nombres écrits sur la droite changent à chaque situation.</li>
     </ul>
 
     <h3>Les défis, d’après les programmes</h3>
@@ -1032,10 +1032,9 @@ const S = {
   // tache 'lire' : quel nombre est représenté ? ; tache 'rep' : on montre un nombre, on dépose les bonnes pièces
   deci: { tache: 'lire', virgule: true, show: false, pieces: { u: 1, d: 3, c: 4, m: 0 },
           cible: 2470, plateau: { u: 0, d: 0, c: 0, m: 0 }, verif: null },
-  // décimaux sur la droite : une droite en dixièmes (de e à e + 2) ou en centièmes (de e,d à e,d + 0,2) ; v compté en graduations
-  dd: { tache: 'placer', ech: 'dixieme', debut: 2, v: 7, guess: null, verif: null, revealed: false, virgule: true },
-  // droite à loupe (atelier libre) : v en millièmes, s : première unité écrite, u : nombre d'unités
-  dl: { u: 1, v: 340, s: 0, loupe: false, virgule: true, show: false },
+  // décimaux sur la droite : une droite de 0 à u, graduée en dixièmes ; dec décimales (1, 2 ou 3) : on zoome dec - 1 fois ;
+  // v en millièmes, z : les graduations des zooms choisis (dixième puis centième), guess : la graduation de la dernière droite
+  dd: { tache: 'placer', dec: 1, u: 2, v: 700, z: [], guess: null, verif: null, revealed: false, virgule: true },
   defis: { on: load('defisCoches', {}), sub: load('pastilles', {}), only: null, list: [], i: 0, revealed: false, st: {} },
   anim: true,   // corrections des défis toujours animées (elles ne se jouent qu'à « Voir la réponse »)
   propsOn: false,                   // propositions A, B, C, D : décoché à l'ouverture, reste actif pour toute la série une fois coché
@@ -1045,7 +1044,7 @@ const S = {
 if (!CL[S.classe]) S.classe = 'CM2';
 
 function fitClass() { // ramène tous les réglages dans le programme de la classe
-  if (S.dd.ech === 'millieme' && C().deciMax !== 1000) ddNew();   // les millièmes sur la droite : au CM2
+  if (S.dd.dec === 3 && C().deciMax !== 1000) ddNew();   // les millièmes sur la droite : au CM2
   const c = C();
   if (!c.modes.includes(S.mode)) S.mode = 'manip';
   const m = S.manip;
@@ -1060,7 +1059,6 @@ function fitClass() { // ramène tous les réglages dans le programme de la clas
   cmpVide();
   S.mur.rows = S.mur.rows.filter(d => c.wall.includes(d));
   if (!S.mur.rows.length) S.mur.rows = [1, 2, 4];
-  S.dl.u = clamp(S.dl.u, 1, Math.min(c.maxU, 3)); if (c.deciMax === 100) S.dl.v = Math.max(10, Math.round(S.dl.v / 10) * 10);   // la droite à loupe
   if (c.deciMax === 100) { S.deci.pieces.m = 0; S.deci.plateau.m = 0; if (S.deci.cible % 10) S.deci.cible -= S.deci.cible % 10; }   // pas de millièmes au CM1
   newPlacer();
   newSeries();
@@ -1264,19 +1262,12 @@ function renderTools() {
   }
   if (S.mode === 'ddroite') {
     const q = S.dd;
-    h += seg('ddtache', q.tache, [['placer', 'Placer'], ['lire', 'Lire'], ['loupe', 'Loupe']]).replace('class="seg"', 'class="seg tache"');
-    if (q.tache === 'loupe') {   // la droite à loupe : on déplace le point, on lit le nombre sur la carte
-      const l = S.dl;
-      h += stepper('Unités', 'dlu', l.u, l.u > 1, l.u < Math.min(c.maxU, 3));   // la droite part toujours de 0
-      h += toggle(c.deciMax === 1000 ? 'Loupes' : 'Loupe', 'dlloupe', l.loupe) + toggle('Écriture à virgule', 'dlvirg', l.virgule);
-      h += BTN.neuf('dlnew');
-    } else {
-      h += seg('ddech', q.ech, [['dixieme', 'Dixièmes'], ['centieme', 'Centièmes'], ...(c.deciMax === 1000 ? [['millieme', 'Millièmes']] : [])]);
-      h += toggle('Écriture à virgule', 'ddvirg', q.virgule);
-      if (q.tache === 'placer') h += BTN.effacer('ddclear') + BTN.verifier('ddverif');
-      if (!q.revealed) h += BTN.voir('ddvoir');   // à tout moment, comme dans les défis
-      h += BTN.neuf('ddnew');
-    }
+    h += seg('ddtache', q.tache, [['placer', 'Placer'], ['lire', 'Lire']]).replace('class="seg"', 'class="seg tache"');
+    h += seg('dddec', q.dec, [[1, 'Dixièmes'], [2, 'Centièmes'], ...(c.deciMax === 1000 ? [[3, 'Millièmes']] : [])]);
+    h += toggle('Écriture à virgule', 'ddvirg', q.virgule);
+    if (q.tache === 'placer') h += BTN.effacer('ddclear') + BTN.verifier('ddverif');
+    if (!q.revealed) h += BTN.voir('ddvoir');   // à tout moment, comme dans les défis
+    h += BTN.neuf('ddnew');
   }
   if (S.mode === 'defis') h += BTN.neuf('dnew', 'Nouvelle série'); // les autres boutons des défis s'ajoutent dans renderDefi
   $('#tools').innerHTML = h;
@@ -1585,59 +1576,61 @@ const ddPas = q => ({ dixieme: 100, centieme: 10, millieme: 1 })[q.ech];   // un
 const ddVal = (q, g) => q.debut * ddPas(q) * 10 + g * ddPas(q);
 const ddEcrit = (q, v) => { const [n, d] = deciBest(v); return q.virgule || v % 1000 === 0 ? comma(v) : F(n, d); };
 
+/* L'atelier : un nombre à placer ou à lire sur une droite de 0 à u. Une seule droite pour les dixièmes ;
+   pour les centièmes (puis les millièmes), on clique sur l'intervalle où se trouve le nombre : une nouvelle droite l'agrandit 10 fois. */
 function ddNew() {
   const q = S.dd, c = C();
-  if (q.ech === 'millieme' && c.deciMax !== 1000) q.ech = 'centieme';   // les millièmes : au CM2
-  // dixièmes : de e à e + 2 ; centièmes : de e,d à e,d + 0,2 ; millièmes : de e,dc à e,dc + 0,02
-  q.debut = { dixieme: ri(0, c.lvl === 3 ? 18 : 8), centieme: ri(0, c.lvl === 3 ? 98 : 48), millieme: ri(0, 998) }[q.ech];
-  let v; do v = ri(1, 19); while (v === 10 || v === q.v);   // jamais sur un nombre déjà écrit
-  q.v = v; q.guess = null; q.verif = null; q.revealed = false;
+  if (q.dec === 3 && c.deciMax !== 1000) q.dec = 2;   // les millièmes : au CM2
+  q.u = clamp(q.u, 1, Math.min(c.maxU, 3));
+  const pas = [0, 100, 10, 1][q.dec];   // une graduation de la dernière droite, en millièmes
+  let v; do v = ri(1, q.u * 10 ** q.dec - 1) * pas; while ((v / pas) % 10 === 0 || v === q.v);   // jamais un entier, ni un nombre qui finit par 0
+  Object.assign(q, { v, z: [], guess: null, verif: null, revealed: false });
 }
-
-/* La droite à loupe (atelier libre) : un point sur une droite en dixièmes, des loupes pour les centièmes et les millièmes ;
-   on clique sur une droite pour déplacer le point, la carte retournée donne le nombre */
-function renderLoupe() {
-  const q = S.dl, c = C();
-  q.v = clamp(q.v, q.s * 1000, (q.s + q.u) * 1000);
-  const [n, d] = deciBest(q.v);
-  $('#stage').innerHTML = `
-    <div class="title">Les fractions décimales sur la droite graduée</div>
-    <div class="manip">
-      <div class="viz">${deciLines(q.v, q.u, q.loupe, c.deciMax === 1000, true, q.s)}</div>
-      <div class="card ${q.show ? 'face' : 'dos'} ${S.retourne ? 'retourne' : ''}" data-act="dlshow" role="button" tabindex="0" aria-label="Retourner la carte">
-        ${q.show ? `<div class="big">${q.virgule ? comma(q.v) : F(n, d)}</div><ul>${deciFacts(q.v).map(x => `<li>${x}</li>`).join('')}</ul>`
-                 : `<div class="question">Quel est le nombre repéré ?</div>`}
-      </div>
-    </div>`;
+const ddChemin = q => [Math.floor(q.v / 100), Math.floor(q.v / 10) % 10].slice(0, q.dec - 1);   // les zooms qui mènent au nombre
+// le nombre (en millièmes) où l'élève a posé sa flèche, ou null s'il n'a pas fini de zoomer
+function ddEleve(q) {
+  if (q.guess === null || q.z.length < q.dec - 1) return null;
+  const debut = q.dec === 1 ? 0 : q.dec === 2 ? q.z[0] * 100 : q.z[0] * 100 + q.z[1] * 10;
+  return debut + q.guess * [0, 100, 10, 1][q.dec];
 }
-
-function loupeRandom() {
-  const c = C(), q = S.dl, max = Math.min(c.maxU, 3) * 1000;
-  q.u = Math.max(q.u, 1); q.s = 0; q.show = false;
-  q.v = c.deciMax === 1000 && Math.random() < 0.5 ? ri(1, max - 1) : ri(1, max / 10 - 1) * 10;
-  if (q.v > q.u * 1000) q.u = Math.ceil(q.v / 1000);
-}
+const ddEcritV = (q, v) => { const [n, d] = deciBest(v); return q.virgule || v % 1000 === 0 ? comma(v) : `${n}/${d}`; };
 
 function renderDdroite() {
-  if (S.dd.tache === 'loupe') { renderLoupe(); return; }
-  const q = S.dd, x = 70, L = 840, y = 200;
-  const X = g => x + g * L / 20;
-  const labels = [0, 10, 20].map(g => q.virgule || ddVal(q, g) % 1000 === 0 ? comma(ddVal(q, g)) : (([n, d]) => `${n}/${d}`)(deciBest(ddVal(q, g))));
-  let s = dlineG(x, y, L, labels, true), title;
-  const cible = ddEcrit(q, ddVal(q, q.v));
-  if (q.tache === 'placer') {
-    title = `Place <span class="nbcible">${cible}</span> sur la droite graduée.`;
-    // la flèche de l'élève : jaune, puis verte ou rouge après Vérifier ; « Voir la réponse » ajoute la bonne flèche
-    if (q.revealed) s += arrowG(X(q.v), y, 'var(--c2)', '');
-    if (q.guess !== null) s += arrowG(X(q.guess), y, q.verif === 'ok' ? 'var(--c2)' : q.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
-  } else {
-    title = 'Quel nombre est repéré par la flèche ?<small>Clique sur une graduation pour y placer la flèche.</small>';
-    s += arrowG(X(q.v), y, 'var(--a)', q.revealed ? '' : null);
-    if (q.revealed) s += `<text x="${X(q.v)}" y="${y - 96}" text-anchor="middle" font-size="46" font-weight="700" fill="var(--a)">${q.virgule ? comma(ddVal(q, q.v)) : ''}</text>`
-                       + (q.virgule ? '' : (([n, d]) => svgFrac(X(q.v), y - 118, n, d, 40, 'var(--a)'))(deciBest(ddVal(q, q.v))));
+  const q = S.dd, x = 60, L = 860, ys = [90, 250, 410], rev = q.revealed;
+  const chemin = rev ? ddChemin(q) : q.z, nbl = Math.min(q.dec, chemin.length + 1);
+  let s = '', a = 0, span = q.u * 1000, n = q.u * 10;   // a : début de la droite, span : sa longueur, n : son nombre d'intervalles
+  for (let i = 0; i < nbl; i++) {
+    const y = ys[i], last = i === q.dec - 1, step = L / n, X = g => x + g * step, val = g => a + g * span / n;
+    if (i < nbl - 1) s += `<rect x="${X(chemin[i])}" y="${y - 26}" width="${step}" height="52" rx="6" fill="${soft('--c3', .2)}" stroke="var(--c3)" stroke-width="2.5" pointer-events="none"/>`;   // l'intervalle choisi
+    s += `<path d="M ${x - 14} ${y} H ${x + L + 34}" stroke="${INK}" stroke-width="3"/>
+          <path d="M ${x + L + 24} ${y - 8} L ${x + L + 36} ${y} L ${x + L + 24} ${y + 8}" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+    for (let g = 0; g <= n; g++) {
+      const big = g % 10 === 0, h = big ? 18 : g % 5 ? 11 : 14;
+      s += `<path d="M ${X(g)} ${y - h} V ${y + h}" stroke="${INK}" stroke-width="${big ? 3.5 : 2.2}"/>`;
+      if (i === 0 ? g % 10 === 0 : g === 0 || g === n) s += `<text x="${X(g)}" y="${y + 52}" text-anchor="middle" font-size="34" font-weight="700" fill="${INK}">${ddEcritV(q, val(g))}</text>`;
+    }
+    // les zones où cliquer : un intervalle (pour zoomer) ou une graduation (pour poser la flèche)
+    if (!rev && !last) for (let g = 0; g < n; g++) s += `<g class="zoom" data-zl="${i}:${g}"><rect x="${X(g)}" y="${y - 44}" width="${step}" height="88" fill="transparent"/></g>`;
+    if (!rev && last && q.tache === 'placer') for (let g = 0; g <= n; g++) s += `<g class="zoom" data-zl="${i}:${g}"><rect x="${X(g) - step / 2}" y="${y - 44}" width="${step}" height="88" fill="transparent"/></g>`;
+    // les flèches
+    if (q.tache === 'lire') { const f = (q.v - a) / span; if (f >= 0 && f <= 1) s += arrowG(x + f * L, y, 'var(--a)', ''); }
+    else if (last) {
+      if (rev) s += arrowG(X((q.v - a) / (span / n)), y, 'var(--c2)', '');
+      if (q.guess !== null && (!rev || q.z.join() === chemin.join())) s += arrowG(X(q.guess), y, q.verif === 'ok' ? 'var(--c2)' : q.verif === 'ko' ? 'var(--c5)' : 'var(--c1)', '');
+    }
+    // la droite qui agrandit l'intervalle choisi
+    if (i < nbl - 1) {
+      const g = chemin[i], y2 = ys[i + 1];
+      s += `<path d="M ${X(g)} ${y + 28} L ${x} ${y2 - 30} M ${X(g) + step} ${y + 28} L ${x + L} ${y2 - 30}" stroke="var(--c3)" stroke-width="2.5" stroke-dasharray="7 6" pointer-events="none"/>`;
+      a = val(g); span = span / n; n = 10;
+    }
   }
-  const ligne = q.tache === 'placer' ? ' style="flex-direction:row;justify-content:center;align-items:baseline;gap:.3em;flex-wrap:wrap;font-size:clamp(1.6rem,4.2vh,2.5rem)"' : '';   // la consigne en grand
-  $('#stage').innerHTML = `<div class="title"${ligne}>${title}</div><div class="viz">${svg(1000, 280, s, 'class="ddroite"')}</div>`;
+  const cible = ddEcritV(q, q.v), zoome = q.z.length >= q.dec - 1;
+  const aide = rev ? '' : q.dec === 1 ? '' : zoome ? '' : `<small>Clique sur l'intervalle où ${q.tache === 'lire' ? 'se trouve la flèche' : 'se trouve le nombre'}, pour zoomer.</small>`;
+  const titre = q.tache === 'placer' ? `Place <span class="nbcible">${cible}</span> sur la droite graduée.`
+    : rev ? `La flèche repère <span class="nbcible">${cible}</span>` : 'Quel nombre est repéré par la flèche ?';
+  const ligne = q.tache === 'placer' || rev ? ' style="flex-direction:row;justify-content:center;align-items:baseline;gap:.3em;flex-wrap:wrap;font-size:clamp(1.6rem,4.2vh,2.5rem)"' : '';
+  $('#stage').innerHTML = `<div class="title"${ligne}>${titre}${aide}</div><div class="viz">${svg(1000, ys[q.dec - 1] + 80, s, 'class="ddroite"')}</div>`;
 }
 
 /* =========================================================
@@ -3426,7 +3419,6 @@ const ACT = {
       case 'pd': { const r0 = (p.n - p.s * p.d) / p.d; p.d = nextDen(p.d, dir); p.n = p.s * p.d + clamp(Math.round(r0 * p.d), 0, p.d * p.u); break; }
       case 'ps': { const rel = p.n - p.s * p.d; p.s = clamp(p.s + dir, 0, 20); p.n = p.s * p.d + rel; break; }
       case 'pu': p.u = clamp(p.u + dir, 1, c.lvl === 1 ? 3 : c.maxU); p.n = clamp(p.n, p.s * p.d, (p.s + p.u) * p.d); break;
-      case 'dlu': { const l = S.dl; l.u = clamp(l.u + dir, 1, Math.min(c.maxU, 3)); l.v = Math.min(l.v, l.u * 1000 - 10); break; }   // droite à loupe
       case 'qu': case 'qd': case 'qc': case 'qm': {   // quadrillages : une pièce de plus ou de moins
         const P = S.deci.pieces, k = key[1], max = k === 'u' ? Math.min(c.maxU, 3) : 19;
         P[k] = clamp(P[k] + dir, 0, max); break;
@@ -3464,15 +3456,11 @@ const ACT = {
   dclear() { const q = S.deci; if (q.tache === 'rep') { q.plateau = { u: 0, d: 0, c: 0, m: 0 }; q.verif = null; } else q.pieces = { u: 0, d: 0, c: 0, m: 0 }; render(); },
   dvoir() { const q = S.deci, v = q.cible; q.plateau = { u: Math.floor(v / 1000), d: Math.floor(v % 1000 / 100), c: Math.floor(v % 100 / 10), m: v % 10 }; q.verif = 'ok'; render(); },   // les bonnes pièces sur le plateau
   dverif() { const q = S.deci; q.verif = valPlateau(q.plateau) === q.cible ? 'ok' : 'ko'; render(); },   // les échanges comptent : 12 dixièmes, c'est 1,2
-  ddtache(v) { S.dd.tache = v; if (v === 'loupe') loupeRandom(); else ddNew(); render(); },
-  ddech(v) { S.dd.ech = v; ddNew(); render(); },
+  ddtache(v) { S.dd.tache = v; ddNew(); render(); },
+  dddec(v) { S.dd.dec = +v; ddNew(); render(); },
   ddvirg() { S.dd.virgule = !S.dd.virgule; render(); },
-  ddclear() { S.dd.guess = null; S.dd.verif = null; render(); },
-  ddverif() { const q = S.dd; if (q.guess === null) return; q.verif = q.guess === q.v ? 'ok' : 'ko'; render(); },
-  dlloupe() { S.dl.loupe = !S.dl.loupe; render(); },
-  dlvirg() { S.dl.virgule = !S.dl.virgule; render(); },
-  dlshow() { S.dl.show = !S.dl.show; S.retourne = true; render(); S.retourne = false; },   // la carte se retourne
-  dlnew() { loupeRandom(); render(); },
+  ddclear() { Object.assign(S.dd, { z: [], guess: null, verif: null }); render(); },
+  ddverif() { const q = S.dd, v = ddEleve(q); if (v === null) return; q.verif = v === q.v ? 'ok' : 'ko'; render(); },
   ddvoir() { S.dd.revealed = true; render(); },
   ddnew() { ddNew(); render(); },
   dvirg() { S.deci.virgule = !S.deci.virgule; render(); },
@@ -3528,6 +3516,13 @@ document.addEventListener('click', e => {
   if (S.cmp.edit && !e.target.closest('.cedit, [data-act=cedit]')) { S.cmp.edit = null; renderCompare(); }
   const a = e.target.closest('[data-act]');
   if (a) { ACT[a.dataset.act]?.(a.dataset.v, a); return; }
+  const zc = e.target.closest('[data-zl]');   // atelier « Décimaux sur la droite » : un intervalle pour zoomer, une graduation pour poser la flèche
+  if (zc && S.mode === 'ddroite' && !S.dd.revealed) {
+    const q = S.dd, [i, g] = zc.dataset.zl.split(':').map(Number);
+    if (i < q.dec - 1) { q.z = q.z.slice(0, i); q.z[i] = g; q.guess = null; q.verif = null; }   // un autre zoom efface les suivants
+    else { q.guess = g; q.verif = null; }
+    render(); return;
+  }
   const w = e.target.closest('[data-w]');
   if (w) {
     const [d, j] = w.dataset.w.split(':').map(Number);
@@ -3566,15 +3561,6 @@ document.addEventListener('click', e => {
       if (p.task === 'lire') { p.n = p.s * p.d + v; p.revealed = false; } else { p.guess = v; p.verif = null; p.revealed = false; }
     }
     if (S.mode === 'defis') { S.defis.st.g = v; S.defis.st.checked = false; } // « Place 3/4 » dans les défis
-    if (S.mode === 'ddroite') {   // Placer : le point de l'élève ; Lire : la flèche se pose sur la graduation choisie
-      const q = S.dd;
-      if (q.tache === 'loupe') {   // un clic sur une des droites fixe le chiffre de son rang et efface les suivants
-        const l = S.dl, ligne = +g.closest('[data-line]').dataset.line, base = l.s * 1000, w = l.v - base;
-        const a = Math.min(Math.floor(w / 100), l.u * 10 - 1), b = Math.min(Math.floor(w / 10), l.u * 100 - 1);
-        l.v = base + (ligne === 1 ? v * 100 : ligne === 2 ? a * 100 + v * 10 : b * 10 + v);
-      }
-      else if (q.tache === 'lire') { q.v = v; q.revealed = false; } else { q.guess = v; q.verif = null; q.revealed = false; }
-    }
     render();
   }
 });
