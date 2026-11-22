@@ -6,14 +6,14 @@
 <title data-court="Accords parfaits">Accords parfaits : les accords en français, du CP au CM2 – Le tableau magique</title>
 <meta name="author" content="Mickaël Guitton">
 <meta name="license" content="CC BY-NC 4.0">
-<meta name="description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
+<meta name="description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, transpose…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/accords-parfaits/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Accords parfaits : les accords en français, du CP au CM2 – Le tableau magique">
-<meta property="og:description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
+<meta property="og:description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, transpose…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/accords-parfaits/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-accords-parfaits.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -713,7 +713,7 @@ input,select{font-family:inherit}
       <li><b>Le bon choix :</b> choisir la bonne écriture.</li>
       <li><b>La terminaison :</b> compléter la fin du mot.</li>
       <li><b>La chasse à l’erreur :</b> trouver les erreurs d’accord.</li>
-      <li><b>La bascule :</b> faire la transformation demandée sur l’ardoise, puis cliquer sur les mots qui changent.</li>
+      <li><b>Transpose :</b> faire la transformation demandée sur l’ardoise, puis cliquer sur les mots qui changent.</li>
       <li><b>Dictée flash :</b> écrire de mémoire avec les bons accords.</li>
     </ul>
 
@@ -1623,7 +1623,7 @@ const PERS_LABEL = ['1re personne du singulier','2e personne du singulier','3e p
 /* =========================================================
    5. FABRICATION DES PHRASES
    Une « recette » (spec) est choisie, puis rendue en mots.
-   La bascule rend la même recette après un changement.
+   Transpose rend la même recette après un changement.
    ========================================================= */
 let TID = 0;
 function mot(w,nat,o){ return Object.assign({id:++TID,w,nat,glue:false,glueG:false,forms:null,key:null,dom:null,recv:false,cible:false,donneur:false,bad:[],rel:null},o||{}); }
@@ -2686,7 +2686,7 @@ const MODES = [
   {id:'choix',label:'Le bon choix',desc:'Choisir la bonne écriture'},
   {id:'terminaison',label:'La terminaison',desc:'Compléter la fin du mot'},
   {id:'chasse',label:"La chasse à l'erreur",desc:"Trouver les erreurs d'accord"},
-  {id:'bascule',label:'La bascule',desc:"Transformer la phrase sur l'ardoise"},
+  {id:'bascule',label:'Transpose',desc:"Transformer la phrase sur l'ardoise"},
   {id:'dictee',label:'Dictée flash',desc:'Écrire de mémoire avec les bons accords'}
 ];
 // défis sur le sujet : accords et personnes imposés (3e personne)
@@ -3201,7 +3201,7 @@ function repondreChoix(w){
     boutonSuivant();
   });
 }
-// La bascule : un clic sur un mot qui change le transforme ; sur un mot qui ne change pas, il tremble
+// Transpose : un clic sur un mot qui change le transforme ; sur un mot qui ne change pas, il tremble
 function clicBascule(t){
   const i=Q.toks.indexOf(t), n=Q.apres.toks[i]; if(i<0 || t.bascule) return;
   if(n.w===t.w){ rate(t); return; }
@@ -3446,7 +3446,7 @@ const NATS=[['det','Déterminant','Dét.'],['nom','Nom','Nom'],['adj','Adjectif'
 const COUL_LIENS=['#1E6FD9','#E63946','#8E44AD','#2BA84A','#F4A100','#3AB0E2'];
 // texte saisi par l'enseignant : jamais interprété comme du HTML
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-// mot cliquable (Le nom noyau, La chasse, La bascule) : accessible aussi au clavier
+// mot cliquable (Le nom noyau, La chasse, Transpose) : accessible aussi au clavier
 function rendreCliquable(el){ el.classList.add('clic'); el.tabIndex=0; el.setAttribute('role','button'); }
 // une phrase enregistrée ou importée est vérifiée et nettoyée ; null si elle est inutilisable
 const NATS_OK = ['det','nom','adj','verbe','pro','autre','ponct','nompropre'];
