@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.02 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.03 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -279,6 +279,7 @@ input,select{font-family:inherit}
 .vole .let{display:none}
 .sort{opacity:0;transform:translateX(-5vw);transition:opacity .25s ease-in,transform .25s ease-in}   /* la phrase finie s'en va vers la gauche */
 .tok.pop{animation:pop .5s ease}
+.tok.noyau-ok{outline:.07em solid var(--gc,var(--bleu));outline-offset:.06em;border-radius:.3em}   /* « Le nom noyau » à deux groupes : premier nom trouvé */
 .tok.pop .mk{display:inline-block;animation:rebond .55s ease}   /* la terminaison rebondit quand l'accord arrive */
 @keyframes rebond{40%{transform:translateY(-.22em) scale(1.25)}70%{transform:translateY(.03em)}}
 .tok.allume{animation:allume .7s ease}   /* le nom noyau ou le sujet s'allume avant que partent les flèches */
@@ -683,7 +684,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.02</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.03</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2563,7 +2564,11 @@ function tracer(Q,animer){
   svg.innerHTML='';
   const fs=parseFloat($('phrase').style.fontSize)||60;
   const parId=id=>Q.toks.find(t=>t.id===id);
-  if(Q.souligne) souligner(Q.souligne,svg,pw,fs);
+  if(Q.souligne){
+    const premier=!Q.souligneTrace; Q.souligneTrace=true;   // tracé au feutre la première fois, puis fixe (redessins)
+    const groupes = Q.groupes && Q.groupes.length>1 ? Q.groupes : [{toks:Q.souligne,couleur:'var(--bleu)'}];   // « Le nom noyau » : un ou deux groupes
+    groupes.forEach(g=>souligner(g.toks,svg,pw,fs,g.couleur,premier));
+  }
   // le donneur s'allume d'abord, puis les liaisons partent une à une (l'accord « voyage » du nom vers les mots)
   let delai=0, allumes=new Set();
   (Q.chaines||[]).forEach(ch=>{
@@ -2604,7 +2609,7 @@ function tracer(Q,animer){
   });
 }
 // « Le bon choix » : un trait épais sous le groupe entier (GN ou sujet), ligne par ligne
-function souligner(toks,svg,pw,fs){
+function souligner(toks,svg,pw,fs,couleur,premier){
   const segs=[];
   // pendant que les mots « se posent » (léger déplacement vertical), on mesure leur place finale :
   // on retire le décalage en cours de l'animation pour que le soulignage soit tout de suite au bon endroit
@@ -2614,11 +2619,10 @@ function souligner(toks,svg,pw,fs){
     const s=segs.find(g=>Math.abs(g.haut-r.top)<fs*0.5);
     if(s){ s.g=Math.min(s.g,r.left); s.d=Math.max(s.d,r.right); s.bas=Math.max(s.bas,r.bottom); }
     else segs.push({haut:r.top,g:r.left,d:r.right,bas:r.bottom}); });
-  const premier=!Q.souligneTrace; Q.souligneTrace=true;   // tracé au feutre la première fois, puis fixe (redessins)
   segs.forEach((s,k)=>{ const l=document.createElementNS(NS,'rect'), e=fs*0.09;
     if(premier){ l.setAttribute('class','feutre'); l.style.animationDelay=(k*0.25)+'s'; }
     l.setAttribute('x',s.g-pw.left); l.setAttribute('width',s.d-s.g); l.setAttribute('y',s.bas-pw.top+fs*0.1);
-    l.setAttribute('height',e); l.setAttribute('rx',e/2); l.setAttribute('fill','var(--bleu)');
+    l.setAttribute('height',e); l.setAttribute('rx',e/2); l.setAttribute('fill',couleur||'var(--bleu)');
     svg.appendChild(l); });
 }
 // le groupe qui nous intéresse : le GN du mot à trouver, ou le sujet entier du verbe
@@ -3018,7 +3022,7 @@ const ARDOISE = {
   pronom:'le pronom', bonsujet:'les lettres', dictee:'tout, de mémoire', fleches:'les numéros des sujets qui vont avec A'
 };
 function majArdoise(mode){
-  const t=ARDOISE[mode], b=$('ardoise');
+  const t=(mode==='chaine' && Q && Q.groupes && Q.groupes.length>1) ? 'les numéros des deux noms noyaux' : ARDOISE[mode], b=$('ardoise');
   b.innerHTML = t ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M7 14l3-4 2 3 2-2 3 3"/></svg><b>Ardoise :</b> '+t : '';
   b.classList.toggle('on',!!t);
 }
@@ -3051,7 +3055,8 @@ function question(){
       Q.dessinees=new Set();
       afficherPhrase(Q.toks,{numeros:new Set(Q.souligne.map(t=>t.id))});   // seuls les mots du groupe souligné sont numérotés
       Q.toks.forEach(t=>{ if(t.el && t.nat!=='ponct' && t.nat!=='autre') rendreCliquable(t.el); });
-      $('consigne').innerHTML='Quel est le <em>nom noyau</em> du groupe souligné ?'; bouton('Réponse');
+      $('consigne').innerHTML = Q.groupes.length>1 ? 'Quels sont les <em>noms noyaux</em> des deux groupes soulignés ?' : 'Quel est le <em>nom noyau</em> du groupe souligné ?';
+      bouton('Réponse');
       break;
     case 'bascule': {
       const B=Q.B, quoi=B.change==='n'?'au '+N_LABEL[B.n]:B.change==='g'?'au '+G_LABEL[B.g]:'au '+traits(B.g,B.n);
@@ -3335,19 +3340,39 @@ function choisirNoyau(q,sp){
   const poids=g=>1+(g.long>=4?1.5:0)+(sp&&sp.cdn&&g.toks.some(t=>t.w===sp.cdn)?2:0);
   const tot=l.reduce((s,g)=>s+poids(g),0); let r=Math.random()*tot, g=l[0];
   for(const x of l){ r-=poids(x); if(r<=0){ g=x; break; } }
-  q.gn=g.c; q.reponse=g.c.donneurs[0]; q.souligne=g.toks; return true;
+  q.groupes=[{c:g.c,toks:g.toks,reponse:g.c.donneurs[0],couleur:'var(--bleu)'}];
+  // à partir du CM1, une phrase sur deux : deux groupes soulignés (bleu et violet), donc deux noms noyaux à trouver
+  if(q.R.niv>=3 && chance(0.5)){
+    const bornes=x=>[q.toks.indexOf(x.toks[0]),q.toks.indexOf(x.toks[x.toks.length-1])];
+    const [a0,a1]=bornes(g);
+    const autres=groupes.filter(x=>{ if(x===g) return false; const [b0,b1]=bornes(x); return b0>a1 || b1<a0; });   // groupes qui ne se chevauchent pas
+    if(autres.length){ const g2=hasard(autres); q.groupes.push({c:g2.c,toks:g2.toks,reponse:g2.c.donneurs[0],couleur:'var(--vio)'}); g2.c.couleur='var(--vio)'; }
+    else if(chance(0.6)) return false;   // on cherche une phrase qui a deux groupes
+  }
+  q.groupes.sort((x,y)=>q.toks.indexOf(x.toks[0])-q.toks.indexOf(y.toks[0]));   // dans l'ordre de la phrase
+  q.groupes.forEach((x,i)=>{ x.couleur=i?'var(--vio)':'var(--bleu)'; x.c.couleur=i?'var(--vio)':'var(--nom)'; });
+  q.gn=q.groupes[0].c; q.reponse=q.groupes[0].reponse;
+  q.souligne=q.groupes.flatMap(x=>x.toks);   // tous les mots soulignés (numérotés de façon continue)
+  return true;
 }
 function clicNoyau(t){
   if(Q.fini) return;
-  if(t.id===Q.reponse) finirNoyau(true);
+  const g=Q.groupes.find(x=>x.reponse===t.id);
+  if(g){
+    if(g.trouve) return;
+    g.trouve=true;
+    if(Q.groupes.every(x=>x.trouve)) finirNoyau(true);
+    else { t.el.style.setProperty('--gc',g.couleur); t.el.classList.add('noyau-ok','pop'); }   // deux groupes : le premier nom noyau trouvé reste entouré
+  }
   else { rate(t); setTimeout(()=>t.el.classList.remove('rate'),800); }   // le mot tremble puis redevient normal (le rouge est la couleur du verbe)
 }
 function finirNoyau(trouve){
   if(Q.fini) return;
-  const nom=Q.toks.find(t=>t.id===Q.reponse);
-  montrerDonneurs(Q,ch=>ch===Q.gn); dessinerChaines(Q,ch=>ch===Q.gn,true);   // les flèches montrent pourquoi c'est lui
-  if(nom && nom.el) nom.el.classList.add('pop');
-  $('consigne').innerHTML = trouve ? '<span class="parfait">Accords parfaits !</span>' : 'Le nom noyau est <em>'+guil(nom.w)+'</em>.';
+  const noms=Q.groupes.map(g=>Q.toks.find(t=>t.id===g.reponse)), chs=Q.groupes.map(g=>g.c);
+  montrerDonneurs(Q,ch=>chs.includes(ch)); dessinerChaines(Q,ch=>chs.includes(ch),true);   // les flèches montrent pourquoi c'est lui (une couleur par groupe)
+  noms.forEach(n=>{ if(n && n.el) n.el.classList.add('pop'); });
+  const liste=noms.map(n=>'<em>'+guil(n.w)+'</em>').join(' et ');
+  $('consigne').innerHTML = trouve ? '<span class="parfait">Accords parfaits !</span>' : (noms.length>1 ? 'Les noms noyaux sont ' : 'Le nom noyau est ')+liste+'.';
   Q.toks.forEach(t=>t.el&&t.el.classList.remove('clic'));
   boutonSuivant();
 }
@@ -3877,7 +3902,7 @@ function morceaux(toks,f){
 const texteVu = toks => toks.map((t,i)=>(i>0&&!toks[i-1].glue&&!t.glueG?' ':'')+t.w).join('');
 const CONSIGNES_FICHE = {
   genre:"Entoure le genre (M ou F) et le nombre (S ou P) de chaque groupe nominal.",
-  chaine:"Entoure le nom noyau du groupe souligné.",
+  chaine:"Entoure le nom noyau de chaque groupe souligné.",
   pronom:"Remplace le sujet souligné par il, elle, ils ou elles.",
   bonsujet:"Entoure les lettres des mots qui peuvent compléter la phrase.",
   fleches:"Relie chaque sujet au verbe qui va avec.",
@@ -3916,7 +3941,7 @@ function exerciceFiche(mode,R,nb,vus){
     } else if(mode==='chaine'){
       const sous=new Set(q.souligne.map(t=>t.id));
       items.push(para([run(L),...morceaux(q.toks,t=>({t:t.w,o:{u:sous.has(t.id)}}))]));
-      corr.push(para(run(L+'nom noyau : '+q.toks.find(t=>t.id===q.reponse).w)));
+      corr.push(para(run(L+(q.groupes.length>1?'noms noyaux : ':'nom noyau : ')+q.groupes.map(g=>q.toks.find(t=>t.id===g.reponse).w).join(' et '))));
     } else if(mode==='pronom'){
       const sous=new Set(groupeVise(q,q.verbe).map(t=>t.id));
       items.push(para([run(L),...morceaux(q.toks,t=>({t:t.w,o:{u:sous.has(t.id)}})),run('   → ……………')]));
