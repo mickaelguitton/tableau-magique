@@ -6,14 +6,14 @@
 <title data-court="Accords parfaits">Accords parfaits : les accords en français, du CP au CM2 – Le tableau magique</title>
 <meta name="author" content="Mickaël Guitton">
 <meta name="license" content="CC BY-NC 4.0">
-<meta name="description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, flèches, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
+<meta name="description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
 <!-- Référencement et aperçu du lien quand on le partage (messagerie, réseaux sociaux) -->
 <link rel="canonical" href="https://mickaelguitton.github.io/tableau-magique/accords-parfaits/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Le tableau magique">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Accords parfaits : les accords en français, du CP au CM2 – Le tableau magique">
-<meta property="og:description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, flèches, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
+<meta property="og:description" content="Accords parfaits, outil gratuit à projeter pour travailler les accords en français du CP au CM2 : groupe nominal, sujet et verbe, participe passé. Dix défis (genre et nombre, nom noyau, bons liens, bascule…) à faire sur ardoise, phrases proposées ou les vôtres, fiches Word avec corrigé.">
 <meta property="og:url" content="https://mickaelguitton.github.io/tableau-magique/accords-parfaits/">
 <meta property="og:image" content="https://mickaelguitton.github.io/tableau-magique/images/partage-accords-parfaits.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.03 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.04 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -684,7 +684,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.03</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.04</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -709,7 +709,7 @@ input,select{font-family:inherit}
       <li><b>Le nom noyau :</b> trouver le nom qui commande l’accord.</li>
       <li><b>Le pronom :</b> remplacer le sujet par il, elle, ils ou elles.</li>
       <li><b>Qui va avec ? :</b> trouver les mots qui vont avec les accords.</li>
-      <li><b>Les flèches :</b> relier chaque sujet au bon verbe.</li>
+      <li><b>Les bons liens :</b> relier chaque sujet au bon verbe.</li>
       <li><b>Le bon choix :</b> choisir la bonne écriture.</li>
       <li><b>La terminaison :</b> compléter la fin du mot.</li>
       <li><b>La chasse à l’erreur :</b> trouver les erreurs d’accord.</li>
@@ -2682,7 +2682,7 @@ const MODES = [
   {id:'chaine',label:'Le nom noyau',desc:"Trouver le nom qui commande l'accord"},
   {id:'pronom',label:'Le pronom',desc:'Remplacer le sujet par il, elle, ils, elles'},
   {id:'bonsujet',label:'Qui va avec ?',desc:'Trouver les mots qui vont avec les accords'},
-  {id:'fleches',label:'Les flèches',desc:'Relier chaque sujet au bon verbe'},
+  {id:'fleches',label:'Les bons liens',desc:'Relier chaque sujet au bon verbe'},
   {id:'choix',label:'Le bon choix',desc:'Choisir la bonne écriture'},
   {id:'terminaison',label:'La terminaison',desc:'Compléter la fin du mot'},
   {id:'chasse',label:"La chasse à l'erreur",desc:"Trouver les erreurs d'accord"},
