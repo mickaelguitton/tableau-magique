@@ -319,7 +319,7 @@ input,select{font-family:inherit}
 .fl-ver[data-j="1"]{border-color:var(--vio);box-shadow:0 .1em 0 var(--vio-l)} .fl-ver[data-j="1"] .let{background:var(--vio);color:#fff}
 .fl-suj.lie-0{border-color:var(--bleu);background:var(--bleu-l)} .fl-suj.lie-0 .let{background:var(--bleu);color:#fff}
 .fl-suj.lie-1{border-color:var(--vio);background:var(--vio-l)} .fl-suj.lie-1 .let{background:var(--vio);color:#fff}
-/* Qui va avec ? : deux phrases l'une sous l'autre */
+/* Qui s'accorde ? : deux phrases l'une sous l'autre */
 .phrase .br{flex-basis:100%;height:0}
 #jeu.fleches #pw{display:none}
 #jeu.fleches .scene{justify-content:center}
@@ -708,7 +708,7 @@ input,select{font-family:inherit}
       <li><b>Genre et nombre :</b> trouver le genre et le nombre du groupe.</li>
       <li><b>Le nom noyau :</b> trouver le nom qui commande l’accord.</li>
       <li><b>Le pronom :</b> remplacer le sujet par il, elle, ils ou elles.</li>
-      <li><b>Qui va avec ? :</b> trouver les mots qui vont avec les accords.</li>
+      <li><b>Qui s’accorde ? :</b> choisir les groupes qui peuvent être le sujet du verbe, ou les noms qui vont avec le déterminant et l’adjectif.</li>
       <li><b>Les bons liens :</b> relier chaque sujet au bon verbe.</li>
       <li><b>Le bon choix :</b> choisir la bonne écriture.</li>
       <li><b>La terminaison :</b> compléter la fin du mot.</li>
@@ -2244,7 +2244,7 @@ chargerLexique();
 
 /* =========================================================
    8. DÉFIS AUTOUR DU SUJET ET DES TERMINAISONS
-   (Les flèches, Qui va avec ?, Le pronom, La terminaison)
+   (Les flèches, Qui s'accorde ?, Le pronom, La terminaison)
    ========================================================= */
 // tout ce qui suit le sujet, à partir du verbe : deux sujets « vont ensemble » si cette partie est identique
 function partieVerbe(r){ const i=r.toks.findIndex(t=>t.nat==='verbe' || (t.rel && t.rel.type==='refl')); return i<0 ? '' : texte(r.toks.slice(i)); }
@@ -2277,7 +2277,7 @@ function pronomDe(s){
   if(s.kind==='multi') return s.parts.some(p=>p.g==='m')?'ils':'elles';
   return (s.g==='m'?'il':'elle')+(s.n==='p'?'s':'');
 }
-// Qui va avec ? (variante « sujet ») : « … grimpent dans les arbres. » et quatre groupes nominaux, dont un ou deux conviennent
+// Qui s'accorde ? (variante « sujet ») : « … grimpent dans les arbres. » et quatre groupes nominaux, dont un ou deux conviennent
 // une ou deux bonnes réponses, à part égale, pour que les élèves ne devinent pas qu'il y en a toujours deux
 let SAC_BONS=[];
 function defiBonSujet(R){
@@ -2305,7 +2305,7 @@ function defiBonSujet(R){
   }
   return null;
 }
-// Qui va avec ? (variante « nom ») : le nom du sujet est caché, « Les … affamées dorment. »
+// Qui s'accorde ? (variante « nom ») : le nom du sujet est caché, « Les … affamées dorment. »
 // Les élèves cherchent les noms qui vont avec le déterminant, l'adjectif, l'attribut, le verbe.
 // Les propositions ont toutes du sens avec la phrase : seul l'accord départage.
 const voyelleH = w => /^[aeéèêiîoôuûh]/i.test(w);
@@ -2539,7 +2539,7 @@ function ajuster(){
   const plusGrande = (debut,min) => { let t=debut; ph.style.fontSize=t+'px'; while(trop() && t>min){ t-=2; ph.style.fontSize=t+'px'; } return t; };
   // 1. sur une seule ligne (sauf s'il y a deux phrases)
   const deux=!!ph.querySelector('.br');
-  ph.classList.toggle('deux',deux);   // « Qui va avec ? » : deux phrases, serrées l'une sous l'autre pour écrire plus gros
+  ph.classList.toggle('deux',deux);   // « Qui s'accorde ? » : deux phrases, serrées l'une sous l'autre pour écrire plus gros
   ph.classList.remove('wrap');
   const t1 = deux ? 0 : plusGrande(MAX,26), uneLigne = !deux && !trop();
   // 2. sur deux lignes, si cela permet d'écrire nettement plus gros
@@ -2681,7 +2681,7 @@ const MODES = [
   {id:'genre',label:'Genre et nombre',desc:'Trouver le genre et le nombre du groupe'},
   {id:'chaine',label:'Le nom noyau',desc:"Trouver le nom qui commande l'accord"},
   {id:'pronom',label:'Le pronom',desc:'Remplacer le sujet par il, elle, ils, elles'},
-  {id:'bonsujet',label:'Qui va avec ?',desc:'Trouver les mots qui vont avec les accords'},
+  {id:'bonsujet',label:'Qui s\'accorde ?',desc:'Trouver les groupes ou les noms qui s\'accordent'},
   {id:'fleches',label:'Les bons liens',desc:'Relier chaque sujet au bon verbe'},
   {id:'choix',label:'Le bon choix',desc:'Choisir la bonne écriture'},
   {id:'terminaison',label:'La terminaison',desc:'Compléter la fin du mot'},
@@ -2690,7 +2690,7 @@ const MODES = [
   {id:'dictee',label:'Dictée flash',desc:'Écrire de mémoire avec les bons accords'}
 ];
 // défis sur le sujet : accords et personnes imposés (3e personne)
-const MODES_SUJET = ['pronom','fleches'];   // « Qui va avec ? » travaille aussi le groupe nominal : à part
+const MODES_SUJET = ['pronom','fleches'];   // « Qui s'accorde ? » travaille aussi le groupe nominal : à part
 const ic = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
 const ICONES = {
   chaine: ic('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/>'),   // une cible : le cœur du groupe
@@ -2733,14 +2733,14 @@ function reglagesEffectifs(){
       const ds={sv:doms.sv, pp:doms.pp, attr:doms.attr, ppa:false, adj:false, det:false};
       if(!ds.sv && !ds.pp && !ds.attr) ds.sv=true;
       return {niv,doms:ds,temps,personnes:'3',mode:REGLAGES.mode,nombre:REGLAGES.nombre,source}; }
-  if(REGLAGES.mode==='bonsujet'){   // « Qui va avec ? » : le sujet (verbe, attribut, participe avec être) ou le nom du groupe (déterminant, adjectif)
+  if(REGLAGES.mode==='bonsujet'){   // « Qui s'accorde ? » : le sujet (verbe, attribut, participe avec être) ou le nom du groupe (déterminant, adjectif)
     const ds={det:doms.det, adj:doms.adj, sv:doms.sv, pp:doms.pp, attr:doms.attr, ppa:false};
     if(!Object.values(ds).some(Boolean)) ds.sv=true;
     return {niv,doms:ds,temps,personnes:'3',mode:'bonsujet',nombre:REGLAGES.nombre,source}; }
   return {niv,doms,temps,personnes:REGLAGES.personnes,mode:REGLAGES.mode,nombre:REGLAGES.nombre,source};
 }
 // quels défis travaillent les accords choisis ?
-//  Genre et nombre : le groupe nominal ; Le pronom, Les flèches : le sujet et le verbe ; Qui va avec ? : sujet ou groupe nominal ; les autres : tout
+//  Genre et nombre : le groupe nominal ; Le pronom, Les flèches : le sujet et le verbe ; Qui s'accorde ? : sujet ou groupe nominal ; les autres : tout
 function defiDispo(id,doms){
   const dispo=d=>doms[d] && DOMAINES.find(x=>x.id===d).niv<=REGLAGES.niv;
   if(id==='genre'||id==='chaine') return dispo('det')||dispo('adj');   // accords du groupe nominal
@@ -2899,7 +2899,7 @@ function groupeDe(r,cible){
   const ids=new Set([...ch.donneurs,...ch.receveurs]);
   return r.toks.filter(t=>ids.has(t.id));
 }
-// « Qui va avec ? » : soit le sujet manque (accord du verbe, de l'attribut, du participe), soit le nom du groupe
+// « Qui s'accorde ? » : soit le sujet manque (accord du verbe, de l'attribut, du participe), soit le nom du groupe
 // (accord du déterminant et de l'adjectif) ; les deux à part égale quand les accords choisis le permettent
 let SAC_QUI=[];
 function defiQuiVaAvec(R){
@@ -3226,7 +3226,7 @@ function repondrePronom(w){
   const sv=ch=>ch.type==='sv';
   montrerDonneurs(Q,sv); dessinerChaines(Q,sv,true); boutonSuivant();
 }
-// Qui va avec ? : on clique les lettres une à une ; fini quand tous les bons sujets sont trouvés
+// Qui s'accorde ? : on clique les lettres une à une ; fini quand tous les bons sujets sont trouvés
 function clicBonSujet(b){
   if(Q.fini || b.classList.contains('bon')) return;
   const o=Q.opts[+b.dataset.k];
