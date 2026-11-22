@@ -176,8 +176,8 @@
   }
   /* passage à la ligne forcé : rangées équilibrées, la plus courte en haut (7 outils = 3 + 4) */
   .saut-rangee{flex-basis:100%;height:0;margin-top:calc(-1 * var(--ecart,24px))}
-  /* Pastille « Bêta » des outils en cours de test (etat: 'beta' dans outils.js) : en haut à gauche de l'image */
-  .pastille-beta{position:absolute;top:calc(var(--police,16px) * .6);left:calc(var(--police,16px) * .6);z-index:2;padding:.12em .7em;border-radius:999px;
+  /* Pastille « Bêta » des outils en cours de test (etat: 'beta' dans outils.js) : en haut à droite de l'image */
+  .pastille-beta{position:absolute;top:calc(var(--police,16px) * .6);right:calc(var(--police,16px) * .6);z-index:2;padding:.12em .7em;border-radius:999px;
     background:#FFE08A;color:#5b3a00;border:2px solid #5b3a00;font-weight:700;font-size:calc(var(--police,16px) * .62);line-height:1.5;letter-spacing:.02em;pointer-events:none}
   .apercu{
     width:var(--largeur,300px);position:relative;cursor:pointer;
