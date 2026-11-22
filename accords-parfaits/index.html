@@ -3028,10 +3028,10 @@ function majArdoise(mode){
   b.innerHTML = t ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M7 14l3-4 2 3 2-2 3 3"/></svg><b>Ardoise :</b> '+t : '';
   b.classList.toggle('on',!!t);
 }
-// Dictée flash : environ 2 secondes par mot (« nous observons des écureuils » : 9 s), 2 de plus au CP, CE1 ;
+// Dictée flash : 2 secondes + 2,5 secondes par mot (« nous observons des écureuils » : 12 s), 3 de plus au CP, CE1 ;
 // le bouton « Cacher » permet d'arrêter plus tôt
 let FLASH=null;
-const dureeFlash = q => Math.min(22, 1+2*nbMots(q.toks) + (q.R.niv<=1?2:0));
+const dureeFlash = q => Math.min(30, Math.round(2+2.5*nbMots(q.toks) + (q.R.niv<=1?3:0)));
 function cacherFlash(){
   clearTimeout(FLASH); FLASH=null;
   if(!Q || Q.R.mode!=='dictee' || Q.etape!==0) return;
