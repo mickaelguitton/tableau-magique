@@ -2515,7 +2515,9 @@ function afficherPhrase(toks,o){
     const fin = o.fin===t.id ? o.racine+'<span class="fin-trou">…</span>' : null;
     el.innerHTML='<span class="w">'+(o.trou===t.id?'_ _ _':fin||htmlMot(t,false))+'</span><span class="lab"></span>';
     if(o.trou===t.id||fin) el.classList.add('trou');
-    if(o.numeros && !plain && (o.numeros===true || o.numeros.has(t.id))) el.insertAdjacentHTML('afterbegin','<span class="num">'+(++num)+'</span>');
+    if(o.numeros && !plain && (o.numeros===true || o.numeros.has(t.id))){   // numéro dans la couleur de son groupe (bleu, ou violet pour le second groupe)
+      const coul=o.numeros===true ? null : o.numeros.get(t.id);
+      el.insertAdjacentHTML('afterbegin','<span class="num"'+(coul?' style="background:'+coul+'"':'')+'>'+(++num)+'</span>'); }
     if(fin) el.classList.add('fin');
     if(poser){ el.classList.add('pose'); el.style.setProperty('--d',Math.round(i*320/Math.max(1,toks.length-1))+'ms'); }
     ph.appendChild(el);
@@ -3053,7 +3055,7 @@ function question(){
     case 'chaine':
       // « Le nom noyau » : le groupe est souligné, les élèves écrivent le numéro de son nom noyau
       Q.dessinees=new Set();
-      afficherPhrase(Q.toks,{numeros:new Set(Q.souligne.map(t=>t.id))});   // seuls les mots du groupe souligné sont numérotés
+      afficherPhrase(Q.toks,{numeros:new Map(Q.groupes.flatMap(g=>g.toks.map(t=>[t.id,g.couleur])))});   // seuls les mots des groupes soulignés sont numérotés, dans la couleur de leur groupe
       Q.toks.forEach(t=>{ if(t.el && t.nat!=='ponct' && t.nat!=='autre') rendreCliquable(t.el); });
       $('consigne').innerHTML = Q.groupes.length>1 ? 'Quels sont les <em>noms noyaux</em> des deux groupes soulignés ?' : 'Quel est le <em>nom noyau</em> du groupe souligné ?';
       bouton('Réponse');
@@ -3371,7 +3373,8 @@ function finirNoyau(trouve){
   const noms=Q.groupes.map(g=>Q.toks.find(t=>t.id===g.reponse)), chs=Q.groupes.map(g=>g.c);
   montrerDonneurs(Q,ch=>chs.includes(ch)); dessinerChaines(Q,ch=>chs.includes(ch),true);   // les flèches montrent pourquoi c'est lui (une couleur par groupe)
   noms.forEach(n=>{ if(n && n.el) n.el.classList.add('pop'); });
-  const liste=noms.map(n=>'<em>'+guil(n.w)+'</em>').join(' et ');
+  Q.groupes.forEach((g,i)=>{ const lab=noms[i] && noms[i].el && noms[i].el.querySelector('.lab'); if(lab && i) lab.style.color=g.couleur; });   // l'étiquette du second nom noyau, en violet aussi
+  const liste=noms.map((n,i)=>'<em'+(i?' style="color:'+Q.groupes[i].couleur+'"':'')+'>'+guil(n.w)+'</em>').join(' et ');   // le second nom en violet, comme son groupe
   $('consigne').innerHTML = trouve ? '<span class="parfait">Accords parfaits !</span>' : (noms.length>1 ? 'Les noms noyaux sont ' : 'Le nom noyau est ')+liste+'.';
   Q.toks.forEach(t=>t.el&&t.el.classList.remove('clic'));
   boutonSuivant();
