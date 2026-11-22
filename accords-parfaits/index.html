@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.01 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.02 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -683,7 +683,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.01</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.02</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2514,7 +2514,7 @@ function afficherPhrase(toks,o){
     const fin = o.fin===t.id ? o.racine+'<span class="fin-trou">…</span>' : null;
     el.innerHTML='<span class="w">'+(o.trou===t.id?'_ _ _':fin||htmlMot(t,false))+'</span><span class="lab"></span>';
     if(o.trou===t.id||fin) el.classList.add('trou');
-    if(o.numeros && !plain) el.insertAdjacentHTML('afterbegin','<span class="num">'+(++num)+'</span>');
+    if(o.numeros && !plain && (o.numeros===true || o.numeros.has(t.id))) el.insertAdjacentHTML('afterbegin','<span class="num">'+(++num)+'</span>');
     if(fin) el.classList.add('fin');
     if(poser){ el.classList.add('pose'); el.style.setProperty('--d',Math.round(i*320/Math.max(1,toks.length-1))+'ms'); }
     ph.appendChild(el);
@@ -3049,7 +3049,7 @@ function question(){
     case 'chaine':
       // « Le nom noyau » : le groupe est souligné, les élèves écrivent le numéro de son nom noyau
       Q.dessinees=new Set();
-      afficherPhrase(Q.toks,{numeros:true});
+      afficherPhrase(Q.toks,{numeros:new Set(Q.souligne.map(t=>t.id))});   // seuls les mots du groupe souligné sont numérotés
       Q.toks.forEach(t=>{ if(t.el && t.nat!=='ponct' && t.nat!=='autre') rendreCliquable(t.el); });
       $('consigne').innerHTML='Quel est le <em>nom noyau</em> du groupe souligné ?'; bouton('Réponse');
       break;
