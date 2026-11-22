@@ -26,7 +26,7 @@ On peut installer le portail comme une application (ordinateur, tablette) depuis
 
 - [Cartes à la carte](https://mickaelguitton.github.io/tableau-magique/cartes-a-la-carte/) : cartes interactives pour la géographie, du CP à la 6e.
 - [À qui le tour ?](https://mickaelguitton.github.io/tableau-magique/tirage-au-sort/) : tirage au sort d'élèves, tous niveaux.
-- [Le temps en couleur](https://mickaelguitton.github.io/tableau-magique/minuteur-visuel/) : minuteur visuel, adapté aux élèves en difficulté d'attention.
+- [Le temps en couleur](https://mickaelguitton.github.io/tableau-magique/minuteur-visuel/) : minuteur visuel à projeter : le temps qui reste se voit sur un disque qui se vide.
 - [À la poursuite des diamants](https://mickaelguitton.github.io/tableau-magique/jeu-de-revision/) : jeu de révision, tous niveaux.
 
 ## Licence
