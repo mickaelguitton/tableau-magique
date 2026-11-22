@@ -3093,7 +3093,7 @@ function question(){
     case 'bonsujet': {
       Q.trou={id:-1,w:'',nat:'autre'};
       if(Q.variante==='nom'){   // le nom du sujet est caché : « Les _ _ _ affamées dorment. »
-        $('consigne').innerHTML='Quels <em>noms</em> vont avec les accords ?';
+        $('consigne').innerHTML='Quels <em>noms noyaux</em> vont avec les accords ?';
         afficherPhrase(Q.toks.map((t,k)=>k===Q.iNom?Q.trou:t),{trou:-1});
       } else {
         $('consigne').innerHTML='Quels groupes peuvent être le <em>sujet</em> ?';
