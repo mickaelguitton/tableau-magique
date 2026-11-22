@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.0 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.1 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -683,7 +683,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.0</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.1</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1663,7 +1663,8 @@ const formesGN = gn => !gn ? '' : gn.kind==='gn' ? [gn.nom.ms,gn.nom.fs,gn.nom.m
                        : (gn.parts||[]).map(formesGN).join(' ');
 function choisirGN(niv,nom,o){
   o=o||{};
-  const g = o.g || (nom.epicene ? (chance(0.85)?'m':'f') : hasard(genresPossibles(nom)));
+  // nom épicène (l'élève, le touriste…) : le plus souvent au masculin ; « enfant » reste toujours au masculin (jamais « des enfants contentes »)
+  const g = o.g || (nom.epicene ? (nom.ms==='enfant' || chance(0.85) ? 'm' : 'f') : hasard(genresPossibles(nom)));
   const gn={kind:'gn',nom, g, n:o.n||(chance(0.5)?'s':'p'),
     det:choisirDet(niv,o.objet,nom.poss&&!o.sansPoss,o.defini), adjs:o.sansAdj?[]:choisirAdjs(niv,nom,o)};
   // CP, CE1 : pas de « de » devant un adjectif (« de petits escargots »), on garde le, la, les, un, une, des
