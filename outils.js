@@ -18,7 +18,7 @@
    Seul cet outil est retéléchargé par les applis installées ; son numéro s'affiche dans sa signature.
    Le numéro de version.js ne concerne que le portail lui-même (page d'accueil, icônes, police, portail.js).
 
-   OUTIL EN COURS DE TEST : ajouter « etat: 'beta', » dans son entrée. Une pastille « Bêta » apparaît sur sa carte de l'accueil
+   OUTIL EN COURS DE TEST : ajouter « etat: 'beta', » dans son entrée. Une pastille « Bêta / en test » apparaît sur sa carte de l'accueil
    et une étiquette « Version bêta / en test » reste visible dans l'outil. Retirer la ligne quand l'outil est terminé.
 
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
@@ -76,6 +76,20 @@ self.OUTILS = [
          + 'Copie dans Word, impression ou affichage en plein écran.',
     donnees: ['syllabes-en-couleur'],
     couleur: '#0B7FB8', ombre: '#B5E0F5'
+  },
+
+  {
+    dossier: 'accords-parfaits',
+    domaine: 'francais',
+    version: '0.5',
+    etat: 'beta',                               // outil en test : pastille « Bêta / en test » (à retirer quand il est terminé)
+    nom: 'Accords parfaits',
+    niveau: 'les accords · du CP au CM2',
+    texte: 'Pour travailler les accords en français : groupe nominal, sujet et verbe, participe passé. '
+         + 'Une phrase projetée au tableau, dix défis à faire sur l’ardoise (genre et nombre, nom noyau, flèches, bascule…), '
+         + 'des flèches et des couleurs pour voir d’où vient l’accord. Phrases fournies ou les vôtres. Fiches Word avec corrigé.',
+    donnees: ['accords-parfaits'],
+    couleur: '#1E6FD9', ombre: '#C7DBF8'
   },
 
   {
