@@ -86,7 +86,7 @@ self.OUTILS = [
     nom: 'Accords parfaits',
     niveau: 'les accords · du CP au CM2',
     texte: 'Pour travailler les accords en français : groupe nominal, sujet et verbe, participe passé. '
-         + 'Une phrase projetée au tableau, dix défis à faire sur l’ardoise (genre et nombre, nom noyau, flèches, bascule…), '
+         + 'Une phrase projetée au tableau, dix défis à faire sur l’ardoise, '
          + 'des flèches et des couleurs pour voir d’où vient l’accord. Phrases fournies ou les vôtres. Fiches Word avec corrigé.',
     donnees: ['accords-parfaits'],
     couleur: '#1E6FD9', ombre: '#C7DBF8'
