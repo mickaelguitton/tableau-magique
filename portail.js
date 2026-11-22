@@ -123,6 +123,26 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', afficherVersion);
   else afficherVersion();
 
+  /* 3 ter. Outil en cours de test (etat: 'beta' dans outils.js) : une pastille « Version bêta / en test » est ajoutée dans la signature
+     (en bas à droite, présente dans tous les outils), donc toujours visible et sans jamais recouvrir un bouton.
+     On l'enlève en retirant « etat » de outils.js. */
+  function afficherBeta() {
+    const dossier = location.pathname.replace(racine.pathname, '').split('/')[0];
+    const outil = (self.OUTILS || []).find(o => o.dossier === dossier);
+    if (!outil || outil.etat !== 'beta') return;
+    const signature = document.querySelector('.app-version, #vnum');   // le calcul mental a sa propre signature (#vnum)
+    const parent = signature && signature.parentElement;
+    if (!parent) return;
+    const st = document.createElement('style');
+    st.textContent = `.etiquette-beta{display:inline-block;margin-right:.5em;padding:0 8px;border-radius:999px;background:#FFE08A;color:#5b3a00;
+      border:2px solid #5b3a00;font-weight:700;font-size:1em;line-height:1.35;user-select:none}`;
+    const e = document.createElement('span');
+    e.className = 'etiquette-beta'; e.textContent = 'Version bêta / en test';
+    document.head.appendChild(st); parent.prepend(e);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', afficherBeta);
+  else afficherBeta();
+
   /* 3 bis. « À propos de l'outil » : chaque outil a, en fin de page, une présentation pour les collègues
      (<dialog id="aPropos">, lisible aussi par les moteurs de recherche) et un lien dans sa signature
      (bouton data-a-propos). Ici : la mise en forme commune, aux couleurs de l'outil, et l'ouverture / fermeture. */

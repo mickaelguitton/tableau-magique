@@ -18,6 +18,9 @@
    Seul cet outil est retéléchargé par les applis installées ; son numéro s'affiche dans sa signature.
    Le numéro de version.js ne concerne que le portail lui-même (page d'accueil, icônes, police, portail.js).
 
+   OUTIL EN COURS DE TEST : ajouter « etat: 'beta', » dans son entrée. Une pastille « Bêta » apparaît sur sa carte de l'accueil
+   et une étiquette « Version bêta / en test » reste visible dans l'outil. Retirer la ligne quand l'outil est terminé.
+
    M. Guitton — fichier mis au point avec l'aide de Claude AI. */
 self.OUTILS = [
   {

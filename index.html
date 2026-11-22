@@ -88,7 +88,7 @@
     gap:var(--ecart,32px);padding:0 var(--bord,0px);
   }
   .tuile{
-    width:var(--largeur,400px);
+    width:var(--largeur,400px);position:relative;
     display:flex;flex-direction:column;
     text-decoration:none;color:var(--encre);
     background:#fff;border-radius:calc(var(--largeur,400px) * .06);
@@ -176,6 +176,9 @@
   }
   /* passage à la ligne forcé : rangées équilibrées, la plus courte en haut (7 outils = 3 + 4) */
   .saut-rangee{flex-basis:100%;height:0;margin-top:calc(-1 * var(--ecart,24px))}
+  /* Pastille « Bêta » des outils en cours de test (etat: 'beta' dans outils.js) : en haut à gauche de l'image */
+  .pastille-beta{position:absolute;top:calc(var(--police,16px) * .6);left:calc(var(--police,16px) * .6);z-index:2;padding:.12em .7em;border-radius:999px;
+    background:#FFE08A;color:#5b3a00;border:2px solid #5b3a00;font-weight:700;font-size:calc(var(--police,16px) * .62);line-height:1.5;letter-spacing:.02em;pointer-events:none}
   .apercu{
     width:var(--largeur,300px);position:relative;cursor:pointer;
     background:#fff;border:3px solid transparent;border-radius:calc(var(--largeur,300px) * .06);
@@ -371,6 +374,7 @@
   /* Tuiles (appli installée et « Découvrir en ligne ») */
   document.getElementById('tuiles').innerHTML = OUTILS.map(o =>
     '<a class="tuile" style="' + couleurs(o) + '" href="' + o.dossier + '/">'
+    + (o.etat === 'beta' ? '<span class="pastille-beta">Bêta / en test</span>' : '')
     + '<img src="images/' + o.dossier + '.jpg" alt="">'
     + '<div class="nom">' + echapper(o.nom) + '</div>'
     + '<div class="niveau">' + echapper(o.niveau) + '</div></a>').join('');
@@ -378,6 +382,7 @@
   /* Aperçus de la page d'accueil : un clic ouvre la bulle d'explication, avec un lien « Ouvrir … » vers l'outil */
   document.getElementById('apercus').innerHTML = OUTILS.map((o, i) =>
     '<button class="apercu" type="button" data-i="' + i + '" aria-expanded="false" style="' + couleurs(o) + '">'
+    + (o.etat === 'beta' ? '<span class="pastille-beta">Bêta / en test</span>' : '')
     + '<img src="images/' + o.dossier + '.jpg" alt="">'
     + '<div class="nom" style="color:' + o.couleur + '">' + echapper(o.nom) + '</div>'
     + '<div class="niveau">' + echapper(o.niveau) + '</div></button>').join('');
