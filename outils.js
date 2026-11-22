@@ -81,7 +81,7 @@ self.OUTILS = [
   {
     dossier: 'accords-parfaits',
     domaine: 'francais',
-    version: '0.5',
+    version: '1.0',
     etat: 'beta',                               // outil en test : pastille « Bêta / en test » (à retirer quand il est terminé)
     nom: 'Accords parfaits',
     niveau: 'les accords · du CP au CM2',
@@ -135,6 +135,7 @@ self.OUTILS = [
     dossier: 'fractions',
     domaine: 'maths',
     version: '1.22',
+    etat: 'beta',                               // en test : pastille « Bêta / en test » (à retirer quand l'outil est terminé)
     nom: 'À parts égales',
     niveau: 'fractions et décimaux · du CE1 au CM2',
     texte: 'Les fractions et les décimaux à projeter : barres, disques et droites graduées qu’on partage et qu’on colorie, '
