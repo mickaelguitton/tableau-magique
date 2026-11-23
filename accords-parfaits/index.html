@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.09 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.10 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.09</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.10</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2101,6 +2101,10 @@ function structuresPossibles(R){
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
   // « Le nom noyau » : dès le CM1, environ trois groupes sur dix ont un complément du nom (« le chien des voisins »)
   if(R.mode==='chaine' && niv>=3 && d.sv){ const e=l.find(x=>x[0]==='eloigne'), autres=l.filter(x=>x!==e).reduce((t,x)=>t+x[1],0); if(e) e[1]=autres*(niv>=4?0.6:0.45); }
+  // « Le bon sujet » ne garde que les phrases simples, à attribut ou à sujets multiples : l'attribut y pèserait trop (environ 10 % voulus)
+  if(R.mode==='bonsujet'){ const a=l.find(x=>x[0]==='attr'), reste=l.filter(x=>['simple','multi'].includes(x[0])).reduce((t,x)=>t+x[1],0); if(a) a[1]=reste*0.08/0.92; }
+  // dictée : les phrases courtes (écartées si trop longues) favorisent l'attribut ; on le retient pour qu'il ne pèse pas plus qu'ailleurs
+  if(R.mode==='dictee'){ const a=l.find(x=>x[0]==='attr'); if(a) a[1]*=0.45; }
   const res = R.mode==='bascule' ? l.filter(s=>s[0]!=='multi') : l;
   // sujet inversé : environ 12 % des phrases en CM2 (8 % dans « Le pronom » : le groupe y est déjà souligné, l'inversion n'ajoute rien)
   const inversees=res.filter(x=>x[0]==='inv'||x[0]==='invq');
@@ -2649,7 +2653,7 @@ function defiBonSujet(R){
   const nbBons=SAC_BONS.shift();
   for(let essai=0;essai<80;essai++){
     const sp=faireRecette(R);
-    if(!['simple','attr'].includes(sp.struct) || !['gn','prenom','multi'].includes(sp.sujet.kind) || sp.tempoDebut || sp.cdn || sp.detache) continue;
+    if(!['simple','multi','attr'].includes(sp.struct) || !['gn','prenom','multi'].includes(sp.sujet.kind) || sp.tempoDebut || sp.cdn || sp.detache) continue;
     const r=rendre(sp), cle=partieVerbe(r); if(!cle) continue;
     // si le genre compte pour l'accord (participe avec être, attribut), chaque sujet doit montrer son genre
     const autreGenre = s => s.kind==='gn' ? Object.assign({},s,{g:s.g==='m'?'f':'m'}) : s;
@@ -2790,7 +2794,9 @@ function cleSujet(sp){
   const s=sp.sujet; if(!s) return null;
   if(s.kind==='gn') return s.g+s.n;
   if(s.kind==='prenom') return s.g+'s';
-  return null;   // plusieurs sujets, pronom : pas concerné
+  // plusieurs sujets (« Léa et Tom ») : masculin pluriel s'il y a au moins un garçon, sinon féminin pluriel
+  if(s.kind==='multi') return (s.parts.some(p=>p.g==='m')?'m':'f')+'p';
+  return null;   // pronom : pas concerné
 }
 function recetteVariee(R){
   const d=R.doms||{}, gn=d.det||d.adj||d.attr, verbe=d.sv||d.pp||d.ppa;
