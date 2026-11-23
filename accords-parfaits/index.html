@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.06 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.07 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.06</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.07</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2095,7 +2095,8 @@ function structuresPossibles(R){
   if(niv>=4 && d.sv && tempsPermis(R,['pr','imp','fut','pc']).length) l.push(['invq',0.8]);   // question : jamais au passé simple (« Pourquoi dormit l'hippopotame ? »)
   // COD placé avant (avec avoir) : c'est le cas qui demande un accord, il doit revenir souvent
   if(niv>=4 && d.ppa && comp) l.push(['cod', d.det||d.adj||d.sv||d.pp ? 3 : 14]);
-  if(niv>=4 && d.ppa && comp) l.push(['relq', d.det||d.adj||d.sv||d.pp ? 1.5 : 8]);    // « Les cerises que Zoé a cueillies sont mûres »
+  // « Les cerises que Zoé a cueillies sont mûres » : CM2 seulement, quand le COD est travaillé, pour 20 % des phrases
+  if(niv>=4 && d.ppa && comp && l.length) l.push(['relq', l.reduce((t,x)=>t+x[1],0)*0.25]);   // 0,25 × les autres = 1/5 du total
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
   if(R.mode==='bascule') return l.filter(s=>s[0]!=='multi');
   return l;
