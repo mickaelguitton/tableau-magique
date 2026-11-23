@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.05 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.06 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -102,7 +102,7 @@ input,select{font-family:inherit}
 .demo{position:relative;display:flex;align-items:baseline;gap:.3em;font-size:calc(var(--t)*.56);font-weight:700;padding:1.6em 0 1.8em;align-self:center}
 /* niveau : en bas, aligné sur le bas des options ; son titre a le style des questions de droite */
 .m-niveau .m-q{margin-bottom:1.2vh}
-.demo::before{content:'';position:absolute;left:-.3em;right:-.6em;top:50%;height:1.06em;transform:translateY(-42%);background:repeating-linear-gradient(to bottom,var(--portee) 0 .04em,transparent .04em .265em)}
+.demo::before{content:'';position:absolute;left:-.3em;right:-.6em;top:50%;height:1.05em;transform:translateY(-42%);background:repeating-linear-gradient(to bottom,var(--portee) 0 .04em,transparent .04em .265em)}
 .demo svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .demo .d{position:relative;padding:.02em .14em .06em;border-radius:.22em;border-bottom:.08em solid}
 .demo .d u{color:var(--mk);text-decoration-thickness:.07em;text-underline-offset:.12em}
@@ -246,7 +246,7 @@ input,select{font-family:inherit}
 .phrase.wrap{flex-wrap:wrap;row-gap:1.6em}
 .phrase.deux{padding:.6em 0 1em;row-gap:1.15em}
 /* la portée derrière la phrase */
-.phrase:not(.wrap)::before{content:'';position:absolute;left:0;right:0;top:50%;height:1.06em;transform:translateY(-42%);
+.phrase:not(.wrap)::before{content:'';position:absolute;left:0;right:0;top:50%;height:1.05em;transform:translateY(-42%);
   background:repeating-linear-gradient(to bottom,var(--portee) 0 .04em,transparent .04em .265em);z-index:0}
 .tok{position:relative;z-index:1;display:inline-flex;flex-direction:column;align-items:center;padding:.02em .14em .06em;border-radius:.22em;border-bottom:.08em solid transparent;transition:background .35s,border-color .35s,transform .25s,box-shadow .3s}
 .tok .w{white-space:nowrap}
@@ -284,7 +284,7 @@ input,select{font-family:inherit}
 .tok.pop .mk{display:inline-block;animation:rebond .55s ease}   /* la terminaison rebondit quand l'accord arrive */
 @keyframes rebond{40%{transform:translateY(-.22em) scale(1.25)}70%{transform:translateY(.03em)}}
 .tok.allume{animation:allume .7s ease}   /* le nom noyau ou le sujet s'allume avant que partent les flèches */
-@keyframes allume{40%{box-shadow:0 0 0 .14em var(--nom),0 0 .5em .2em var(--bleu-m);transform:scale(1.06)}}
+@keyframes allume{40%{box-shadow:0 0 0 .14em var(--nom),0 0 .5em .2em var(--bleu-m);transform:scale(1.05)}}
 @keyframes pop{50%{transform:translateY(-.08em)}}
 /* liaisons */
 .liaison{transition:opacity .45s ease}
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.05</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.06</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1376,7 +1376,199 @@ const SCENES_DATA = [
     "vérifier : cheminots ; O=billets ; l=dans le train|sur le quai",
     "siffler : contrôleur contrôleuse ; l=sur le quai",
     "dormir : voyageurs ; l=dans le train|dans la salle d'attente"
+  ]},
+
+/* ----- nouvelles scènes (v1.06) : bibliothèque, musée, camping, atelier, nature ----- */
+{ id:'bibliotheque',
+  lieux:"à la bibliothèque|dans la salle de lecture|devant les rayons|près du comptoir|à la médiathèque",
+  cdn:["du quartier|du village|de la ville","des quartiers voisins|des villages voisins|des environs"],
+  groupes:{
+    lecteurs:{p:1, n:"lecteur|lectrice visiteur|visiteuse garçon|fille enfant=#3", a:"curieux/curieuse#2 attentif/attentive#3 sage#1 appliqué/appliquée*#2 fatigué/fatiguée* content/contente passionné/passionnée*#4 étonné/étonnée*#3 petit/petite< grand/grande< assis/assise*#1 installé/installée*#2"},
+    bibliothecaires:{p:1, n:"bibliothécaire=#3 documentaliste=#4", a:"aimable#2 souriant/souriante#2 patient/patiente#3 occupé/occupée*#2 pressé/pressée*#2 attentif/attentive#3 poli/polie#3 calme#2 fatigué/fatiguée* serviable#4 organisé/organisée*#4"}
+  },
+  objets:{
+    livres:{n:"livre| roman| album| |revue dictionnaire|#2 |encyclopédie#3", a:"gros/grosse< joli/jolie< passionnant/passionnante#4 illustré/illustrée*#3 abîmé/abîmée*#2 déchiré/déchirée*#2 perdu/perdue*#2 oublié/oubliée*#2 rangé/rangée*#2 classé/classée*#3 neuf/neuve#2 emprunté/empruntée*#3"},
+    fiches:{n:"|fiche", a:"petit/petite< joli/jolie< jaune bleu/bleue blanc/blanche écrit/écrite*#2 oublié/oubliée*#2 perdu/perdue*#2 rangé/rangée*#2 recopié/recopiée*#3"}
+  },
+  verbes:[
+    "emprunter : lecteurs ; O=livres ; l=à la bibliothèque|à la médiathèque|au comptoir",
+    "rendre : lecteurs ; O=livres ; l=au comptoir|à la bibliothèque",
+    "lire : lecteurs ; O=livres ; l=dans la salle de lecture|à la bibliothèque|près de la fenêtre",
+    "chercher : lecteurs ; O=livres ; l=devant les rayons|à la bibliothèque",
+    "choisir : lecteurs ; O=livres ; l=devant les rayons|à la bibliothèque",
+    "chuchoter : lecteurs bibliothecaires ; l=dans la salle de lecture|près du comptoir|devant les rayons",
+    "s'installer : lecteurs ; l=dans la salle de lecture|près de la fenêtre|au fond de la salle",
+    "entrer : lecteurs ; l=dans la bibliothèque|dans la salle de lecture",
+    "sortir : lecteurs ; l=de la bibliothèque|de la salle de lecture",
+    "arriver : lecteurs bibliothecaires ; l=à la bibliothèque|à la médiathèque",
+    "ranger : bibliothecaires ; O=livres ; l=devant les rayons|sur les étagères|dans la salle de lecture",
+    "ranger : bibliothecaires ; O=fiches ; l=près du comptoir|dans le tiroir",
+    "classer : bibliothecaires ; O=livres ; l=à la bibliothèque|près du comptoir",
+    "classer : bibliothecaires ; O=fiches ; l=près du comptoir|à la bibliothèque",
+    "réparer : bibliothecaires ; O=livres ; l=près du comptoir|à la bibliothèque",
+    "poser : bibliothecaires ; O=livres ; l=sur le comptoir|sur les étagères",
+    "conseiller : bibliothecaires ; O=@lecteurs ; l=devant les rayons|près du comptoir",
+    "aider : bibliothecaires ; O=@lecteurs ; l=devant les rayons|près du comptoir",
+    "écouter : lecteurs ; O=@bibliothecaires ; l=près du comptoir|à la bibliothèque",
+    "remercier : lecteurs ; O=@bibliothecaires ; l=près du comptoir|à la bibliothèque"
+  ]},
+
+{ id:'musee',
+  lieux:"dans le musée|dans la galerie|dans la grande salle|devant le tableau|à l'exposition",
+  cdn:["du village|de la ville|de l'école","des villages voisins|des écoles voisines|de nos voisins"],
+  groupes:{
+    visiteurs:{p:1, n:"visiteur|visiteuse touriste=#3 enfant=#3 garçon|fille", a:"curieux/curieuse#2 attentif/attentive#3 silencieux/silencieuse#2 émerveillé/émerveillée*#4 étonné/étonnée*#3 fatigué/fatiguée* content/contente ravi/ravie*#3 intéressé/intéressée*#3 concentré/concentrée*#3 sage#1 petit/petite< grand/grande<"},
+    personnel:{p:1, n:"guide=#3 gardien|gardienne#2 conférencier|conférencière#4", a:"aimable#2 souriant/souriante#2 patient/patiente#3 attentif/attentive#3 sérieux/sérieuse#3 occupé/occupée*#2 calme#2 fatigué/fatiguée* poli/polie#3 passionné/passionnée*#4"}
+  },
+  objets:{
+    oeuvres:{n:"tableau| |statue |sculpture |peinture |photographie#3 portrait|#3", a:"célèbre#2 magnifique#2 grand/grande< petit/petite< joli/jolie< précieux/précieuse#3 fragile#3 exposé/exposée*#3 protégé/protégée*#3 restauré/restaurée*#4 coloré/colorée*#3"},
+    salles:{n:"|salle |galerie |exposition", a:"grand/grande< petit/petite< joli/jolie< vaste#3 lumineux/lumineuse#3 silencieux/silencieuse#2 éclairé/éclairée*#3 rénové/rénovée*#4"}
+  },
+  verbes:[
+    "admirer : visiteurs ; O=oeuvres ; l=dans la galerie|dans la grande salle|dans le musée",
+    "observer : visiteurs ; O=oeuvres ; l=dans la galerie|dans la grande salle|dans le musée",
+    "regarder : visiteurs ; O=oeuvres ; l=dans la galerie|dans la grande salle|dans le musée",
+    "dessiner : visiteurs ; O=oeuvres ; l=dans la galerie|dans le musée",
+    "visiter : visiteurs ; O=salles ; l=-",
+    "se promener : visiteurs ; l=dans la galerie|dans la grande salle|dans le musée",
+    "s'arrêter : visiteurs ; l=devant le tableau|dans la galerie",
+    "s'approcher : visiteurs ; l=de la statue|du tableau|de la sculpture",
+    "marcher : visiteurs ; l=dans la galerie|dans la grande salle",
+    "arriver : visiteurs personnel ; l=au musée|à l'exposition",
+    "entrer : visiteurs ; l=dans le musée|dans la galerie|dans la grande salle",
+    "écouter : visiteurs ; O=@personnel ; l=dans la galerie|devant le tableau|dans la grande salle",
+    "guider : guide conférencier ; O=@visiteurs ; l=dans la galerie|dans la grande salle|dans le musée",
+    "expliquer : guide conférencier ; O=oeuvres ; l=dans la galerie|dans la grande salle",
+    "surveiller : gardien ; O=@visiteurs,oeuvres ; l=dans la galerie|dans la grande salle",
+    "nettoyer : gardien ; O=salles ; l=-",
+    "fermer : gardien ; O=salles ; l=-"
+  ]},
+
+{ id:'camping',
+  lieux:"au bord du lac|près du ruisseau|dans la clairière|sous les pins|au pied de la colline",
+  cdn:["de la colonie|du village|de l'école","des villages voisins|de mes cousins|de nos voisins"],
+  groupes:{
+    campeurs:{p:1, n:"campeur|campeuse randonneur|randonneuse scout|scoute#3 garçon|fille", a:"courageux/courageuse#2 prudent/prudente#2 patient/patiente#3 joyeux/joyeuse#1 content/contente fatigué/fatiguée* souriant/souriante#2 enthousiaste#3 essoufflé/essoufflée*#3 équipé/équipée*#3 trempé/trempée*#3 pressé/pressée*#2 petit/petite< grand/grande<"},
+    moniteurs:{p:1, n:"moniteur|monitrice animateur|animatrice#2 guide=#3", a:"patient/patiente#3 souriant/souriante#2 attentif/attentive#3 sérieux/sérieuse#3 occupé/occupée*#2 pressé/pressée*#2 aimable#2 fatigué/fatiguée* calme#2"}
+  },
+  objets:{
+    tentes:{n:"|tente", a:"petit/petite< grand/grande< rouge vert/verte bleu/bleue jaune solide#2 neuf/neuve#2 mouillé/mouillée*#2 déchiré/déchirée*#3 abîmé/abîmée*#2"},
+    sacs:{n:"sac|+à_dos", a:"petit/petite< grand/grande< gros/grosse< joli/jolie<"},
+    materiel:{n:"|lampe |gourde |boussole |couverture", a:"petit/petite< joli/jolie< neuf/neuve#2 rouge bleu/bleue vert/verte perdu/perdue*#2 oublié/oubliée*#2 rangé/rangée*#2 abîmé/abîmée*#2 posé/posée*#3 emporté/emportée*#3"},
+    combustible:{n:"|branche |bûche bâton|", a:"sec/sèche petit/petite< gros/grosse< long/longue< cassé/cassée*#2 ramassé/ramassée*#2 coupé/coupée*#3 tombé/tombée*#3 mouillé/mouillée*#2"},
+    feux:{n:"feu>feux|", a:"petit/petite< grand/grande< gros/grosse< joli/jolie< chaud/chaude#2 vif/vive#3"},
+    repas:{n:"|soupe |omelette |crêpe |purée", a:"chaud/chaude bon/bonne< délicieux/délicieuse#2 salé/salée*#2 brûlant/brûlante#3"}
+  },
+  verbes:[
+    "dresser : campeurs moniteurs ; O=tentes ; l=au bord du lac|dans la clairière|sous les pins",
+    "planter : campeurs ; O=tentes ; l=au bord du lac|dans la clairière|près du ruisseau",
+    "plier : campeurs ; O=tentes ; l=dans la clairière|au bord du lac",
+    "installer : campeurs moniteurs ; O=tentes ; l=sous les pins|au bord du lac|dans la clairière",
+    "porter : campeurs ; O=sacs,materiel ; l=au pied de la colline|le long du sentier",
+    "ranger : campeurs ; O=sacs,materiel ; l=dans la tente|près de la tente",
+    "oublier : campeurs ; O=sacs,materiel ; l=au bord du lac|près du ruisseau|dans la clairière",
+    "allumer : campeurs moniteurs ; O=feux ; l=dans la clairière|au bord du lac|près de la tente",
+    "ramasser : campeurs ; O=combustible ; l=sous les pins|dans la clairière|près du ruisseau",
+    "préparer : campeurs moniteurs ; O=repas ; l=près du feu|devant la tente",
+    "manger : campeurs ; O=repas ; l=près du feu|devant la tente|au bord du lac",
+    "surveiller : moniteurs ; O=feux,@campeurs ; l=dans la clairière|au bord du lac",
+    "marcher : campeurs ; l=le long du sentier|au bord du lac|au pied de la colline",
+    "grimper : campeurs ; l=sur la colline|sur le rocher|jusqu'au sommet",
+    "se baigner : campeurs ; l=dans le lac|près de la rive|au bord du lac",
+    "se reposer : campeurs ; l=sous les pins|près de la tente|au bord du ruisseau",
+    "dormir : campeurs ; l=dans la tente|près du feu|sous les étoiles",
+    "chanter : campeurs ; l=autour du feu|près de la tente|au bord du lac",
+    "s'installer : campeurs ; l=près du ruisseau|sous les pins|dans la clairière",
+    "arriver : campeurs moniteurs ; l=au bord du lac|dans la clairière|au pied de la colline",
+    "partir : campeurs ; l=de la clairière|du lac|du camp",
+    "rentrer : campeurs ; l=au camp|à la tente",
+    "guider : moniteurs ; O=@campeurs ; l=le long du sentier|au pied de la colline|dans la forêt",
+    "aider : moniteurs ; O=@campeurs ; l=au bord du lac|dans la clairière|près de la tente",
+    "écouter : campeurs ; O=@moniteurs ; l=autour du feu|près de la tente|dans la clairière"
+  ]},
+
+{ id:'atelier',
+  lieux:"dans l'atelier|au garage|sur le chantier|dans la cour|devant la maison",
+  cdn:["du quartier|du village|de la ville","de nos voisins|des villages voisins|des environs"],
+  groupes:{
+    artisans:{p:1, n:"menuisier|menuisière#2 mécanicien|mécanicienne#2 ouvrier|ouvrière maçon|maçonne#3 peintre=#3 électricien|électricienne#4", a:"courageux/courageuse patient/patiente#2 soigneux/soigneuse#3 appliqué/appliquée*#2 occupé/occupée*#2 concentré/concentrée*#3 fatigué/fatiguée* habile#3 sérieux/sérieuse#3 pressé/pressée*#2 souriant/souriante#2 expérimenté/expérimentée*#4 petit/petite< grand/grande<"}
+  },
+  objets:{
+    meubles:{n:"|chaise |table |étagère |armoire banc| tabouret|", a:"petit/petite< grand/grande< joli/jolie< solide#2 lourd/lourde#2 neuf/neuve#2 carré/carrée#3 rond/ronde#3 cassé/cassée*#2 abîmé/abîmée*#2 terminé/terminée*#3 fabriqué/fabriquée*#3"},
+    outils:{n:"marteau>marteaux| |scie tournevis| |pince |perceuse pinceau>pinceaux|", a:"petit/petite< gros/grosse< grand/grande< neuf/neuve#2 lourd/lourde#2 léger/légère#2 solide#2 pratique#2 rouillé/rouillée*#3 prêté/prêtée*#3 perdu/perdue*#2 rangé/rangée*#2 nettoyé/nettoyée*#3 posé/posée*#3"},
+    planches:{n:"|planche |poutre", a:"long/longue< gros/grosse< épais/épaisse#2 fin/fine#2 lourd/lourde#2 sec/sèche#2 lisse#3 cassé/cassée*#2 abîmé/abîmée*#2 rangé/rangée*#2 posé/posée*#3 empilé/empilée*#3"},
+    murs:{n:"mur| |clôture |barrière", a:"grand/grande< petit/petite< blanc/blanche bleu/bleue vert/verte jaune gris/grise neuf/neuve#2 solide#2 haut/haute#2 abîmé/abîmée*#2 cassé/cassée*#2 terminé/terminée*#3 réparé/réparée*#3"},
+    ouvertures:{n:"|porte |fenêtre volet|#3", a:"grand/grande< petit/petite< blanc/blanche bleu/bleue vert/verte jaune gris/grise neuf/neuve#2 solide#2 lourd/lourde#2 abîmé/abîmée*#2 cassé/cassée*#2 terminé/terminée*#3 réparé/réparée*#3"},
+    engins:{n:"vélo| |voiture |moto camion| |camionnette", a:"petit/petite< grand/grande< gros/grosse< rouge bleu/bleue vert/verte blanc/blanche noir/noire neuf/neuve#2 bruyant/bruyante#2 sale#2 propre#2 cabossé/cabossée*#3 garé/garée*#2 abîmé/abîmée*#2 rouillé/rouillée*#3"}
+  },
+  verbes:[
+    "fabriquer : menuisier ouvrier ; O=meubles ; l=dans l'atelier",
+    "scier : menuisier ouvrier ; O=planches ; l=dans l'atelier|dans la cour",
+    "clouer : menuisier ouvrier maçon ; O=planches ; l=dans l'atelier|sur le chantier",
+    "poncer : menuisier ; O=meubles,planches ; l=dans l'atelier",
+    "mesurer : menuisier ouvrier maçon ; O=planches,murs ; l=sur le chantier|dans l'atelier",
+    "porter : menuisier ouvrier maçon ; O=planches,outils ; l=sur le chantier|dans la cour|devant la maison",
+    "porter : mécanicien électricien peintre ; O=outils ; l=au garage|dans la cour|devant la maison",
+    "construire : maçon ouvrier ; O=murs ; l=sur le chantier|devant la maison",
+    "peindre : peintre ouvrier ; O=murs,ouvertures,meubles ; l=-",
+    "poser : maçon ouvrier électricien menuisier ; O=ouvertures ; l=sur le chantier|devant la maison",
+    "réparer : mécanicien ; O=engins ; l=au garage|dans la cour",
+    "réparer : menuisier ouvrier ; O=meubles,ouvertures ; l=dans l'atelier",
+    "vérifier : mécanicien ; O=engins ; l=au garage|dans la cour",
+    "laver : mécanicien ; O=engins ; l=au garage|dans la cour",
+    "nettoyer : menuisier mécanicien ouvrier peintre ; O=outils ; l=dans l'atelier|dans la cour",
+    "ranger : menuisier mécanicien ouvrier peintre maçon ; O=outils ; l=dans l'atelier|dans la cour",
+    "utiliser : artisans ; O=outils ; l=dans l'atelier|sur le chantier",
+    "chercher : artisans ; O=outils ; l=dans l'atelier|dans la cour|sur le chantier",
+    "travailler : artisans ; l=dans l'atelier|sur le chantier|au garage",
+    "arriver : artisans ; l=sur le chantier|à l'atelier|au garage|devant la maison",
+    "partir : artisans ; l=du chantier|de l'atelier|du garage",
+    "s'arrêter : artisans ; l=devant la maison|sur le chantier|dans la cour",
+    "se dépêcher : artisans ; l=sur le chantier|dans l'atelier|vers le garage",
+    "se reposer : artisans ; l=dans la cour|devant la maison|à l'ombre"
+  ]},
+
+{ id:'nature',
+  lieux:"dans le ciel|sur la ville|dans la vallée|sur la plaine|au-dessus de la forêt",
+  cdn:["de la vallée|de la montagne|du village","des montagnes voisines|des villages voisins|des environs"],
+  groupes:{
+    ciel:{n:"nuage| |étoile", a:"petit/petite< grand/grande< gros/grosse< blanc/blanche lointain/lointaine#3 isolé/isolée*#3 caché/cachée*#2 doré/dorée*#3"},
+    chutes:{n:"flocon| |goutte", a:"petit/petite< gros/grosse< froid/froide#2 brillant/brillante#2 léger/légère#3 isolé/isolée*#3 gelé/gelée*#3"},
+    vegetaux:{n:"|feuille |fleur", a:"petit/petite< grand/grande< joli/jolie< jaune rouge frais/fraîche#2 fané/fanée*#3 séché/séchée*#3 mouillé/mouillée*#2 coloré/colorée*#3"},
+    eaux:{n:"|rivière ruisseau>ruisseaux| |vague", a:"petit/petite< grand/grande< long/longue< calme#2 tranquille#2 froid/froide#2 bruyant/bruyante#3 agité/agitée*#3 rapide#2"},
+    meteo:{n:"vent| |pluie |neige", a:"doux/douce#2 froid/froide#2 léger/légère#2 glacé/glacée*#3 soudain/soudaine#4"}
+  },
+  objets:{
+    branches:{n:"|branche |feuille", a:"petit/petite< grand/grande< jaune vert/verte sec/sèche fin/fine#2 séché/séchée*#3 cassé/cassée*#2 tombé/tombée*#3 mouillé/mouillée*#2"},
+    surfaces:{n:"toit| |route |rue champ|", a:"grand/grande< petit/petite< gelé/gelée*#3 abîmé/abîmée*#3"}
+  },
+  verbes:[
+    "flotter : nuage ; l=dans le ciel|au-dessus de la vallée|au-dessus de la forêt",
+    "passer : nuage ; l=au-dessus de la ville|au-dessus de la forêt|au-dessus de la plaine",
+    "s'éloigner : nuage ; l=vers la montagne|au-dessus de la mer",
+    "briller : étoile ; l=dans le ciel|dans la nuit|au-dessus de la forêt",
+    "s'allumer : étoile ; l=dans le ciel|dans la nuit",
+    "briller : rivière ruisseau vague goutte ; l=au soleil",
+    "tomber : flocon goutte ; l=sur le toit|sur la route|dans le jardin",
+    "tomber : feuille ; l=dans le jardin|sur la route|au pied de l'arbre",
+    "danser : flocon feuille ; l=dans le vent|autour de la maison",
+    "voler : feuille ; l=dans le vent|au-dessus de la route",
+    "s'envoler : feuille ; l=dans le vent|au-dessus de la route|autour de la maison",
+    "pousser : fleur ; l=dans le jardin|au bord du chemin|dans le pré|entre les pierres",
+    "se faner : fleur ; l=en automne|à la fin de l'été|au bout de quelques jours",
+    "couler : rivière ruisseau ; l=entre les rochers|dans la vallée|au pied de la colline",
+    "grossir : rivière ruisseau ; l=après la pluie|au printemps|en hiver",
+    "se briser : vague ; l=sur les rochers|contre la jetée|sur la plage",
+    "souffler : vent ; l=sur la plaine|dans la vallée|autour de la maison|sur la ville",
+    "se lever : vent ; l=le soir|au petit matin|sur la plaine",
+    "secouer : vent ; O=branches ; l=dans la forêt|dans le jardin|au bord de la route",
+    "agiter : vent ; O=branches ; l=dans la forêt|dans le jardin|au bord de la route",
+    "emporter : vent ; O=branches ; l=dans la vallée|sur la plaine|au-dessus de la ville",
+    "tomber : pluie neige ; l=sur la ville|sur la plaine|dans la vallée|sur la forêt",
+    "mouiller : pluie ; O=surfaces ; l=-",
+    "frapper : pluie ; O=surfaces ; l=-"
   ]}
+
 ];
 
 // compléments de temps, choisis selon le temps du verbe
@@ -1391,7 +1583,9 @@ const TEMPOREL = {
 const PRENOMS = [['Léa','f'],['Inès','f'],['Jade','f'],['Lina','f'],['Zoé','f'],['Chloé','f'],['Emma','f'],['Nina','f'],['Rose','f'],
   ['Aya','f'],['Lou','f'],['Mila','f'],['Alice','f'],['Sofia','f'],
   ['Tom','m'],['Noé','m'],['Gabin','m'],['Nathan','m'],['Ilyes','m'],['Jules','m'],['Rayan','m'],['Léo','m'],['Sami','m'],['Hugo','m'],['Malo','m'],['Lucas','m'],['Adam','m'],['Yanis','m']];
-const MOTS_QUESTION = ['Où','Quand','Pourquoi'];
+// mot interrogatif d'une question avec sujet inversé : « Où » pour un lieu, « Quand » sinon (« Pourquoi » ne s'inverse pas naturellement)
+const VERBES_OU = new Set(['aller','venir','promener','cacher','poser','reposer','envoler','baigner','réfugier','arrêter','installer','coucher','rester','tomber','monter','descendre','redescendre','partir','repartir']);
+const motQuestion = inf => VERBES_OU.has(inf) ? 'Où' : 'Quand';
 
 /* =========================================================
    2. PETITS OUTILS
@@ -1448,10 +1642,30 @@ const ATTR_ETATS = new Set(['frais','neuf','plein','vide','propre','sale','chaud
 const OBJETS_SANS_POSS = new Set(['agrumes','animauxforet','animauxmer','animauxmontagne','animauxville','arbres','baies','banquet','bois','champis',
   'epluchables','fauves','feuillage','feuilles','fleursmarche','fourmis','fourrage','fromages','fruits','gourmandises','graines','grands','insectes','legumes',
   'marchepoissons','meduses','nids','noix','nourriture','oeufs','oeufsmer','oiseaux','oiseauxjardin','oiseauxmer','oiseauxzoo','pains','patisseries','plage',
-  'plantes','poissons','primeurs','proies','rampants','rapaces','recolte','rues','singes','buts','trains','bus','chateaux','tours','igloos','pelouse']);
+  'plantes','poissons','primeurs','proies','rampants','rapaces','recolte','rues','singes','buts','trains','bus','chateaux','tours','igloos','pelouse',
+  'oeuvres','salles','murs','branches','surfaces','combustible','planches','feux']);
 const UNIQUES = new Set(['papa','maman','papi','mamie']);
 const FAMILLE = new Set(['papa','maman','papi','mamie','frère','sœur','cousin','cousine','oncle','tante']);
 const OBJET_UNIQUE = new Set(['pelouse']);   // objets qu'on a en un seul exemplaire
+const LIEU_TEMPOREL = /^(en (automne|hiver|été|printemps)|au printemps|après la pluie|le soir|au petit matin|à la fin|au bout)/;   // « en automne » : pas de « ce matin » en plus
+// relatives (CM2) : « Les enfants qui jouent sont contents » / « Les cerises que Zoé a cueillies sont mûres ».
+// Le sens demande des garde-fous : on n'associe qu'un état qui ne contredit pas l'action.
+const REL_ETATS = new Set(['content','joyeux','calme','tranquille','fatigué','ravi','essoufflé','souriant','fier']);   // état du sujet de « qui »
+const VERBES_REPOS = new Set(['dormir','reposer','installer','coucher','cacher','naître','rester']);   // « qui dort … est essoufflé » se contredit
+const VERBES_BRUYANTS = new Set(['aboyer','rugir','hurler','crier','barrir','siffler','meugler','bêler','grogner','cancaner','chanter','applaudir','jacasser','hululer','klaxonner','roucouler','miauler','discuter','parler','rire','grossir','briser']);   // pas « calme »
+const VERBES_MOUVEMENT = new Set(['courir','grimper','marcher','nager','galoper','danser','sauter','sautiller','voler','pédaler','skier','glisser','jongler','surfer','plonger','ramper','monter','descendre','rouler','fuir','traverser']);   // seuls à aller avec « essoufflé »
+function etatsRel(nom,niv,v){   // les états possibles du sujet d'une relative en « qui »
+  return nom.adjs.filter(a=>a.pos==='ap' && ok(a,niv) && REL_ETATS.has(a.ms)
+    && !((a.ms==='calme'||a.ms==='tranquille') && VERBES_BRUYANTS.has(v.inf))
+    && !(a.ms==='essoufflé' && !VERBES_MOUVEMENT.has(v.inf)));
+}
+const OBJ_ETATS = new Set(['frais','neuf','plein','vide','propre','sale','chaud','sec','mûr','calme','tranquille','content','joyeux']);   // état d'un COD placé avant (« Les cerises que Zoé a cueillies sont mûres »)
+const VERBES_CONSOMMES = new Set(['manger','grignoter','picorer','brouter','boire','pondre']);                 // l'objet n'existe plus ou n'est pas un état
+const CONTRE_ETAT = {laver:['sale','sec'],essuyer:['sale'],nettoyer:['sale'],arroser:['sec'],cuire:['frais','sec','mûr'],remplir:['plein','vide'],
+  réparer:['neuf'],goûter:['neuf'],composter:['neuf','propre','sale'],éplucher:['sale'],couper:['entier'],vendre:['sale'],acheter:['sale']};   // verbe : états qui le contredisent
+function etatsRelq(nom,niv,v){   // les états possibles d'un nom devenu sujet, COD placé avant du verbe de la relative
+  return nom.adjs.filter(a=>a.pos==='ap' && !a.pp && ok(a,niv) && OBJ_ETATS.has(a.ms) && a.ms!=='neuf' && !(CONTRE_ETAT[v.inf]||[]).includes(a.ms));   // « neuf » sonne faux avec presque tous les verbes
+}
 const BESOIN_LIEU = new Set(['aller','venir','revenir','entrer','monter','descendre','installer','mettre','rester','tomber']);   // verbes bizarres sans lieu (« des sœurs restent »)
 
 const SCENES = [];
@@ -1555,9 +1769,10 @@ const IRREG = {
   'offrir':{pr:['offre','offres','offre','offrons','offrez','offrent'], rImp:'offr', rFut:'offrir', pp:'offert'},
   'fuir':  {pr:['fuis','fuis','fuit','fuyons','fuyez','fuient'], rImp:'fuy', rFut:'fuir', pp:'fui'},
   'rire':  {pr:['ris','ris','rit','rions','riez','rient'], rImp:'ri', rFut:'rir', pp:'ri'},
-  'recevoir':{pr:['reçois','reçois','reçoit','recevons','recevez','reçoivent'], rImp:'recev', rFut:'recevr', pp:'reçu'}
+  'recevoir':{pr:['reçois','reçois','reçoit','recevons','recevez','reçoivent'], rImp:'recev', rFut:'recevr', pp:'reçu'},
+  'peindre':{pr:['peins','peins','peint','peignons','peignez','peignent'], rImp:'peign', rFut:'peindr', pp:'peint'}
 };
-const GROUPE2 = new Set(['finir','choisir','grandir','nourrir','applaudir','rugir','bondir','remplir','réfléchir','obéir','barrir','pétrir','salir','fleurir']);
+const GROUPE2 = new Set(['finir','choisir','grandir','nourrir','applaudir','rugir','bondir','remplir','réfléchir','obéir','barrir','pétrir','salir','fleurir','grossir']);
 const ACCENT_GRAVE = {acheter:['achèt','achèter'], promener:['promèn','promèner'], peser:['pès','pèser'], semer:['sèm','sèmer'], lever:['lèv','lèver'], répéter:['répèt','répéter']};
 
 function premierGroupe(inf,t){
@@ -1576,7 +1791,7 @@ const PS_IRREG = {   // radical + type de terminaisons
   'être':['f','u'], avoir:['e','u'], faire:['f','i'], voir:['v','i'], prendre:['pr','i'], mettre:['m','i'], lire:['l','u'], boire:['b','u'],
   courir:['cour','u'], 'écrire':['écriv','i'], rire:['r','i'], 'paraître':['par','u'], recevoir:['reç','u'], venir:['v','in'], revenir:['rev','in'],
   devenir:['dev','in'], conduire:['conduis','i'], construire:['construis','i'], cuire:['cuis','i'], fuir:['fu','i'], cueillir:['cueill','i'],
-  offrir:['offr','i'], naître:['naqu','i'], dormir:['dorm','i'], partir:['part','i'], sortir:['sort','i'], aller:['all','a']
+  offrir:['offr','i'], peindre:['peign','i'], naître:['naqu','i'], dormir:['dorm','i'], partir:['part','i'], sortir:['sort','i'], aller:['all','a']
 };
 function passeSimple(inf){
   const irr=PS_IRREG[inf];
@@ -1672,7 +1887,7 @@ function choisirGN(niv,nom,o){
   // CP, CE1 : pas de « de » devant un adjectif (« de petits escargots »), on garde le, la, les, un, une, des
   if(niv<2 && gn.det==='ind' && gn.n==='p' && gn.adjs.some(a=>a.pos==='av')) gn.det='def';
   // dès le CE2, « de grands châteaux » plutôt que « les grands châteaux » (plus naturel)
-  else if(niv>=2 && gn.det==='def' && gn.n==='p' && gn.adjs.some(a=>a.pos==='av') && chance(0.6)) gn.det='ind';
+  else if(niv>=2 && !o.defini && gn.det==='def' && gn.n==='p' && gn.adjs.some(a=>a.pos==='av') && chance(0.6)) gn.det='ind';   // sauf si le défini est demandé (sujet inversé, complément placé avant)
   // « préféré » demande un possesseur : « sa peluche préférée », pas « la peluche préférée »
   if(!/^pos/.test(gn.det)) gn.adjs=gn.adjs.filter(a=>a.ms!=='préféré');
   // une seule maman, un seul papa : pas de « ses mamans » ni de « mes papis »
@@ -1754,6 +1969,13 @@ function elision(toksSujet,premier){
   const t=toksSujet[toksSujet.length-1];
   if(t && t.nat==='pro' && t.w==='je' && commenceVoyelle(premier.w)){ t.w="j'"; t.glue=true; }
 }
+// négation : « ne … pas » autour du verbe (ou de l'auxiliaire), « n' » devant une voyelle ; renvoie la liste de mots modifiée
+function nier(toksVerbe){
+  const i=toksVerbe.findIndex(t=>t.nat==='verbe');
+  const ne=mot('ne','autre',{rel:{type:'neg'}}), pas=mot('pas','autre',{rel:{type:'neg'}});
+  if(commenceVoyelle(toksVerbe[0].w)){ ne.w="n'"; ne.glue=true; }
+  return [ne,...toksVerbe.slice(0,i+1),pas,...toksVerbe.slice(i+1)];
+}
 const point = () => mot('.','ponct',{glueG:true});
 const virgule = () => mot(',','ponct',{glueG:true});
 
@@ -1784,6 +2006,39 @@ function rendre(sp){
     chaines.push({type:'cod',donneurs:[C.tete.id],receveurs:[pron.id,pp.id],cote:'bas',couleur:'var(--vio)'});
     return {toks,chaines,sp};
   }
+  if(sp.struct==='rel'){            // « Les enfants qui jouent dans la cour sont contents. »
+    const S=rendreSujet(sp.sujet,niv,chaines); S.toks[0].cap=true;
+    const relSV={type:'sv',suj:texte(S.toks),p:S.p,multi:false,inv:false,piege:null};
+    const V2=rendreVerbe({verbe:sp.verbe,temps:sp.temps},S,relSV);   // le verbe de la relative s'accorde avec l'antécédent
+    toks.push(...S.toks,mot('qui','autre'),...V2.toks);
+    if(sp.rel.objet){ const O=rendreGN(sp.rel.objet,niv); chaines.push(O.chaine); toks.push(...O.toks); }
+    else if(sp.rel.lieu) toks.push(mot(sp.rel.lieu,'autre'));
+    const fe=conjugue(sp.etat,sp.temps), a=sp.attribut;
+    const ve=mot(fe[S.p],'verbe',{forms:enFormes6(fe),key:'p'+S.p,dom:'sv',recv:true,rel:relSV});
+    const ta=mot(a[S.g+S.n],'adj',{forms:{ms:a.ms,fs:a.fs,mp:a.mp,fp:a.fp},key:S.g+S.n,dom:'attr',recv:true,genreLibre:!!S.epicene,rel:{type:'attr',suj:relSV.suj,g:S.g,n:S.n}});
+    toks.push(ve,ta,point());
+    chaineSV(S,V2.recv); chaineSV(S,[ve,ta]);
+    return {toks,chaines,sp};
+  }
+  if(sp.struct==='relq'){           // « Les cerises que Zoé a cueillies sont mûres. »
+    const C=rendreSujet(sp.sujet,niv,chaines); C.toks[0].cap=true;      // l'antécédent : sujet de la phrase et COD de la relative
+    const S2=rendreSujet(sp.relq.suj2,niv,chaines);
+    const que=mot('que','autre'); if(commenceVoyelle(S2.toks[0].w)){ que.w="qu'"; que.glue=true; }
+    const txtCod=texte(C.toks);
+    const fa=conjugue('avoir',sp.temps==='pc'?'pr':'imp');
+    const aux=mot(fa[S2.p],'verbe',{forms:enFormes6(fa),key:'p'+S2.p,dom:'sv',recv:true,rel:{type:'sv',suj:texte(S2.toks),p:S2.p,aux:'avoir'}});
+    const fp=formesPP(participe(sp.verbe.inf),sp.verbe.inf);
+    const pp=mot(fp[C.g+C.n],'verbe',{forms:fp,key:C.g+C.n,dom:'ppa',recv:true,genreLibre:!!C.epicene,rel:{type:'ppcod',ant:txtCod,g:C.g,n:C.n}});
+    const relSV={type:'sv',suj:txtCod,p:C.p,multi:false,inv:false,piege:null};
+    const fe=conjugue(sp.etat,sp.temps==='pc'?'pr':'imp'), a=sp.attribut;
+    const ve=mot(fe[C.p],'verbe',{forms:enFormes6(fe),key:'p'+C.p,dom:'sv',recv:true,rel:relSV});
+    const ta=mot(a[C.g+C.n],'adj',{forms:{ms:a.ms,fs:a.fs,mp:a.mp,fp:a.fp},key:C.g+C.n,dom:'attr',recv:true,genreLibre:!!C.epicene,rel:{type:'attr',suj:txtCod,g:C.g,n:C.n}});
+    toks.push(...C.toks,que,...S2.toks,aux,pp,ve,ta,point());
+    chaineSV(S2,[aux]);
+    chaines.push({type:'cod',donneurs:C.tetes.map(t=>t.id),receveurs:[pp.id],cote:'bas',couleur:'var(--vio)'});
+    chaines.push({type:'sv',donneurs:C.tetes.map(t=>t.id),receveurs:[ve.id,ta.id],cote:'bas',couleur:'var(--ver)'});
+    return {toks,chaines,sp};
+  }
   const avecTempsDebut = debutTemps();
   const S=rendreSujet(sp.sujet,niv,chaines);
   const relSV={type:'sv',suj:texte(S.toks),p:S.p,multi:!!S.multi,inv:sp.struct==='inv'||sp.struct==='invq',piege:sp.piege||null};
@@ -1794,7 +2049,9 @@ function rendre(sp){
     const a=sp.attribut;
     const ta=mot(a[S.g+S.n],'adj',{forms:{ms:a.ms,fs:a.fs,mp:a.mp,fp:a.fp},key:S.g+S.n,dom:'attr',recv:true,genreLibre:!!S.epicene,rel:{type:'attr',suj:relSV.suj,g:S.g,n:S.n}});
     if(!avecTempsDebut) S.toks[0].cap=true;
-    toks.push(...S.toks,ve,ta); finPhrase();
+    const vtoks = sp.neg ? nier([ve]) : [ve];
+    if(sp.neg) elision(S.toks,vtoks[0]);
+    toks.push(...S.toks,...vtoks,ta); finPhrase();
     chaineSV(S,[ve,ta]);
     return {toks,chaines,sp};
   }
@@ -1805,7 +2062,8 @@ function rendre(sp){
     chaineSV(S,V.recv);
     return {toks,chaines,sp};
   }
-  elision(S.toks,V.toks[0]);
+  const Vt = sp.neg ? nier(V.toks) : V.toks;   // « Les poules ne picorent pas les graines. »
+  elision(S.toks,Vt[0]);
   // « Fatigués, les soldats travaillaient. » : l'adjectif détaché en tête s'accorde avec le nom noyau du sujet
   if(sp.detache && sp.sujet.kind==='gn' && !avecTempsDebut){
     const a=sp.detache, tD=mot(a[S.g+S.n],'adj',{forms:{ms:a.ms,fs:a.fs,mp:a.mp,fp:a.fp},key:S.g+S.n,dom:'adj',recv:true,cap:true,genreLibre:!!S.epicene,rel:{type:'gn',tete:S.tetes[0].w}});
@@ -1814,7 +2072,7 @@ function rendre(sp){
   } else if(!avecTempsDebut) S.toks[0].cap=true;
   toks.push(...S.toks);
   if(sp.cdn) toks.push(mot(sp.cdn,'autre'));
-  toks.push(...V.toks);
+  toks.push(...Vt);
   if(sp.objet){ const O=rendreGN(sp.objet,niv); chaines.push(O.chaine); toks.push(...O.toks); }
   finPhrase();
   chaineSV(S,V.recv);
@@ -1833,9 +2091,11 @@ function structuresPossibles(R){
   if(niv>=4 && d.attr && tempsPermis(R,['pr','imp','fut','ps']).length) l.push(['attr', d.det||d.adj||d.sv||PP ? 1.5 : 10]);
   if(niv>=2 && d.sv) l.push(['eloigne',niv>=3?1.5:0.7]);      // sujet séparé du verbe par un complément du nom : un peu en CE2, plus en CM
   if(niv>=4 && d.sv) l.push(['inv',1.2]);                      // CM2 : sujet inversé
+  if(niv>=4 && d.sv && tempsPermis(R,['pr','imp','fut']).length) l.push(['rel',1.2]);   // CM2 : « Les enfants qui jouent sont contents »
   if(niv>=4 && d.sv && tempsPermis(R,['pr','imp','fut','pc']).length) l.push(['invq',0.8]);   // question : jamais au passé simple (« Pourquoi dormit l'hippopotame ? »)
   // COD placé avant (avec avoir) : c'est le cas qui demande un accord, il doit revenir souvent
   if(niv>=4 && d.ppa && comp) l.push(['cod', d.det||d.adj||d.sv||d.pp ? 3 : 14]);
+  if(niv>=4 && d.ppa && comp) l.push(['relq', d.det||d.adj||d.sv||d.pp ? 1.5 : 8]);    // « Les cerises que Zoé a cueillies sont mûres »
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
   if(R.mode==='bascule') return l.filter(s=>s[0]!=='multi');
   return l;
@@ -1859,6 +2119,7 @@ function faireRecette(R){
   if(!temps.length) temps=R.temps.slice();
 
   if(struct==='cod'){
+    if(!tempsPermis(R,['pc','pqp']).length) return faireRecette(R);   // le temps demandé ne va pas avec cette structure : on en tire une autre
     sp.temps=hasard(tempsPermis(R,['pc','pqp']));
     sp.verbe=hasard(verbesPossibles(niv,v=>v.objets.length && v.aux==='a'));
     sp.cod=choisirGN(niv,hasard(objetsOk(sp.verbe,niv)),{objet:true,defini:true,sansPoss:true});   // « Ses tramways, Léo les a… » : ambigu
@@ -1867,8 +2128,65 @@ function faireRecette(R){
       sp.cod.adjs=sp.cod.adjs.filter(a=>!redit.includes(a.ms) && !(rad.length>=3 && a.ms.startsWith(rad))); }
     const sujets=sujetsOk(sp.verbe,niv).filter(n=>n.groupe!==sp.cod.nom.groupe || !sp.cod.nom.groupe);
     if(sp.verbe.personnes && (chance(0.4)||!sujets.length)){ const pr=hasard(PRENOMS); sp.sujet={kind:'prenom',nom:pr[0],g:pr[1]}; }
-    else sp.sujet=choisirGN(niv,hasard(sujets),{sansAdj:true});
-    sp.lieu = chance(0.4) && sp.verbe.lieux.length ? hasard(sp.verbe.lieux) : null;
+    else sp.sujet=choisirGN(niv,hasard(sujets),{sansAdj:true,defini:true});   // « la noix, l'écureuil l'a mangée » : pas « des écureuils »
+    { const radC=sp.verbe.inf.replace(/(er|ir|re)$/,'');
+      if(sp.sujet.kind==='gn' && radC.length>3 && (sp.sujet.nom.ms||sp.sujet.nom.fs||'').startsWith(radC.slice(0,6))) return faireRecette(R); }
+    sp.cod.adjs=sp.cod.adjs.slice(0,1);                                        // un seul adjectif : pas « le billet perdu et valable, … »
+    sp.lieu = (BESOIN_LIEU.has(sp.verbe.inf) || chance(0.4)) && sp.verbe.lieux.length ? hasard(sp.verbe.lieux) : null;
+    return sp;
+  }
+  if(struct==='rel'){               // « Les enfants qui jouent dans la cour sont contents. »
+    if(!tempsPermis(R,['pr','imp','fut']).length) return faireRecette(R);   // le temps demandé ne va pas avec cette structure : on en tire une autre
+    sp.temps=hasard(tempsPermis(R,['pr','imp','fut']));
+    const v2=hasard(verbesPossibles(niv,v=>!VERBES_REPOS.has(v.inf) && sujetsOk(v,niv).some(n=>n.t!=='o' && etatsRel(n,niv,v).length)));
+    if(!v2) return faireRecette(R);
+    const nom=hasard(sujetsOk(v2,niv).filter(n=>n.t!=='o' && etatsRel(n,niv,v2).length));
+    sp.verbe=v2; sp.sujet=choisirGN(niv,nom,{defini:true});
+    // « fatigué » est possible partout : on le tire moins souvent, pour que les états varient
+    sp.attribut=tirage(etatsRel(nom,niv,v2).map(a=>[a,a.ms==='fatigué'?0.4:1]));
+    sp.etat=tirage([['être',5],['sembler',2],['paraître',1],['rester',1]]);
+    // le sujet n'a ni l'état qu'on lui attribue, ni un état qui contredit l'action (« les lapins cachés qui sautent »)
+    const IMMO=['endormi','allongé','attaché','enfermé','accroupi','perché','posé','échoué','assis','installé','caché','arrêté','blessé','garé'];
+    sp.sujet.adjs=sp.sujet.adjs.filter(a=>a.ms!==sp.attribut.ms && !IMMO.includes(a.ms) && !enCommun(a.ms,v2.inf.slice(0,-2))).slice(0,1);   // un seul adjectif : la phrase est déjà longue
+    const radR=v2.inf.replace(/(er|ir|re)$/,'');
+    if(radR.length>3 && (nom.ms||nom.fs||'').startsWith(radR.slice(0,6))) return faireRecette(R);
+    // dans la relative : un complément d'objet ou un lieu
+    const grS=nom.groupe, objs=objetsOk(v2,niv).filter(n=>!n.groupe || n.groupe!==grS);
+    let obj=null, lieu=null;
+    if(objs.length && (v2.objOblig || chance(0.6))){
+      obj=choisirGN(niv,hasard(objs),{objet:true});
+      if(sp.sujet.n==='p' && obj.n==='s' && !OBJET_UNIQUE.has(obj.nom.fs||obj.nom.ms) && chance(0.8)) obj.n='p';
+      if(OBJET_UNIQUE.has(obj.nom.fs||obj.nom.ms)){ obj.n='s'; if(!/^pos/.test(obj.det)) obj.det='def'; }
+      if(/^pos/.test(obj.det) && obj.det==='pos3' && sp.sujet.n!=='s') obj.det='def';
+      obj.adjs=obj.adjs.filter(a=>!enCommun(a.ms+' '+a.fs,formesGN(sp.sujet)+' '+sp.attribut.ms) && !(radR.length>=3 && a.ms.startsWith(radR)));
+    }
+    if(v2.objOblig && !obj) return faireRecette(R);
+    if(!obj && v2.lieux.length || (obj && BESOIN_LIEU.has(v2.inf) && v2.lieux.length)){
+      const l=v2.lieux.filter(x=>!enCommun(x,v2.inf.slice(0,-2)) && !enCommun(x,formesGN(sp.sujet)) && !(obj && enCommun(x,formesGN(obj))));
+      if(l.length) lieu=hasard(l); else if(!obj) return faireRecette(R); }
+    sp.rel={objet:obj,lieu};
+    return sp;
+  }
+  if(struct==='relq'){              // « Les cerises que Zoé a cueillies sont mûres. »
+    if(!tempsPermis(R,['pc','pqp']).length) return faireRecette(R);   // le temps demandé ne va pas avec cette structure : on en tire une autre
+    sp.temps=hasard(tempsPermis(R,['pc','pqp']));
+    const v2=hasard(verbesPossibles(niv,v=>v.aux==='a' && v.objets.length && !VERBES_CONSOMMES.has(v.inf) && v.objets.some(n=>ok(n,niv) && etatsRelq(n,niv,v).length)));
+    if(!v2) return faireRecette(R);
+    const nom=hasard(objetsOk(v2,niv).filter(n=>etatsRelq(n,niv,v2).length));
+    sp.verbe=v2; sp.sujet=choisirGN(niv,nom,{defini:true,sansPoss:true,objet:true});
+    // « neuf » va avec presque tout : on le tire moins souvent, pour que les états varient
+    sp.attribut=tirage(etatsRelq(nom,niv,v2).map(a=>[a,1]));
+    sp.etat=tirage([['être',5],['sembler',1.5]]);
+    // pas d'adjectif qui redit le verbe ou l'état, pas de participe (« les carottes lavées que Léa a épluchées »)
+    const rad=v2.inf.replace(/(er|ir|re)$/,'');
+    sp.sujet.adjs=sp.sujet.adjs.filter(a=>!a.pp && !OBJ_ETATS.has(a.ms) && !(rad.length>=3 && a.ms.startsWith(rad))).slice(0,1);   // ni état (« les caisses pleines … semblaient vides »), ni participe
+    if(OBJET_UNIQUE.has(nom.fs||nom.ms)){ sp.sujet.n='s'; if(!/^pos/.test(sp.sujet.det)) sp.sujet.det='def'; }
+    // celui qui agit : un prénom ou un groupe nominal défini
+    const sujets=sujetsOk(v2,niv).filter(n=>n.groupe!==nom.groupe || !nom.groupe);
+    if(!sujets.length) return faireRecette(R);
+    if(v2.personnes && chance(0.45)){ const pr=hasard(PRENOMS); sp.relq={suj2:{kind:'prenom',nom:pr[0],g:pr[1]}}; }
+    else { const n2=hasard(sujets); if(rad.length>3 && (n2.ms||n2.fs||'').startsWith(rad.slice(0,6))) return faireRecette(R);
+      sp.relq={suj2:choisirGN(niv,n2,{sansAdj:true,defini:true})}; }
     return sp;
   }
   if(struct==='attr'){
@@ -1888,6 +2206,7 @@ function faireRecette(R){
     // au passé simple : un changement (devint, resta, parut…) plutôt que « fut », et pas de « soudain » devant un état
     if(sp.temps==='ps' && sp.etat==='être' && chance(0.6)) sp.etat=hasard(['devenir','rester','paraître','sembler']);
     if(sp.temps!=='ps' && sp.etat!=='rester' && sp.etat!=='devenir' && chance(0.3)){ sp.tempo=hasard(TEMPOREL[sp.temps]); sp.tempoDebut=true; }   // pas « le dimanche, … restent prudentes »
+    if(niv>=2 && chance(0.12)) sp.neg=true;   // « Les poules ne sont pas affamées. »
     return sp;
   }
 
@@ -1950,7 +2269,7 @@ function faireRecette(R){
   if(sp.sujet.kind==='gn' && radV.length>=3) sp.sujet.adjs=sp.sujet.adjs.filter(a=>!a.ms.startsWith(radV));
   if(sp.objet && radV.length>=3) sp.objet.adjs=sp.objet.adjs.filter(a=>!a.ms.startsWith(radV));
   // un sujet ne peut pas être dans un état contraire à l'action (« ce coq endormi chantait »)
-  const IMMOBILE=['endormi','allongé','attaché','enfermé','accroupi','perché','posé','échoué','assis','installé','caché','arrêté','blessé'];
+  const IMMOBILE=['endormi','allongé','attaché','enfermé','accroupi','perché','posé','échoué','assis','installé','caché','arrêté','blessé','garé'];
   if(sp.struct!=='gn'){ const fige=s=>{ if(s && s.kind==='gn') s.adjs=s.adjs.filter(a=>!IMMOBILE.includes(a.ms)); if(s && s.parts) s.parts.forEach(fige); }; fige(sp.sujet); }
   // pas de redite entre le verbe et le participe de l'objet (« récolter des betteraves cueillies »)
   const REDITE={récolter:['cueilli','ramassé'],cueillir:['ramassé','récolté'],ramasser:['cueilli','tombé'],cuire:['cuit','grillé','brûlé','raté'],
@@ -1965,8 +2284,7 @@ function faireRecette(R){
   if(sp.objet) sp.objet.adjs=sp.objet.adjs.filter(a=>!enCommun(a.ms+' '+a.fs,formesGN(sp.sujet)));
   if(struct==='inv'){ const l=sp.verbe.lieux.filter(x=>LIEU_INVERSION.test(x) && !motsPleins(x).includes(sp.verbe.inf.replace(/r$/,'')));
     if(l.length) sp.debut=majuscule(hasard(l)); else sp.struct='invq'; }
-  if(sp.struct==='invq' && !sp.debut) sp.debut = ['aller','venir'].includes(sp.verbe.inf) ? 'Où' : hasard(MOTS_QUESTION);
-  if(struct==='invq') sp.debut = ['aller','venir'].includes(sp.verbe.inf) ? 'Où' : hasard(MOTS_QUESTION);
+  if(sp.struct==='invq') sp.debut = motQuestion(sp.verbe.inf);
   // la famille avec un complément du nom (« le frère de nos amis », « les mamies de la voisine ») : n'a pas de sens
   if(struct==='eloigne' && sp.sujet.kind==='gn' && FAMILLE.has(sp.sujet.nom.ms||sp.sujet.nom.fs)) return faireRecette(R);
   if(struct==='eloigne' && sp.sujet.kind==='gn'){
@@ -1997,7 +2315,11 @@ function faireRecette(R){
       }
     }
     if(chance(0.25)){ sp.tempo=hasard(TEMPOREL[sp.temps]); sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
-      if(sp.lieu && enCommun(sp.tempo,sp.lieu)) sp.tempo=null; }
+      if(sp.lieu && (enCommun(sp.tempo,sp.lieu) || LIEU_TEMPOREL.test(sp.lieu))) sp.tempo=null; }
+    // dès le CE2, un peu moins d'une phrase sur dix est négative : « Les poules ne picorent pas les graines. »
+    // (jamais « naître » ; l'objet est défini, pas de « ne … pas des graines »)
+    if(niv>=2 && (struct==='simple'||struct==='multi') && sp.verbe.inf!=='naître' && chance(0.12)){
+      sp.neg=true; if(sp.objet && sp.objet.det==='ind') sp.objet.det=hasard(niv>=3?['def','dem']:['def']); }
     // dès le CM1 : un adjectif détaché en tête de phrase, qui dit l'état du sujet (« Fatigués, les soldats… »)
     if(niv>=3 && R.doms.adj && struct==='simple' && sp.sujet.kind==='gn' && R.mode!=='bonsujet' && chance(0.18)){
       const pris=sp.sujet.adjs.map(a=>a.ms), immobile=!sp.objet;   // un sujet « endormi » ne court pas
@@ -2106,7 +2428,7 @@ function placerBonne(p,bonne){
 }
 function basculer(sp){
   const s2={...sp};
-  const cibles=['sujet']; if(sp.objet) cibles.push('objet'); if(sp.struct==='cod') cibles.push('cod','cod');
+  const cibles=['sujet']; if(sp.objet) cibles.push('objet'); if(sp.struct==='cod') cibles.push('cod','cod');   // (relq : l'antécédent est le sujet)
   let cible=hasard(cibles);
   if(sp.sujet.kind!=='gn' && sp.sujet.kind!=='pro') cible = sp.objet?'objet':'cod';
   const o={...sp[cible]}; s2[cible]=o;
@@ -2260,7 +2582,7 @@ chargerLexique();
    (Les flèches, Qui s'accorde ?, Le pronom, La terminaison)
    ========================================================= */
 // tout ce qui suit le sujet, à partir du verbe : deux sujets « vont ensemble » si cette partie est identique
-function partieVerbe(r){ const i=r.toks.findIndex(t=>t.nat==='verbe' || (t.rel && t.rel.type==='refl')); return i<0 ? '' : texte(r.toks.slice(i)); }
+function partieVerbe(r){ const i=r.toks.findIndex(t=>t.nat==='verbe' || (t.rel && (t.rel.type==='refl' || t.rel.type==='neg'))); return i<0 ? '' : texte(r.toks.slice(i)); }
 const texteSujet = (s,niv) => texte(rendreSujet(s,niv,[]).toks);
 // un autre sujet possible pour le même verbe (même sens), au nombre demandé
 function sujetAuHasard(sp,niv,n){
@@ -2655,7 +2977,9 @@ function groupeVise(Q,t){
   }
   let a=Math.min(...ids.map(idx)), b=Math.max(...ids.map(idx));
   // complément du nom placé juste après le sujet (« le gardien des lions »)
-  if(ch.type==='sv'){ const v=Math.min(...ch.receveurs.map(idx)); if(v>b+1 && Q.toks.slice(b+1,v).every(x=>x.nat==='autre')) b=v-1; }
+  if(ch.type==='sv'){ const v=Math.min(...ch.receveurs.map(idx));
+    let e=v-1; while(e>b && Q.toks[e].rel && Q.toks[e].rel.type==='neg') e--;   // « ne » appartient au verbe, pas au sujet
+    if(e>b && Q.toks.slice(b+1,e+1).every(x=>x.nat==='autre')) b=e; }
   if(a<0) return [];
   return Q.toks.slice(a,b+1).filter(x=>x.nat!=='ponct');
 }
@@ -2968,7 +3292,7 @@ function nouvelleQuestion(R){
     }
     if(R.mode==='pronom'){   // souvent un complément de temps en tête : « Hier, les poules… »
       const sp0=recetteVariee(R);
-      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && chance(0.75)){ sp0.tempo=hasard(TEMPOREL[sp0.temps]); sp0.tempoDebut=true; }
+      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && !(sp0.lieu && LIEU_TEMPOREL.test(sp0.lieu)) && chance(0.75)){ sp0.tempo=hasard(TEMPOREL[sp0.temps]); sp0.tempoDebut=true; }
       R=Object.assign({},R,{recette:sp0});
     }
     if(R.mode==='fleches'){ const f=defiFleches(R); return f ? {R,fleches:f,liens:{},etape:0} : null; }
@@ -2986,7 +3310,7 @@ function nouvelleQuestion(R){
       if(cles.some(k=>DICTEE_VUS.has(k)) && essai<250) continue;   // aucun nom, verbe, adjectif ou complément déjà dicté dans la séance
       cles.forEach(k=>DICTEE_VUS.add(k)); return q; }
     if(R.mode==='pronom'){
-      if(!['gn','prenom','multi'].includes(sp.sujet.kind) || sp.struct==='cod' || !genreVisible(sp.sujet,R.niv)) continue;
+      if(!['gn','prenom','multi'].includes(sp.sujet.kind) || ['cod','rel','relq'].includes(sp.struct) || !genreVisible(sp.sujet,R.niv)) continue;   // « Le pronom » : le sujet du verbe de la phrase simple
       q.verbe=r.toks.find(t=>t.nat==='verbe'); if(!q.verbe) continue;
       q.reponse=pronomDe(sp.sujet); return q;
     }
