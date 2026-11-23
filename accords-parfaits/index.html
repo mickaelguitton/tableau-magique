@@ -195,6 +195,7 @@ input,select{font-family:inherit}
 .puce:hover{border-color:var(--encre)}
 .puce.on{background:var(--bleu);border-color:var(--bleu);color:#fff}
 .puce.off{opacity:.35;pointer-events:none}
+#source .puce.off{pointer-events:auto;cursor:not-allowed}   /* « Mes phrases » grisé : l'info-bulle explique pourquoi */
 .puce.outil{border-style:dashed}
 /* rangée des boutons : la place à gauche de Jouer est réservée au futur bouton Imprimer */
 /* Jouer à droite des deux dernières lignes d'options */
@@ -726,7 +727,7 @@ input,select{font-family:inherit}
     </ul>
 
     <h3>Les phrases : proposées ou les vôtres</h3>
-    <p>Les phrases proposées sont variées et ont toujours du sens. Avec « Mes phrases », on écrit ou on colle un texte (une lecture, un album) : l’outil le découpe en phrases, propose la nature des mots et les liens d’accord, et on vérifie avant d’enregistrer. Les phrases peuvent s’exporter et s’importer d’un ordinateur à l’autre.</p>
+    <p>Les phrases proposées sont variées et ont toujours du sens. Avec « Mes phrases », on écrit ou on colle un texte (une lecture, un album) : l’outil le découpe en phrases, propose la nature des mots et les liens d’accord, et on vérifie avant d’enregistrer. Les phrases peuvent s’exporter et s’importer d’un ordinateur à l’autre. « Mes phrases » fonctionne avec Le nom noyau, Le bon choix, La terminaison, La chasse à l’erreur et La dictée flash ; les autres défis utilisent leurs propres phrases.</p>
 
     <h3>En classe</h3>
     <ul>
@@ -2780,7 +2781,7 @@ function construireMenu(){
   const allume = id => REGLAGES.temps[id] || (id==='pc' && ppActif && !REGLAGES.temps.pqp);
   $('temps').innerHTML=TEMPS.map(t=>{ const dispo=t.niv<=niv; return '<button class="puce'+(dispo&&allume(t.id)?' on':'')+(dispo&&!genre?'':' off')+'" data-t="'+t.id+'">'+t.label+'</button>'; }).join('');
   const sansMes=SANS_MES_PHRASES.includes(REGLAGES.mode);
-  $('source').innerHTML=[['fab','Proposées'],['mes','Mes phrases'],['mix','Les deux']].map(p=>'<button class="puce'+(REGLAGES.source===p[0]?' on':'')+((p[0]!=='fab'&&(sansMes||!phrasesJouables().length))?' off':'')+'" data-s="'+p[0]+'">'+p[1]+'</button>').join('')+
+  $('source').innerHTML=[['fab','Proposées'],['mes','Mes phrases'],['mix','Les deux']].map(p=>'<button class="puce'+(REGLAGES.source===p[0]?' on':'')+((p[0]!=='fab'&&(sansMes||!phrasesJouables().length))?' off':'')+'"'+((p[0]!=='fab'&&(sansMes||!phrasesJouables().length))?' title="'+(sansMes?'Ce défi utilise ses propres phrases.':'Écris ou importe d\'abord des phrases.')+'"':'')+' data-s="'+p[0]+'">'+p[1]+'</button>').join('')+
     '<button class="puce outil" id="btnMesPhrases">Écrire mes phrases ('+MES_PHRASES.length+')</button>';
   $('personnes').innerHTML=[['3','3e personne'],['toutes','Toutes']].map(p=>'<button class="puce'+(REGLAGES.personnes===p[0]?' on':'')+(fige?' off':'')+'" data-p="'+p[0]+'">'+p[1]+'</button>').join('');
   $('nombre').innerHTML=[5,10,15,20].map(n=>'<button class="puce'+(REGLAGES.nombre===n?' on':'')+'" data-n="'+n+'">'+n+'</button>').join('');
@@ -2805,7 +2806,7 @@ function brancherMenu(){
     }
     else if(b.dataset.p) REGLAGES.personnes=b.dataset.p;
     else if(b.dataset.n) REGLAGES.nombre=+b.dataset.n;
-    else if(b.dataset.s) REGLAGES.source=b.dataset.s;
+    else if(b.dataset.s && !b.classList.contains('off')) REGLAGES.source=b.dataset.s;
     else return;
     sauver(); construireMenu();
   });
