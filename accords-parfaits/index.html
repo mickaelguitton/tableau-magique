@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.08 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.09 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.08</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.09</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2101,8 +2101,15 @@ function structuresPossibles(R){
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
   // « Le nom noyau » : dès le CM1, environ trois groupes sur dix ont un complément du nom (« le chien des voisins »)
   if(R.mode==='chaine' && niv>=3 && d.sv){ const e=l.find(x=>x[0]==='eloigne'), autres=l.filter(x=>x!==e).reduce((t,x)=>t+x[1],0); if(e) e[1]=autres*(niv>=4?0.6:0.45); }
-  if(R.mode==='bascule') return l.filter(s=>s[0]!=='multi');
-  return l;
+  const res = R.mode==='bascule' ? l.filter(s=>s[0]!=='multi') : l;
+  // sujet inversé : environ 12 % des phrases en CM2 (8 % dans « Le pronom » : le groupe y est déjà souligné, l'inversion n'ajoute rien)
+  const inversees=res.filter(x=>x[0]==='inv'||x[0]==='invq');
+  if(inversees.length){
+    const autres=res.filter(x=>!inversees.includes(x)).reduce((t,x)=>t+x[1],0), part=R.mode==='pronom'?0.06:0.10;   // les tirages sont ensuite un peu rééquilibrés : ces poids donnent environ 8 % et 12 % des phrases
+    const poids=autres*part/(1-part), base=inversees.reduce((t,x)=>t+x[1],0);
+    inversees.forEach(x=>x[1]*=poids/base);   // on garde le rapport entre phrase inversée et question
+  }
+  return res;
 }
 // verbes d'état pour l'attribut du sujet : être reste le plus fréquent
 const VERBES_ETAT=[['être',4],['sembler',1.5],['paraître',1],['devenir',1.5],['rester',1.2]];
