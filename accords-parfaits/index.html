@@ -2821,7 +2821,7 @@ function recetteVariee(R){
   const seulPP=(d.pp||d.ppa) && !d.det && !d.adj && !d.sv && !d.attr;
   const tempsSac = seulPP && (R.temps||[]).some(t=>t==='pc'||t==='pqp') ? R.temps.filter(t=>t==='pc'||t==='pqp') : (R.temps||[]);
   const tempsVoulu = verbe && tempsSac.length>1 ? tirer('temps',tempsSac) : (verbe && tempsSac.length===1 && seulPP ? tempsSac[0] : null);
-  const pers = verbe && R.personnes==='toutes' && tempsVoulu!=='ps' && !(R.temps||[]).every(t=>t==='ps') ? tirer('pers',[0,1,3,4,'3','3','3','3']) : '3';   // passé simple : 3es personnes
+  const pers = verbe && R.personnes==='toutes' && tempsVoulu!=='ps' && !(R.temps||[]).every(t=>t==='ps') ? (R.persImposee ? (R.persImposee==='pro' ? hasard([0,1,3,4]) : '3') : tirer('pers',[0,1,3,4,'3','3','3','3','3','3'])) : '3';   // « Toutes » : 4 phrases sur 10 avec je, tu, nous ou vous, 6 avec un groupe nominal (le groupe nominal pèse au moins autant que sujet-verbe)   // passé simple : 3es personnes
   if(pers!=='3') vise.p=pers;
   else if(gn) vise.cle=R.cleImposee || tirer('gn',R.mode==='genre'?CLES:CLES_JEU);                 // genre et nombre du groupe sujet
   else if(verbe) vise.p=tirer('nb',[2,5]);                // il/elle ou ils/elles
@@ -3326,9 +3326,9 @@ function nouvelleQuestion(R){
   const perso = R.source!=='fab' && (R.source==='mes' || chance(0.5));
   // dictée : beaucoup de phrases sont écartées (trop longues, rien à accorder) ; on garde donc le même genre et nombre pendant les essais,
   // sinon le masculin singulier, où rien ne se voit, serait presque toujours écarté (5 % au lieu de 17 %)
-  if(R.mode==='dictee'){ if(!SAC_CLES_DICTEE.length) SAC_CLES_DICTEE=melange(CLES_JEU); R=Object.assign({},R,{cleImposee:SAC_CLES_DICTEE.shift()}); }
+  if(R.mode==='dictee'){ if(!SAC_CLES_DICTEE.length) SAC_CLES_DICTEE=melange(CLES_JEU); R=Object.assign({},R,{cleImposee:SAC_CLES_DICTEE.shift(), persImposee:chance(0.3)?'pro':'3'}); }   // 3 dictées sur 10 seulement avec je, tu, nous ou vous
   for(let essai=0;essai<(R.mode==='dictee'?300:80);essai++){
-    if(essai===150 && R.cleImposee) R=Object.assign({},R,{cleImposee:null});   // impossible avec ces réglages : on lâche
+    if(essai===150 && R.cleImposee) R=Object.assign({},R,{cleImposee:null,persImposee:null});   // impossible avec ces réglages : on lâche
     if(perso){
       const ph=hasard(phrasesJouables()); if(!ph) break; const r=rendrePerso(ph);
       const Rq=Object.assign({},R,{perso:true});
