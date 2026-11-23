@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.07 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.08 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.07</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.08</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1988,6 +1988,7 @@ function rendre(sp){
 
   if(sp.struct==='gn'){
     const G=rendreGN(sp.sujet,niv); chaines.push(G.chaine); G.toks[0].cap=true;
+    if(sp.cdn) G.toks.push(mot(sp.cdn,'autre'));   // « le chien des voisins »
     return {toks:G.toks,chaines,sp};
   }
   if(sp.struct==='cod'){            // « Les croissants, le boulanger les a préparés. »
@@ -2098,6 +2099,8 @@ function structuresPossibles(R){
   // « Les cerises que Zoé a cueillies sont mûres » : CM2 seulement, quand le COD est travaillé, pour 20 % des phrases
   if(niv>=4 && d.ppa && comp && l.length) l.push(['relq', l.reduce((t,x)=>t+x[1],0)*0.25]);   // 0,25 × les autres = 1/5 du total
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
+  // « Le nom noyau » : dès le CM1, environ trois groupes sur dix ont un complément du nom (« le chien des voisins »)
+  if(R.mode==='chaine' && niv>=3 && d.sv){ const e=l.find(x=>x[0]==='eloigne'), autres=l.filter(x=>x!==e).reduce((t,x)=>t+x[1],0); if(e) e[1]=autres*(niv>=4?0.6:0.45); }
   if(R.mode==='bascule') return l.filter(s=>s[0]!=='multi');
   return l;
 }
@@ -2109,10 +2112,20 @@ const lieuxInversion = v => v.lieux.filter(x=>LIEU_INVERSION.test(x));
 const objetsOk = (v,niv) => v.objets.filter(n=>ok(n,niv));
 function verbesPossibles(niv,filtre){ return TOUS_VERBES.filter(v=>v.niv<=niv && sujetsOk(v,niv).length && (!v.objOblig || objetsOk(v,niv).length) && (!filtre||filtre(v))); }
 
+// deux textes qui partagent le début d'un mot (« les rois puissants du roi ») : on n'en veut pas
+const memeRacine = (x,y) => { const b=motsPleins(y).map(m=>m.slice(0,4)); return motsPleins(x).some(m=>m.length>=3 && b.some(r=>m.startsWith(r.slice(0,Math.min(r.length,4))) || r.startsWith(m.slice(0,Math.min(m.length,4))))); };
 function faireRecette(R){
   const niv=R.niv, d=R.doms;
-  if(R.mode==='genre') return {niv,struct:'gn',sujet:choisirGN(niv,hasard(TOUS_NOMS.filter(n=>ok(n,niv))),{})};
-  const struct=tirage(structuresPossibles(R));
+  if(R.mode==='genre'){
+    // dès le CE2, quelques groupes avec un complément du nom (« le chien des voisins ») : le genre et le nombre sont ceux du nom noyau, pas du complément
+    // on prend le sujet d'une phrase à sujet éloigné : le complément du nom est toujours celui de la scène du nom
+    if(niv>=2 && chance(niv>=3 ? 0.3 : 0.12)){
+      const e=faireRecette(Object.assign({},R,{mode:'groupe',structImposee:'eloigne',temps:['pr'],doms:{det:true,adj:true,sv:true,attr:false,pp:false,ppa:false}}));
+      if(e.struct==='eloigne' && e.cdn && e.sujet.kind==='gn' && !memeRacine(formesGN(e.sujet),e.cdn)) return {niv,struct:'gn',sujet:e.sujet,cdn:e.cdn};
+    }
+    return {niv,struct:'gn',sujet:choisirGN(niv,hasard(TOUS_NOMS.filter(n=>ok(n,niv))),{})};
+  }
+  const struct=R.structImposee || tirage(structuresPossibles(R));
   const sp={niv,struct};
   const seulPP = (d.pp||d.ppa) && !d.det && !d.adj && !d.sv && !d.attr;
   const adjObl = (d.adj && !d.det && !d.sv && !d.pp && !d.ppa) || (struct==='eloigne' && chance(0.5)) || (R.mode==='chaine' && chance(0.65));   // « Le nom noyau » : des groupes avec adjectifs (« les jeunes promeneurs du bois »)
@@ -2616,6 +2629,14 @@ function pronomDe(s){
 // Qui s'accorde ? (variante « sujet ») : « … grimpent dans les arbres. » et quatre groupes nominaux, dont un ou deux conviennent
 // une ou deux bonnes réponses, à part égale, pour que les élèves ne devinent pas qu'il y en a toujours deux
 let SAC_BONS=[];
+// CM1-CM2 : parfois un complément du nom piège derrière un sujet (« le cousin des voisins ») ; jamais s'il répète le lieu de la phrase
+function avecComplement(sp,s,txt,p){
+  if(sp.verbe && sp.verbe.sc && s.kind==='gn' && !FAMILLE.has(s.nom.ms||s.nom.fs) && chance(p)){
+    const [cs,cp]=sp.verbe.sc.cdn, l=(s.n==='s'?cp:cs).filter(c=>!enCommun(c,txt) && !memeRacine(txt,c) && !(sp.lieu && enCommun(c,sp.lieu)));
+    if(l.length) return txt+' '+hasard(l);
+  }
+  return txt;
+}
 function defiBonSujet(R){
   if(!SAC_BONS.length) SAC_BONS=melange([1,2]);
   const nbBons=SAC_BONS.shift();
@@ -2628,9 +2649,9 @@ function defiBonSujet(R){
     const genreCompte = sp.sujet.kind==='gn' && partieVerbe(rendre(Object.assign({},sp,{sujet:autreGenre(sp.sujet)})))!==cle;
     const clair = s => !genreCompte || genreVisible(s,R.niv);
     if(!clair(sp.sujet)) continue;
-    const t0=texteSujet(sp.sujet,R.niv), vus=new Set([t0]), opts=[{txt:t0,ok:true,s:sp.sujet}];
+    const t0=R.niv>=3 ? avecComplement(sp,sp.sujet,texteSujet(sp.sujet,R.niv),0.3) : texteSujet(sp.sujet,R.niv), vus=new Set([t0]), opts=[{txt:t0,ok:true,s:sp.sujet}];
     for(let k=0;k<40 && opts.length<4;k++){
-      const s=sujetAuHasard(sp,R.niv,chance(0.5)?'s':'p'), txt=texteSujet(s,R.niv);
+      const s=sujetAuHasard(sp,R.niv,chance(0.5)?'s':'p'), txt=R.niv>=3 ? avecComplement(sp,s,texteSujet(s,R.niv),0.3) : texteSujet(s,R.niv);
       if(vus.has(txt) || !clair(s)) continue;
       const bon = partieVerbe(rendre(Object.assign({},sp,{sujet:s})))===cle;
       if(bon && opts.filter(o=>o.ok).length>=nbBons) continue;
@@ -2699,7 +2720,7 @@ function defiFleches(R){
       const s=sujetAuHasard(sp,niv,plan[sujets.length]);
       let txt=texteSujet(s,niv);
       // CM1-CM2 : parfois un complément du nom piège (« le cousin des voisins »)
-      if(niv>=3 && s.kind==='gn' && chance(0.3) && sp.verbe.sc){ const [cs,cp]=sp.verbe.sc.cdn, l=(s.n==='s'?cp:cs).filter(c=>!enCommun(c,txt)); if(l.length) txt+=' '+hasard(l); }
+      if(niv>=3) txt=avecComplement(sp,s,txt,0.3);
       if(vus.has(txt)) continue; vus.add(txt);
       sujets.push({txt:majuscule(txt),s,forme:partieVerbe(rendre(Object.assign({},sp,{sujet:s})))});
     }
