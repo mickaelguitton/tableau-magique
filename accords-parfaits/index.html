@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.10 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.11 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -685,7 +685,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.10</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.11</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1600,6 +1600,8 @@ const melange = a => { const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=
 const uniques = a => [...new Set(a.filter(Boolean))];
 const majuscule = s => s.charAt(0).toUpperCase()+s.slice(1);
 const CLES = ['ms','fs','mp','fp'];
+// dans les défis (sauf « Le genre et le nombre ») le masculin singulier, où rien ne se voit, revient un peu moins : environ 17 % au lieu de 25 %
+const CLES_JEU = ['ms','ms','ms',...Array(5).fill('fs'),...Array(5).fill('mp'),...Array(5).fill('fp')];
 const autreG = g => g==='m'?'f':'m';
 const autreN = n => n==='s'?'p':'s';
 const G_LABEL = {m:'masculin',f:'féminin'}, N_LABEL = {s:'singulier',p:'pluriel'};
@@ -2321,7 +2323,7 @@ function faireRecette(R){
   }
   if(struct!=='inv' && struct!=='invq'){
     const lieuUtile = BESOIN_LIEU.has(sp.verbe.inf) || !sp.objet;
-    sp.lieu = sp.verbe.lieux.length && (BESOIN_LIEU.has(sp.verbe.inf) || chance(lieuUtile?1:0.35)) ? hasard(sp.verbe.lieux) : null;   // sans objet, toujours un lieu : pas de « Des chevaux galopent. »
+    sp.lieu = sp.verbe.lieux.length && (BESOIN_LIEU.has(sp.verbe.inf) || chance(lieuUtile?1:[0.1,0.2,0.35,0.35,0.35][niv])) ? hasard(sp.verbe.lieux) : null;   // sans objet, toujours un lieu : pas de « Des chevaux galopent. »
     // pas de répétition entre le lieu et le verbe (« Chloé cuisine dans la cuisine »)
     if(sp.lieu){ const radical=sp.verbe.inf.replace(/r$/,''), voisin=l=>motsPleins(l).includes(radical);
       if(voisin(sp.lieu)){ const autres=sp.verbe.lieux.filter(l=>!voisin(l)); sp.lieu = autres.length ? hasard(autres) : (BESOIN_LIEU.has(sp.verbe.inf)?sp.lieu:null); } }
@@ -2339,7 +2341,7 @@ function faireRecette(R){
                if(l.length){ sp.cdn=hasard(l); sp.piege=sp.cdn.split(' ').pop(); } }
       }
     }
-    if(chance(0.25)){ sp.tempo=hasard(TEMPOREL[sp.temps]); sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
+    if(chance([0.08,0.15,0.25,0.25,0.25][niv])){ sp.tempo=hasard(TEMPOREL[sp.temps]);   // moins de compléments au CP et au CE1 sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
       if(sp.lieu && (enCommun(sp.tempo,sp.lieu) || LIEU_TEMPOREL.test(sp.lieu))) sp.tempo=null; }
     // dès le CE2, un peu moins d'une phrase sur dix est négative : « Les poules ne picorent pas les graines. »
     // (jamais « naître » ; l'objet est défini, pas de « ne … pas des graines »)
@@ -2648,11 +2650,15 @@ function avecComplement(sp,s,txt,p){
   }
   return txt;
 }
+let SAC_CLES_BS=[], SAC_CLES_BN=[];
 function defiBonSujet(R){
   if(!SAC_BONS.length) SAC_BONS=melange([1,2]);
   const nbBons=SAC_BONS.shift();
+  if(!SAC_CLES_BS.length) SAC_CLES_BS=melange(CLES_JEU);
+  const cleVoulue=SAC_CLES_BS.shift();   // genre et nombre du sujet de la phrase, comme dans les autres défis
   for(let essai=0;essai<80;essai++){
     const sp=faireRecette(R);
+    if(essai<75 && sp.sujet && cleSujet(sp)!==cleVoulue) continue;
     if(!['simple','multi','attr'].includes(sp.struct) || !['gn','prenom','multi'].includes(sp.sujet.kind) || sp.tempoDebut || sp.cdn || sp.detache) continue;
     const r=rendre(sp), cle=partieVerbe(r); if(!cle) continue;
     // si le genre compte pour l'accord (participe avec être, attribut), chaque sujet doit montrer son genre
@@ -2680,8 +2686,11 @@ const voyelleH = w => /^[aeéèêiîoôuûh]/i.test(w);
 function defiBonNom(R){
   if(!SAC_BONS.length) SAC_BONS=melange([1,2]);
   const nbBons=SAC_BONS.shift(), niv=R.niv;
+  if(!SAC_CLES_BN.length) SAC_CLES_BN=melange(CLES_JEU);
+  const cleVoulue=SAC_CLES_BN.shift();   // genre et nombre du nom, comme dans les autres défis
   for(let essai=0;essai<120;essai++){
     const sp=faireRecette(R);
+    if(essai<90 && sp.sujet && cleSujet(sp)!==cleVoulue) continue;
     if(!['simple','attr'].includes(sp.struct) || sp.sujet.kind!=='gn' || sp.tempoDebut || sp.cdn || sp.detache) continue;
     const S=sp.sujet;
     if(S.nom.epicene || S.nom.suffixe) continue;
@@ -2732,6 +2741,8 @@ function defiFleches(R){
       let txt=texteSujet(s,niv);
       // CM1-CM2 : parfois un complément du nom piège (« le cousin des voisins »)
       if(niv>=3) txt=avecComplement(sp,s,txt,0.3);
+      // le masculin singulier (rien ne se voit) un peu moins souvent ; au CM1-CM2 le masculin pluriel aussi, sinon les garçons dominent (« enfant » est toujours masculin)
+      if(Math.random()>(niv>=3 ? {ms:0.4,mp:0.55}[cleSujet({sujet:s})] : {ms:0.55}[cleSujet({sujet:s})] ?? 1)) continue;
       if(vus.has(txt)) continue; vus.add(txt);
       sujets.push({txt:majuscule(txt),s,forme:partieVerbe(rendre(Object.assign({},sp,{sujet:s})))});
     }
@@ -2783,7 +2794,7 @@ function decoupeTerminaison(props){
    on en tire une par phrase, et le sac se remplit quand il est vide.
    Chaque combinaison revient donc aussi souvent que les autres, et rarement plus de 2 fois de suite. */
 let SACS={sig:''}, RECENTS=[];
-const LONG_MAX=[62,66,72,80,85];   // longueur maximale d'une phrase (caractères) selon le niveau, pour rester lisible du fond de la classe
+const LONG_MAX=[52,58,72,80,85];   // longueur maximale d'une phrase (caractères) selon le niveau, pour rester lisible du fond de la classe
 // les mots « pleins » d'une recette (noms, adjectifs, verbe), pour repérer les répétitions
 function motsDe(sp){
   const l=[]; if(sp.verbe) l.push(sp.verbe.inf); if(sp.attribut) l.push(sp.attribut.ms);
@@ -2812,7 +2823,7 @@ function recetteVariee(R){
   const tempsVoulu = verbe && tempsSac.length>1 ? tirer('temps',tempsSac) : (verbe && tempsSac.length===1 && seulPP ? tempsSac[0] : null);
   const pers = verbe && R.personnes==='toutes' && tempsVoulu!=='ps' && !(R.temps||[]).every(t=>t==='ps') ? tirer('pers',[0,1,3,4,'3','3','3','3']) : '3';   // passé simple : 3es personnes
   if(pers!=='3') vise.p=pers;
-  else if(gn) vise.cle=tirer('gn',CLES);                 // genre et nombre du groupe sujet
+  else if(gn) vise.cle=R.cleImposee || tirer('gn',R.mode==='genre'?CLES:CLES_JEU);                 // genre et nombre du groupe sujet
   else if(verbe) vise.p=tirer('nb',[2,5]);                // il/elle ou ils/elles
   // temps : chacun revient aussi souvent que les autres (sauf l'attribut seul, limité à présent, imparfait, futur)
   let Rv=R;
@@ -3310,9 +3321,14 @@ function clesDictee(q,sp){
 // un complément (« dans la cour ») est un seul morceau : on compte les vrais mots
 const nbMots = toks => toks.filter(t=>t.nat!=='ponct' && t.w).reduce((n,t)=>n+t.w.split(/[\s']+/).filter(Boolean).length,0);
 // fabrique une question valable pour le jeu (au moins un mot à travailler)
+let SAC_CLES_DICTEE=[];
 function nouvelleQuestion(R){
   const perso = R.source!=='fab' && (R.source==='mes' || chance(0.5));
+  // dictée : beaucoup de phrases sont écartées (trop longues, rien à accorder) ; on garde donc le même genre et nombre pendant les essais,
+  // sinon le masculin singulier, où rien ne se voit, serait presque toujours écarté (5 % au lieu de 17 %)
+  if(R.mode==='dictee'){ if(!SAC_CLES_DICTEE.length) SAC_CLES_DICTEE=melange(CLES_JEU); R=Object.assign({},R,{cleImposee:SAC_CLES_DICTEE.shift()}); }
   for(let essai=0;essai<(R.mode==='dictee'?300:80);essai++){
+    if(essai===150 && R.cleImposee) R=Object.assign({},R,{cleImposee:null});   // impossible avec ces réglages : on lâche
     if(perso){
       const ph=hasard(phrasesJouables()); if(!ph) break; const r=rendrePerso(ph);
       const Rq=Object.assign({},R,{perso:true});
@@ -3327,7 +3343,7 @@ function nouvelleQuestion(R){
     }
     if(R.mode==='pronom'){   // souvent un complément de temps en tête : « Hier, les poules… »
       const sp0=recetteVariee(R);
-      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && !(sp0.lieu && LIEU_TEMPOREL.test(sp0.lieu)) && chance(0.75)){ sp0.tempo=hasard(TEMPOREL[sp0.temps]); sp0.tempoDebut=true; }
+      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && !(sp0.lieu && LIEU_TEMPOREL.test(sp0.lieu)) && chance([0.15,0.3,0.5,0.75,0.75][R.niv])){ sp0.tempo=hasard(TEMPOREL[sp0.temps]); sp0.tempoDebut=true; }
       R=Object.assign({},R,{recette:sp0});
     }
     if(R.mode==='fleches'){ const f=defiFleches(R); return f ? {R,fleches:f,liens:{},etape:0} : null; }
