@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.04 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.05 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -684,7 +684,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.04</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.05</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2054,6 +2054,18 @@ function poserErreurs(Q,R){
     const recv=ciblable(t,R), nomPluriel = gn && t.nat==='nom' && t.key && t.key[1]==='p';
     if(!recv && !nomPluriel) return;
     const o=oublis(t);
+    // phrase personnelle : pas de table de formes, on part des variantes devinées (une marque oubliée de préférence), sans mot inventé
+    if(!o.length && !t.forms && t.variantes && recv && t.nat!=='det' && t.nat!=='pro'){
+      const F=formesConnues(), w=t.w.toLowerCase();
+      // verbe : seulement singulier / pluriel de la 3e personne (« ils mange »), jamais une autre personne ni un autre verbe
+      const PAIRES={est:'sont',sont:'est',a:'ont',ont:'a',va:'vont',vont:'va',fait:'font',font:'fait'};
+      const reelVerbe = v => PAIRES[w]===v || (/aient$/.test(w) && v===w.replace(/aient$/,'ait') && F.verbe.has(v)) || (/ait$/.test(w) && v===w.replace(/ait$/,'aient') && F.verbe.has(v))
+        || (/ent$/.test(w) && v===w.slice(0,-3) && F.verbe.has(v)) || (/e$/.test(w) && v===w+'nt' && F.verbe.has(v));
+      const reel = v => t.nat==='verbe' ? reelVerbe(v) : (F.accord.has(v) || (v===w+'s' && /[eéiîtdrnlc]$/.test(w)) || (v===w.slice(0,-1) && /(es|és|ts|ds|ns|rs|ls)$/.test(w)));   // « beaus », « gri » : jamais
+      const v=t.variantes.filter(x=>x!==w && reel(x)), oub=v.filter(x=>w.startsWith(x));
+      if(v.length) cands.push({t,faux:oub.length?oub:v,poids:1});
+      return;
+    }
     if(o.length) cands.push({t,faux:o,poids:t.nat==='nom'?1.4:1});
     // participe passé avec avoir sans COD avant : l'erreur classique est de l'accorder avec le sujet (« elles ont mangées »)
     else if(t.rel && t.rel.type==='ppavoir' && ciblable(t,R) && t.forms){
@@ -2947,6 +2959,7 @@ function nouvelleQuestion(R){
       const q={R:Rq,toks:r.toks,chaines:r.chaines,etape:0};
       const cibles=r.toks.filter(t=>ciblable(t,Rq));
       if(!cibles.length) continue;
+      if(R.mode==='chaine'){ if(!choisirNoyau(q,null)) continue; return q; }   // « Le nom noyau » : des groupes nominaux soulignés dans ses phrases
       if(R.mode==='choix'){ const c=cibles.filter(t=>mauvaisesFormes(t).length); if(!c.length) continue; const sansPro=c.filter(t=>t.nat!=='pro'); q.cible=hasard(sansPro.length && chance(0.85) ? sansPro : c); q.props=propositions(q.cible,R.niv); }   // le pronom l', les : pas trop souvent
       if(R.mode==='terminaison' && !preparerTerminaison(q,cibles)) continue;
       if(R.mode==='chasse'){ q.nbErr=poserErreurs(q,Rq); if(!q.nbErr) continue; q.trouvees=0; }
