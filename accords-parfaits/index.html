@@ -264,7 +264,7 @@ input,select{font-family:inherit}
 .tok.c-ver{background:var(--ver-l);border-bottom-color:var(--ver)}
 .tok.c-vio{background:var(--vio-l);border-bottom-color:var(--vio)}
 .tok.donneur{box-shadow:0 0 0 .07em var(--nom)}
-.tok.donneur .lab{opacity:1}
+.tok.donneur .lab,.tok.etiq .lab{opacity:1}
 .tok.trou .w{color:var(--encre-2);letter-spacing:.1em}
 .tok.faux{background:#FFE0E0!important;border-bottom-color:var(--ko)!important;animation:secoue .5s}
 .tok.rate{animation:secoue .45s}
@@ -325,6 +325,9 @@ input,select{font-family:inherit}
 .fl-suj.lie-1{border-color:var(--vio);background:var(--vio-l)} .fl-suj.lie-1 .let{background:var(--vio);color:#fff}
 /* Qui s'accorde ? : deux phrases l'une sous l'autre */
 .phrase .br{flex-basis:100%;height:0}
+/* portée d'une ligne (deux phrases) */
+.phrase .pl{position:absolute;left:0;right:0;height:1.05em;transform:translateY(-42%);background:repeating-linear-gradient(to bottom,var(--portee) 0 .04em,transparent .04em .265em);z-index:0}
+.tok.plain.ctx{font-weight:700;padding-left:0;padding-right:0}
 #jeu.fleches #pw{display:none}
 #jeu.fleches .scene{justify-content:center}
 .fl{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(70px,.6fr) minmax(0,.9fr);align-items:center;width:min(1300px,94vw);margin:0 auto 2vh}
@@ -688,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.17</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.18</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2024,21 +2027,31 @@ function rendreBrut(sp){
     if(sp.cdn) G.toks.push(mot(sp.cdn,'autre'));   // « le chien des voisins »
     return {toks:G.toks,chaines,sp};
   }
-  if(sp.struct==='cod'){            // « Les croissants, le boulanger les a préparés. »
-    const C=rendreGN(sp.cod,niv); chaines.push(C.chaine); C.toks[0].cap=true;
-    toks.push(...C.toks,virgule());
-    const S=rendreSujet(sp.sujet,niv,chaines); toks.push(...S.toks);
+  if(sp.struct==='cod'){            // « Les fillettes ont acheté les cerises. » puis « Elles les ont lavées. »
+    // 1re phrase (contexte, en gris) : le sujet, un autre verbe, et le groupe nominal qui sera le COD
+    const ctx=[], poubelle=[];
+    const S0=rendreSujet(sp.sujet,niv,poubelle);
+    const grise=t=>{ t.nat='autre'; t.recv=false; t.donneur=false; t.dom=null; t.cible=false; t.ctx=true; t.rel=null; return t; };
+    S0.toks.forEach(grise); S0.toks[0].cap=true;
+    const faCtx=conjugue('avoir',sp.temps==='pc'?'pr':'imp');
+    const v0=sp.verbeCtx;
+    ctx.push(...S0.toks, grise(mot(faCtx[S0.p],'verbe')), grise(mot(formesPP(participe(v0.inf),v0.inf).ms,'verbe')));
+    const C=rendreGN(sp.cod,niv); chaines.push(C.chaine);
+    ctx.push(...C.toks, point());
     const txtCod=texte(C.toks);
+    // 2e phrase : « Elles les ont lavées. » (le pronom sujet donne l'accord de l'auxiliaire)
+    const psuj=mot(S0.n==='s'?(S0.g==='m'?'Il':'Elle'):(S0.g==='m'?'Ils':'Elles'),'pro',{donneur:true,cap:true,feat:{g:S0.g,n:S0.n,p:S0.p}});
     const pron=mot(sp.cod.n==='s'?"l'":'les','pro',{forms:{ms:"l'",fs:"l'",mp:'les',fp:'les'},key:sp.cod.g+sp.cod.n,glue:sp.cod.n==='s',dom:'ppc',recv:true,rel:{type:'proncod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
     const fa=conjugue('avoir',sp.temps==='pc'?'pr':'imp');
-    const aux=mot(fa[S.p],'verbe',{forms:enFormes6(fa),key:'p'+S.p,dom:'sv',recv:true,rel:{type:'sv',suj:texte(S.toks),p:S.p,aux:'avoir'}});
+    const aux=mot(fa[S0.p],'verbe',{forms:enFormes6(fa),key:'p'+S0.p,dom:'sv',recv:true,rel:{type:'sv',suj:texte(S0.toks).toLowerCase(),p:S0.p,aux:'avoir'}});
     const fp=formesPP(participe(sp.verbe.inf),sp.verbe.inf);
     const pp=mot(fp[sp.cod.g+sp.cod.n],'verbe',{forms:fp,key:sp.cod.g+sp.cod.n,dom:'ppc',recv:true,genreLibre:!!sp.cod.nom.epicene,rel:{type:'ppcod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
-    toks.push(pron,aux,pp);
-    finPhrase();
-    chaineSV(S,[aux]);
+    const toks=[...ctx,{id:-1,w:'',nat:'ponct',br:true,portee:true},psuj,pron,aux,pp];
+    if(sp.lieu) toks.push(mot(sp.lieu,'autre'));
+    toks.push(point());
+    chaines.push({type:'sv',donneurs:[psuj.id],receveurs:[aux.id],cote:'bas',couleur:'var(--ver)'});
     chaines.push({type:'cod',donneurs:[C.tete.id],receveurs:[pron.id,pp.id],cote:'bas',couleur:'var(--vio)'});
-    return {toks,chaines,sp};
+    return {toks,chaines,sp,codToks:C.toks};
   }
   if(sp.struct==='rel'){            // « Les enfants qui jouent dans la cour sont contents. »
     const S=rendreSujet(sp.sujet,niv,chaines); S.toks[0].cap=true;
@@ -2162,6 +2175,9 @@ function verbesPossibles(niv,filtre){ return TOUS_VERBES.filter(v=>v.niv<=niv &&
 
 // deux textes qui partagent le début d'un mot (« les rois puissants du roi ») : on n'en veut pas
 const memeRacine = (x,y) => { const b=motsPleins(y).map(m=>m.slice(0,4)); return motsPleins(x).some(m=>m.length>=3 && b.some(r=>m.startsWith(r.slice(0,Math.min(r.length,4))) || r.startsWith(m.slice(0,Math.min(m.length,4))))); };
+// COD placé avant : verbes « de mise en place » de la 1re phrase (l'objet existe avant l'action de la 2e phrase), jamais repris en 2e phrase
+const VERBES_CTX=['acheter','apporter','ramasser','recevoir','choisir','emporter','trouver','offrir'];
+const VERBES_PAS_APRES=[...VERBES_CTX,'vendre','gagner','chercher'];
 function faireRecette(R){
   const niv=R.niv, d=R.doms;
   if(R.mode==='genre'){
@@ -2183,7 +2199,7 @@ function faireRecette(R){
   if(struct==='cod'){
     if(!tempsPermis(R,['pc','pqp']).length) return faireRecette(R);   // le temps demandé ne va pas avec cette structure : on en tire une autre
     sp.temps=hasard(tempsPermis(R,['pc','pqp']));
-    sp.verbe=hasard(verbesPossibles(niv,v=>v.objets.length && v.aux==='a'));
+    sp.verbe=hasard(verbesPossibles(niv,v=>v.objets.length && v.aux==='a' && !VERBES_PAS_APRES.includes(v.inf)));
     sp.cod=choisirGN(niv,hasard(objetsOk(sp.verbe,niv)),{objet:true,defini:true,sansPoss:true});   // « Ses tramways, Léo les a… » : ambigu
     // pas d'adjectif qui redit le verbe (« le problème réussi, ils l'ont corrigé », « la salade récoltée, il l'a récoltée »)
     { const rad=sp.verbe.inf.replace(/(er|ir|re)$/,''), redit={faire:['réussi','terminé'],corriger:['réussi','corrigé'],cueillir:['ramassé','récolté'],récolter:['cueilli','ramassé'],ramasser:['cueilli'],laver:['lavé'],couper:['coupé'],ranger:['rangé']}[sp.verbe.inf]||[];
@@ -2193,6 +2209,13 @@ function faireRecette(R){
     else sp.sujet=choisirGN(niv,hasard(sujets),{sansAdj:true,defini:true});   // « la noix, l'écureuil l'a mangée » : pas « des écureuils »
     { const radC=sp.verbe.inf.replace(/(er|ir|re)$/,'');
       if(sp.sujet.kind==='gn' && radC.length>3 && (sp.sujet.nom.ms||sp.sujet.nom.fs||'').startsWith(radC.slice(0,6))) return faireRecette(R); }
+    // 1re phrase (contexte) : un autre verbe, qui va aussi avec ce nom et avec ce sujet (« Les fillettes ont acheté les cerises. »)
+    const ctxOk=verbesPossibles(niv,v=>VERBES_CTX.includes(v.inf) && v.aux==='a' && v.objets.length && v.inf!==sp.verbe.inf && !BESOIN_LIEU.has(v.inf)
+      && objetsOk(v,niv).includes(sp.cod.nom) && (sp.sujet.kind==='gn' ? sujetsOk(v,niv).includes(sp.sujet.nom) : !!v.personnes)
+      && !enCommun(v.inf.slice(0,-2),sp.verbe.inf.slice(0,-2)));
+    if(!ctxOk.length) return faireRecette(R);
+    sp.verbeCtx=hasard(ctxOk);
+    sp.cod.adjs=sp.cod.adjs.filter(a=>!(sp.verbeCtx.inf.length>4 && a.ms.startsWith(sp.verbeCtx.inf.replace(/(er|ir|re)$/,''))) && !['acheté','choisi','trouvé','offert','reçu','apporté','ramassé','emporté'].includes(a.ms));
     sp.cod.adjs=sp.cod.adjs.slice(0,1);                                        // un seul adjectif : pas « le billet perdu et valable, … »
     sp.lieu = (BESOIN_LIEU.has(sp.verbe.inf) || chance(0.4)) && sp.verbe.lieux.length ? hasard(sp.verbe.lieux) : null;
     return sp;
@@ -2494,7 +2517,7 @@ function placerBonne(p,bonne){
 }
 function basculer(sp){
   const s2={...sp};
-  const cibles=['sujet']; if(sp.objet) cibles.push('objet'); if(sp.struct==='cod') cibles.push('cod','cod');   // (relq : l'antécédent est le sujet)
+  const cibles=['sujet']; if(sp.objet) cibles.push('objet'); if(sp.struct==='cod') cibles.splice(0,cibles.length,'cod');   // COD placé avant : on transpose le COD (le sujet est dans la phrase de contexte)   // (relq : l'antécédent est le sujet)
   let cible=hasard(cibles);
   if(sp.sujet.kind!=='gn' && sp.sujet.kind!=='pro') cible = sp.objet?'objet':'cod';
   const o={...sp[cible]}; s2[cible]=o;
@@ -2927,9 +2950,9 @@ function afficherPhrase(toks,o){
   toks.forEach((t,i)=>{
     const el=document.createElement('span');
     const plain = t.nat==='autre'||t.nat==='ponct';
-    el.className='tok '+(plain?'plain':'mot')+(t.nat==='ponct'?' ponct':'');
+    el.className='tok '+(plain?'plain':'mot')+(t.nat==='ponct'?' ponct':'')+(t.ctx?' ctx':'');
     el.dataset.id=t.id;
-    if(t.br){ el.className='br'; ph.appendChild(el); t.el=el; return; }   // passage à la ligne
+    if(t.br){ el.className='br'+(t.portee?' portee':''); ph.appendChild(el); t.el=el; return; }   // passage à la ligne
     const prev=toks[i-1];
     el.style.marginLeft = (i===0 || (prev&&prev.glue) || t.glueG) ? '0' : '.3em';
     const fin = o.fin===t.id ? o.racine+'<span class="fin-trou">…</span>' : null;
@@ -2959,14 +2982,23 @@ function ajuster(){
   const plusGrande = (debut,min) => { let t=debut; ph.style.fontSize=t+'px'; while(trop() && t>min){ t-=2; ph.style.fontSize=t+'px'; } return t; };
   // 1. sur une seule ligne (sauf s'il y a deux phrases)
   const deux=!!ph.querySelector('.br');
-  ph.classList.toggle('deux',deux);   // « Qui s'accorde ? » : deux phrases, serrées l'une sous l'autre pour écrire plus gros
+  ph.classList.toggle('deux',deux); ph.querySelectorAll('.pl').forEach(e=>e.remove());   // « Qui s'accorde ? » : deux phrases, serrées l'une sous l'autre pour écrire plus gros
   ph.classList.remove('wrap');
   const t1 = deux ? 0 : plusGrande(MAX,26), uneLigne = !deux && !trop();
   // 2. sur deux lignes, si cela permet d'écrire nettement plus gros
   ph.classList.add('wrap');
   const t2 = plusGrande(MAX,22);
   if(uneLigne && t1>=t2*0.8){ ph.classList.remove('wrap'); ph.style.fontSize=t1+'px'; }
+  poserPortees(ph);
   redessinerLiaisons();
+}
+// deux phrases (COD placé avant) : une portée derrière chaque ligne, comme sur une feuille
+function poserPortees(ph){
+  ph.querySelectorAll('.pl').forEach(e=>e.remove());
+  if(!ph.querySelector('.br.portee')) return;
+  const lignes=new Map();
+  ph.querySelectorAll('.tok').forEach(t=>{ const l=lignes.get(t.offsetTop)||{h:0}; l.h=Math.max(l.h,t.offsetHeight); lignes.set(t.offsetTop,l); });
+  lignes.forEach((l,top)=>{ const d=document.createElement('div'); d.className='pl'; d.style.top=(top+l.h/2)+'px'; ph.appendChild(d); });
 }
 function majMot(t,avecMarque){ if(t.el) t.el.querySelector('.w').innerHTML=htmlMot(t,avecMarque); }
 function colorer(t,avecMarque){ if(!t.el) return; const c=classeNat(t); if(c) t.el.classList.add(c); majMot(t,avecMarque); }
@@ -3094,12 +3126,12 @@ function trajetFleche(d,r,ch,pw,fs,obst){
   };
   const candidats=[];
   const haut0=ch.cote==='haut';
-  [1,1.45,2,2.7].forEach(k=>candidats.push(bout(haut0,k)));
-  // mots sur deux lignes différentes : la flèche passe entre les deux lignes
+  // mots sur deux lignes différentes : on essaie d'abord de passer entre les deux lignes (flèche courte et lisible)
   if(Math.abs(a.top-b.top)>fs*0.6){
     const dessus=a.top<b.top, y1=dessus ? bas1 : a.top-pw.top-fs*0.08, y2=dessus ? b.top-pw.top-fs*0.08 : b.bottom-pw.top+fs*0.1;
     candidats.push({x1,y1,x2,y2,mx,ep,s:dessus?1:-1,cy:(y1+y2)/2+(dessus?1:-1)*fs*0.1});
   }
+  [1,1.45,2,2.7].forEach(k=>candidats.push(bout(haut0,k)));
   [1,1.45,2,2.7].forEach(k=>candidats.push(bout(!haut0,k)));
   if(ch.type==='barre') candidats.forEach(c=>c.pastille=true);
   let meilleur=candidats[0], mini=1e9;
@@ -3163,6 +3195,8 @@ function montrerDonneurs(Q,filtre){
   const c2=cycle2(Q.R.niv);
   Q.chaines.forEach(ch=>{
     if(filtre && !filtre(ch)) return;
+    // COD placé avant : « COD » écrit sous le pronom (« Elles les ont lavées. »)
+    if(ch.type==='cod'){ const pr=Q.toks.find(x=>x.id===ch.receveurs[0]); if(pr && pr.el && pr.rel && pr.rel.type==='proncod'){ pr.el.classList.add('etiq'); const l=pr.el.querySelector('.lab'); if(!l.textContent) l.textContent='COD'; } }
     ch.donneurs.forEach(id=>{
       const t=Q.toks.find(x=>x.id===id); if(!t||!t.el) return;
       t.el.classList.add('donneur'); colorer(t,true);
@@ -3408,7 +3442,7 @@ function groupeSujet(r){
 }
 function groupeDe(r,cible){
   if(cible==='sujet') return groupeSujet(r);
-  if(cible==='cod') return r.toks.slice(0,r.toks.findIndex(t=>t.w===','));
+  if(cible==='cod') return r.codToks||[];
   // objet : le dernier groupe nominal qui n'est pas dans le sujet
   const suj=new Set(groupeSujet(r).map(t=>t.id));
   const ch=r.chaines.filter(c=>c.type==='gn' && !suj.has(c.donneurs[0])).pop(); if(!ch) return [];
