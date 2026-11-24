@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.18</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.19</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2756,6 +2756,7 @@ function defiBonNom(R){
     if(!['simple','attr'].includes(sp.struct) || sp.sujet.kind!=='gn' || sp.tempoDebut || sp.cdn || sp.detache) continue;
     const S=sp.sujet;
     if(S.nom.epicene || S.nom.suffixe) continue;
+    if(R.doms.adj && !R.doms.det && !S.adjs.length) continue;   // seul « nom et épithète » est coché : le groupe sujet doit avoir un adjectif
     const r=rendre(sp), iNom=r.toks.findIndex(t=>t.nat==='nom'); if(iNom<0) continue;
     const nom0=r.toks[iNom].w;
     if(S.n==='s' && voyelleH(nom0)) continue;   // « l'abeille » : le déterminant ne montre plus le genre
@@ -3514,7 +3515,7 @@ function nouvelleQuestion(R){
       R=Object.assign({},R,{recette:sp0});
     }
     if(R.mode==='fleches'){ const f=defiFleches(R); return f ? {R,fleches:f,liens:{},etape:0} : null; }
-    if(R.mode==='bonsujet') return defiQuiVaAvec(R);
+    if(R.mode==='bonsujet'){ for(let k=0;k<6;k++){ const q=defiQuiVaAvec(R); if(q) return q; } return null; }   // (la construction échoue parfois : on réessaie)
     if(R.mode==='dictee' && !R.doms.sv && !R.doms.pp && !R.doms.ppa && !R.doms.ppc && !R.doms.attr){   // seulement le groupe nominal : on dicte un groupe
       const g=faireRecette(Object.assign({},R,{mode:'genre'})); if(R.doms.adj && !g.sujet.adjs.length) continue; R=Object.assign({},R,{recette:g}); }
     const sp=R.recette||recetteVariee(R); delete R.recette; const r=rendre(sp);

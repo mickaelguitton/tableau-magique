@@ -81,7 +81,7 @@ self.OUTILS = [
   {
     dossier: 'accords-parfaits',
     domaine: 'francais',
-    version: '1.18',
+    version: '1.19',
     etat: 'beta',                               // outil en test : pastille « Bêta / en test » (à retirer quand il est terminé)
     nom: 'Accords parfaits',
     niveau: 'les accords · du CP au CM2',
