@@ -28,7 +28,7 @@
 <!--
   Accords parfaits : outil collectif projeté pour travailler les accords (CP à CM2).
   Mickaël Guitton, licence CC BY-NC 4.0. Mis au point avec l'aide de Claude AI.
-  v1.11 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
+  v1.12 dans le portail « Le tableau magique » (boutons Accueil, Imprimer et plein écran comme dans les autres outils).
   Un seul fichier, sans connexion.  ·  Police Andika (SIL Open Font License), dessinée pour les lecteurs débutants, intégrée au fichier.
 -->
 <style>
@@ -47,7 +47,7 @@
   --papier:#FCFBFF; --portee:#E2DEF3; --encre:#2A2253; --encre-2:#6C6591; --voile:#F2EFFB; --trait:#D9D4EE;
   /* 2. Le bleu « Accords parfaits » (le mot « parfaits » du titre) : tout ce qu'on choisit ou qu'on touche.
         Boutons, niveaux, tuiles de jeux, cases réponses, sélection. Foncé / moyen / clair. */
-  --bleu:#1E6FD9; --bleu-m:#C7DBF8; --bleu-l:#E8F1FD;
+  --bleu:#1E6FD9; --bleu-m:#C7DBF8; --bleu-l:#E8F1FD; --bleu-f:#0E3C8C;   /* --bleu-f : bleu foncé des lettres A, B, C, D */
   /* 3. Les natures de mots (couleurs de l'affiche de classe) : sur les mots, les liaisons et les cases « Accords ». */
   --det:#E9B800; --det-l:#FFF3C4;
   --nom:#1E6FD9; --nom-l:#DCEAFF;
@@ -290,17 +290,20 @@ input,select{font-family:inherit}
 .liaison{transition:opacity .45s ease}
 /* bon choix */
 .options{display:flex;gap:1.4vw;justify-content:center;flex-wrap:wrap;padding-bottom:3.5vh}   /* bien au-dessus des boutons du bas */
-.opt{border:3px solid var(--bleu-m);background:var(--bleu-l);border-radius:18px;padding:.25em .9em .3em .4em;font-size:clamp(20px,2.2vw,36px);font-weight:700;display:flex;align-items:center;gap:.45em;
-  color:var(--encre);box-shadow:0 .1em 0 var(--bleu-m);transition:transform .12s,background .2s}
+.opt{border:3px solid var(--bleu);background:var(--bleu-m);border-radius:18px;padding:.25em .9em .3em .4em;font-size:clamp(24px,2.7vw,44px);font-weight:700;display:flex;align-items:center;gap:.45em;
+  color:var(--encre);box-shadow:0 .1em 0 var(--bleu);transition:transform .12s,background .2s}
+.opt:hover{background:#B3CFF6}
 .opt:hover,.case:hover{border-color:var(--bleu)}
 .opt:active,.case:active{transform:translateY(2px);box-shadow:none}
-.opt .let{font-size:.5em;background:#fff;color:var(--bleu);border-radius:50%;width:1.7em;height:1.7em;display:grid;place-items:center;flex:none}
-.opt.vise{border-color:var(--bleu);background:var(--bleu-m)}
+.opt .let{font-size:.68em;font-weight:800;background:#fff;color:var(--bleu-f);border:.1em solid var(--bleu-f);border-radius:50%;width:1.6em;height:1.6em;display:grid;place-items:center;flex:none}   /* la lettre A, B, C, D : grosse, en bleu foncé */
+/* Les bons liens : les couleurs bleu / violet disent quel verbe est relié, on garde le fond clair d'origine */
+.fl .opt{background:var(--bleu-l);border-color:var(--bleu-m);box-shadow:0 .1em 0 var(--bleu-m)}
+.opt.vise{border-color:var(--bleu-f);background:#8DB6F0}
 .opt.bon,.case.bon{border-color:var(--ok);background:var(--ok);color:#fff;box-shadow:0 .1em 0 var(--ok-f)}
-.opt.bon .let{background:#fff;color:var(--ok)}
+.opt.bon .let{background:#fff;color:var(--ok);border-color:#fff}
 .opt.mauvais,.case.mauvais{border-color:var(--ko);background:var(--ko);color:#fff;box-shadow:0 .1em 0 var(--ko-f);animation:secoue .45s}
-.opt.mauvais .let{background:#fff;color:var(--ko)}
-.opt.efface{opacity:.35;background:#fff}   /* à la correction : blanc, jamais de bleu à côté du vert et du rouge */
+.opt.mauvais .let{background:#fff;color:var(--ko);border-color:#fff}
+.opt.efface{opacity:.35;background:#fff;border-color:var(--bleu-m);box-shadow:none}   /* à la correction : blanc, jamais de bleu à côté du vert et du rouge */
 .opt.efface .let{background:var(--voile)}
 .opt.fin,.opt.pro{min-width:4.2em;justify-content:center;padding:.25em .8em .3em}
 .opt.suj{font-size:clamp(18px,1.9vw,30px)}
@@ -685,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.11</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.12</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1531,6 +1534,7 @@ const SCENES_DATA = [
 { id:'nature',
   lieux:"dans le ciel|sur la ville|dans la vallée|sur la plaine|au-dessus de la forêt",
   cdn:["de la vallée|de la montagne|du village","des montagnes voisines|des villages voisins|des environs"],
+  sansCdn:"vague goutte flocon étoile",   // « les vagues de la vallée » n'a pas de sens
   groupes:{
     ciel:{n:"nuage| |étoile", a:"petit/petite< grand/grande< gros/grosse< blanc/blanche lointain/lointaine#3 isolé/isolée*#3 caché/cachée*#2 doré/dorée*#3"},
     chutes:{n:"flocon| |goutte", a:"petit/petite< gros/grosse< froid/froide#2 brillant/brillante#2 léger/légère#3 isolé/isolée*#3 gelé/gelée*#3"},
@@ -1675,7 +1679,7 @@ const TOUS_VERBES = [];
 const TOUS_NOMS = [];      // pour le jeu « genre et nombre »
 function chargerLexique(){
   SCENES_DATA.forEach(sd=>{
-    const sc={id:sd.id, lieux:sd.lieux.split('|'), cdn:sd.cdn.map(x=>x.split('|')), groupes:{}, objets:{}, verbes:[]};
+    const sc={id:sd.id, lieux:sd.lieux.split('|'), cdn:sd.cdn.map(x=>x.split('|')), sansCdn:new Set((sd.sansCdn||'').split(/\s+/).filter(Boolean)), groupes:{}, objets:{}, verbes:[]};
     Object.entries(sd.groupes).forEach(([k,g])=>{
       const adjs=lireAdjs(g.a);
       const noms=g.n.split(/\s+/).filter(Boolean).map(lireNom);
@@ -1926,6 +1930,9 @@ function rendreGN(gn,niv){
   if(ap2){ toks.push(mot('et','autre')); tAp2=mot(ap2[gn.g+gn.n],'adj',{forms:fAdj(ap2),key:gn.g+gn.n,dom:'adj',recv:true,rel:{type:'gn'}}); toks.push(tAp2); }
   const recv=[tDet,tAv,tAp,tAp2].filter(Boolean);
   recv.forEach(t=>{ t.rel.tete=motNom; if(gn.nom.epicene) t.genreLibre=true; });   // « l'enfant » : le genre ne se voit pas
+  // « les cyclistes » : masculin ou féminin, sauf si un mot du groupe montre le genre (« les cyclistes fatiguées »)
+  const autre=gn.g==='m'?'f':'m';
+  tNom.genreOuvert = !!gn.nom.epicene && recv.every(t=>t.forms && t.forms[autre+gn.n]===t.w);
   return {toks,tete:tNom,chaine:{type:'gn',donneurs:[tNom.id],receveurs:recv.map(t=>t.id),cote:'haut',couleur:'var(--nom)'}};
 }
 
@@ -1981,7 +1988,20 @@ function nier(toksVerbe){
 const point = () => mot('.','ponct',{glueG:true});
 const virgule = () => mot(',','ponct',{glueG:true});
 
-function rendre(sp){
+// Participe passé avec avoir sans COD placé avant : il ne s'accorde pas avec le sujet.
+// On garde la trace du lien « sujet vers participe » pour le dessiner en flèche barrée à la correction.
+function flechesBarrees(r){
+  const l=[];
+  r.toks.forEach((t,i)=>{
+    if(!t.rel || t.rel.type!=='ppavoir') return;
+    const aux=r.toks.slice(0,i).reverse().find(x=>x.nat==='verbe' && x.dom==='sv');
+    const base=aux && r.chaines.find(c=>c.type==='sv' && c.receveurs.includes(aux.id));
+    if(base) l.push({base,donneurs:base.donneurs,receveur:t.id});
+  });
+  return l;
+}
+function rendre(sp){ const r=rendreBrut(sp); r.barrees=flechesBarrees(r); return r; }
+function rendreBrut(sp){
   TID=0;
   const niv=sp.niv, toks=[], chaines=[];
   const chaineSV=(S,recv)=>chaines.push({type:'sv',donneurs:S.tetes.map(t=>t.id),receveurs:recv.map(t=>t.id),cote:'bas',couleur:'var(--ver)'});
@@ -2314,6 +2334,7 @@ function faireRecette(R){
   if(sp.struct==='invq') sp.debut = motQuestion(sp.verbe.inf);
   // la famille avec un complément du nom (« le frère de nos amis », « les mamies de la voisine ») : n'a pas de sens
   if(struct==='eloigne' && sp.sujet.kind==='gn' && FAMILLE.has(sp.sujet.nom.ms||sp.sujet.nom.fs)) return faireRecette(R);
+  if(struct==='eloigne' && sp.sujet.kind==='gn' && sp.verbe.sc.sansCdn.has(sp.sujet.nom.ms||sp.sujet.nom.fs)) return faireRecette(R);   // « les vagues de la vallée » : sans sens
   if(struct==='eloigne' && sp.sujet.kind==='gn'){
     const [cs,cp]=sp.verbe.sc.cdn;
     const liste=(sp.sujet.n==='s'?cp:cs), propres=liste.filter(c=>!enCommun(c,formesGN(sp.sujet)));
@@ -2420,7 +2441,7 @@ function poserErreurs(Q,R){
     // participe passé avec avoir sans COD avant : l'erreur classique est de l'accorder avec le sujet (« elles ont mangées »)
     else if(t.rel && t.rel.type==='ppavoir' && ciblable(t,R) && t.forms){
       const f=t.forms, faux=[f[(t.rel.g||'m')+(t.rel.n||'s')], f.mp, f.fs].filter(w=>w && w!==t.w);
-      if(faux.length) cands.push({t,faux:[faux[0]],poids:1});
+      if(faux.length) cands.push({t,faux:[faux[0]],poids:3});   // l'erreur de la classe entière : on la propose souvent
     }
     // plus rare : une marque en trop (« il mangent », « une fleur fanées ») ; jamais une autre personne (« il mangeons »)
     else if(recv && t.nat!=='det' && t.nat!=='pro'){
@@ -2644,7 +2665,7 @@ function pronomDe(s){
 let SAC_BONS=[];
 // CM1-CM2 : parfois un complément du nom piège derrière un sujet (« le cousin des voisins ») ; jamais s'il répète le lieu de la phrase
 function avecComplement(sp,s,txt,p){
-  if(sp.verbe && sp.verbe.sc && s.kind==='gn' && !FAMILLE.has(s.nom.ms||s.nom.fs) && chance(p)){
+  if(sp.verbe && sp.verbe.sc && s.kind==='gn' && !FAMILLE.has(s.nom.ms||s.nom.fs) && !sp.verbe.sc.sansCdn.has(s.nom.ms||s.nom.fs) && chance(p)){
     const [cs,cp]=sp.verbe.sc.cdn, l=(s.n==='s'?cp:cs).filter(c=>!enCommun(c,txt) && !memeRacine(txt,c) && !(sp.lieu && enCommun(c,sp.lieu)));
     if(l.length) return txt+' '+hasard(l);
   }
@@ -2954,19 +2975,17 @@ function tracer(Q,animer){
   }
   // le donneur s'allume d'abord, puis les liaisons partent une à une (l'accord « voyage » du nom vers les mots)
   let delai=0, allumes=new Set();
-  (Q.chaines||[]).forEach(ch=>{
-    if(!Q.dessinees || !Q.dessinees.has(ch)) return;
-    ch.receveurs.forEach(rid=>ch.donneurs.forEach(did=>{
-      const anim=animer(ch,rid);
+  const obst=obstaclesFleches(pw);
+  // les liens à dessiner : les chaînes d'accord, puis les flèches barrées (participe passé avec avoir sans COD avant)
+  const liens=[];
+  (Q.chaines||[]).forEach(ch=>{ if(Q.dessinees && Q.dessinees.has(ch)) ch.receveurs.forEach(rid=>ch.donneurs.forEach(did=>liens.push({ch,base:ch,did,rid,barre:false}))); });
+  (Q.barrees||[]).forEach(b=>{ if(Q.dessinees && Q.dessinees.has(b.base)){
+    const ch={type:'barre',cote:'haut',couleur:'var(--vio)'}; b.donneurs.forEach(did=>liens.push({ch,base:b.base,did,rid:b.receveur,barre:true})); } });
+  liens.forEach(({ch,base,did,rid,barre})=>{
+      const anim=animer(base,rid);
       const d=parId(did), r=parId(rid); if(!d||!r||!d.el||!r.el) return;
-      const a=d.el.getBoundingClientRect(), b=r.el.getBoundingClientRect();
-      const haut=ch.cote==='haut', lab=d.el.querySelector('.lab');
-      const x1=a.left+a.width/2-pw.left, x2=b.left+b.width/2-pw.left;
-      const y1 = haut ? a.top-pw.top-fs*0.08 : (lab.textContent ? lab.getBoundingClientRect().bottom : a.bottom)-pw.top+fs*0.06;
-      const y2 = haut ? b.top-pw.top-fs*0.08 : b.bottom-pw.top+fs*0.1;
-      const s = haut ? -1 : 1;
-      const h = Math.min(fs*0.45+Math.abs(x2-x1)*0.18, fs*1.25)*(ch.type==='cod'?1.3:1);
-      const mx=(x1+x2)/2, cy=(haut?Math.min(y1,y2):Math.max(y1,y2))+s*h, ep=fs*0.11;
+      const T=trajetFleche(d,r,ch,pw,fs,obst);
+      const {x1,y1,x2,y2,cy,s,ep,mx}=T;
       const g=document.createElementNS(NS,'g'); g.setAttribute('fill',ch.couleur); g.setAttribute('class','liaison');
       const corps=document.createElementNS(NS,'path');
       corps.setAttribute('d','M'+x1+','+y1+' Q'+mx+','+cy+' '+x2+','+y2+' Q'+mx+','+(cy-s*ep*2)+' '+x1+','+y1+'Z');
@@ -2979,17 +2998,70 @@ function tracer(Q,animer){
       g.appendChild(pointe);
       const point=document.createElementNS(NS,'circle'); point.setAttribute('cx',x1); point.setAttribute('cy',y1); point.setAttribute('r',ep*0.75);
       g.appendChild(point);
+      if(barre){   // la barre en travers, au milieu de la flèche : « pas d'accord avec le sujet »
+        const px0=0.25*x1+0.5*mx+0.25*x2, py0=0.25*y1+0.5*cy+0.25*y2, dx=x2-x1, dy=y2-y1, n=Math.hypot(dx,dy)||1, ux=-dy/n, uy=dx/n, m=fs*0.3;
+        [['#fff',fs*0.26],['var(--ko)',fs*0.15]].forEach(([c,w])=>{
+          const barreSvg=document.createElementNS(NS,'line');
+          barreSvg.setAttribute('x1',px0-ux*m); barreSvg.setAttribute('y1',py0-uy*m); barreSvg.setAttribute('x2',px0+ux*m); barreSvg.setAttribute('y2',py0+uy*m);
+          barreSvg.setAttribute('stroke',c); barreSvg.setAttribute('stroke-width',w); barreSvg.setAttribute('stroke-linecap','round'); g.appendChild(barreSvg); });
+      }
       svg.appendChild(g);
       if(anim){
         if(!allumes.has(d)){ allumes.add(d); d.el.classList.remove('allume'); void d.el.offsetWidth; d.el.classList.add('allume'); delai+=0.3; }
         g.style.opacity=0; g.style.transformOrigin=x1+'px '+y1+'px'; g.style.transform='scale(.15)';
         g.style.transition='opacity .45s ease '+delai+'s, transform .55s cubic-bezier(.3,1.4,.5,1) '+delai+'s';
         requestAnimationFrame(()=>requestAnimationFrame(()=>{ g.style.opacity=1; g.style.transform='none'; }));
-        const dl=delai; setTimeout(()=>{ colorer(r,true); r.el.classList.add('pop'); },(dl+0.35)*1000);
+        const dl=delai; if(!barre) setTimeout(()=>{ colorer(r,true); r.el.classList.add('pop'); },(dl+0.35)*1000);
         delai+=0.3;
-      } else colorer(r,true);
-    }));
+      } else if(!barre) colorer(r,true);
   });
+}
+/* Les flèches ne doivent jamais cacher une lettre.
+   Pour chaque flèche on essaie plusieurs trajets (côté prévu, hauteurs croissantes, puis l'autre côté, et le passage entre
+   deux lignes quand les mots ne sont pas sur la même ligne) et on garde le premier qui ne traverse ni mot ni étiquette. */
+function obstaclesFleches(pw){
+  const l=[];
+  document.querySelectorAll('#phrase .tok').forEach(t=>{
+    const w=t.querySelector('.w'); if(!w) return;
+    const r=w.getBoundingClientRect(), h=r.height;   // la bande des lettres : sans le haut et le bas de la boîte
+    l.push({g:r.left-pw.left,d:r.right-pw.left,h:r.top-pw.top+h*0.2,b:r.bottom-pw.top-h*0.18});
+    const lab=t.querySelector('.lab');
+    if(lab && lab.textContent && getComputedStyle(lab).opacity>0.5){ const q=lab.getBoundingClientRect(); l.push({g:q.left-pw.left,d:q.right-pw.left,h:q.top-pw.top,b:q.bottom-pw.top}); }
+  });
+  return l;
+}
+function trajetFleche(d,r,ch,pw,fs,obst){
+  const a=d.el.getBoundingClientRect(), b=r.el.getBoundingClientRect(), lab=d.el.querySelector('.lab');
+  const x1=a.left+a.width/2-pw.left, x2=b.left+b.width/2-pw.left, ep=fs*0.11, mx=(x1+x2)/2;
+  const bas1 = (lab.textContent ? lab.getBoundingClientRect().bottom : a.bottom)-pw.top+fs*0.06;
+  const cod=ch.type==='cod'?1.3:1;
+  const bout=(haut,hauteur)=>{   // une flèche par le haut ou par le bas des mots
+    const y1=haut ? a.top-pw.top-fs*0.08 : bas1, y2=haut ? b.top-pw.top-fs*0.08 : b.bottom-pw.top+fs*0.1, s=haut?-1:1;
+    const h=Math.min(fs*0.45+Math.abs(x2-x1)*0.18, fs*1.25)*cod*hauteur;
+    return {x1,y1,x2,y2,mx,ep,s,cy:(haut?Math.min(y1,y2):Math.max(y1,y2))+s*h};
+  };
+  const candidats=[];
+  const haut0=ch.cote==='haut';
+  [1,1.45,2,2.7].forEach(k=>candidats.push(bout(haut0,k)));
+  // mots sur deux lignes différentes : la flèche passe entre les deux lignes
+  if(Math.abs(a.top-b.top)>fs*0.6){
+    const dessus=a.top<b.top, y1=dessus ? bas1 : a.top-pw.top-fs*0.08, y2=dessus ? b.top-pw.top-fs*0.08 : b.bottom-pw.top+fs*0.1;
+    candidats.push({x1,y1,x2,y2,mx,ep,s:dessus?1:-1,cy:(y1+y2)/2+(dessus?1:-1)*fs*0.1});
+  }
+  [1,1.45,2,2.7].forEach(k=>candidats.push(bout(!haut0,k)));
+  let meilleur=candidats[0], mini=1e9;
+  for(const c of candidats){ const n=croise(c,fs,obst); if(n<mini){ mini=n; meilleur=c; } if(n===0) break; }
+  return meilleur;
+}
+// nombre de points de la flèche (corps et pointe) qui tombent sur un mot ou une étiquette
+function croise(c,fs,obst){
+  const pts=[]; 
+  for(let i=1;i<=30;i++){ const t=i/30, u=1-t; pts.push([u*u*c.x1+2*u*t*c.mx+t*t*c.x2, u*u*c.y1+2*u*t*c.cy+t*t*c.y2]); }
+  // la pointe : un peu avant l'arrivée, dans la direction de la courbe
+  const ang=Math.atan2(c.y2-c.cy,c.x2-c.mx), L=fs*0.2, l=fs*0.11, bx=c.x2-Math.cos(ang)*L, by=c.y2-Math.sin(ang)*L;
+  pts.push([bx-Math.sin(ang)*l,by+Math.cos(ang)*l],[bx+Math.sin(ang)*l,by-Math.cos(ang)*l],[(c.x2+bx)/2,(c.y2+by)/2]);
+  let n=0; pts.forEach(([x,y])=>{ if(obst.some(o=>x>o.g && x<o.d && y>o.h && y<o.b)) n++; });
+  return n;
 }
 // « Le bon choix » : un trait épais sous le groupe entier (GN ou sujet), ligne par ligne
 function souligner(toks,svg,pw,fs,couleur,premier){
@@ -3038,9 +3110,10 @@ function montrerDonneurs(Q,filtre){
       t.el.classList.add('donneur'); colorer(t,true);
       const f=t.feat||{}, lab=t.el.querySelector('.lab');
       if(lab.textContent) return;
-      if(ch.type==='gn') lab.textContent='nom noyau'+(f.g?' : '+traits(f.g,f.n):'');
-      else if(ch.type==='cod') lab.textContent='COD : '+traits(f.g,f.n);
-      else lab.textContent='sujet'+(f.g&&f.n&&t.nat!=='nompropre'?' : '+traits(f.g,f.n):'');
+      const tr = t.genreOuvert ? 'masculin ou féminin '+N_LABEL[f.n] : (f.g&&f.n ? traits(f.g,f.n) : '');   // nom épicène : les deux genres conviennent
+      if(ch.type==='gn') lab.textContent='nom noyau'+(f.g?' : '+tr:'');
+      else if(ch.type==='cod') lab.textContent='COD : '+tr;
+      else lab.textContent='sujet'+(f.g&&f.n&&t.nat!=='nompropre'?' : '+tr:'');
     });
   });
 }
@@ -3351,7 +3424,7 @@ function nouvelleQuestion(R){
     if(R.mode==='dictee' && !R.doms.sv && !R.doms.pp && !R.doms.ppa && !R.doms.attr){   // seulement le groupe nominal : on dicte un groupe
       const g=faireRecette(Object.assign({},R,{mode:'genre'})); if(R.doms.adj && !g.sujet.adjs.length) continue; R=Object.assign({},R,{recette:g}); }
     const sp=R.recette||recetteVariee(R); delete R.recette; const r=rendre(sp);
-    const q={R,sp,toks:r.toks,chaines:r.chaines,etape:0};
+    const q={R,sp,toks:r.toks,chaines:r.chaines,barrees:r.barrees,etape:0};
     if(R.mode==='chaine'){ if(!choisirNoyau(q,sp)) continue; return q; }
     if(R.mode==='dictee'){   // court, et pas de construction en deux temps (« Ces tours, Jules les a faits ») sauf si seul le COD est travaillé
       const seulPPA=R.doms.ppa && !R.doms.det && !R.doms.adj && !R.doms.sv && !R.doms.pp && !R.doms.attr;
