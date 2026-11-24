@@ -3006,12 +3006,15 @@ function tracer(Q,animer){
       g.appendChild(pointe);
       const point=document.createElementNS(NS,'circle'); point.setAttribute('cx',x1); point.setAttribute('cy',y1); point.setAttribute('r',ep*0.75);
       g.appendChild(point);
-      if(barre){   // la barre en travers, au milieu de la flèche : « pas d'accord avec le sujet »
-        const px0=0.25*x1+0.5*mx+0.25*x2, py0=0.25*y1+0.5*cy+0.25*y2, dx=x2-x1, dy=y2-y1, n=Math.hypot(dx,dy)||1, ux=-dy/n, uy=dx/n, m=fs*0.3;
-        [['#fff',fs*0.26],['var(--ko)',fs*0.15]].forEach(([c,w])=>{
-          const barreSvg=document.createElementNS(NS,'line');
-          barreSvg.setAttribute('x1',px0-ux*m); barreSvg.setAttribute('y1',py0-uy*m); barreSvg.setAttribute('x2',px0+ux*m); barreSvg.setAttribute('y2',py0+uy*m);
-          barreSvg.setAttribute('stroke',c); barreSvg.setAttribute('stroke-width',w); barreSvg.setAttribute('stroke-linecap','round'); g.appendChild(barreSvg); });
+      if(barre){   // une pastille rouge avec une croix blanche au milieu de la flèche : « pas d'accord avec le sujet »
+        const cx=0.25*x1+0.5*mx+0.25*x2, cy0=0.25*y1+0.5*cy+0.25*y2, rayon=fs*0.3, c=rayon*0.42;
+        const rond=document.createElementNS(NS,'circle');
+        rond.setAttribute('cx',cx); rond.setAttribute('cy',cy0); rond.setAttribute('r',rayon);
+        rond.setAttribute('fill','var(--ko)'); rond.setAttribute('stroke','#fff'); rond.setAttribute('stroke-width',fs*0.05); g.appendChild(rond);
+        [[-1,-1,1,1],[-1,1,1,-1]].forEach(([a1,b1,a2,b2])=>{
+          const trait=document.createElementNS(NS,'line');
+          trait.setAttribute('x1',cx+a1*c); trait.setAttribute('y1',cy0+b1*c); trait.setAttribute('x2',cx+a2*c); trait.setAttribute('y2',cy0+b2*c);
+          trait.setAttribute('stroke','#fff'); trait.setAttribute("stroke-width",fs*0.09); trait.setAttribute('stroke-linecap','round'); g.appendChild(trait); });
       }
       svg.appendChild(g);
       if(anim){
