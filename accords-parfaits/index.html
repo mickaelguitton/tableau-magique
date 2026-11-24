@@ -2440,8 +2440,10 @@ function poserErreurs(Q,R){
     if(o.length) cands.push({t,faux:o,poids:t.nat==='nom'?1.4:1});
     // participe passé avec avoir sans COD avant : l'erreur classique est de l'accorder avec le sujet (« elles ont mangées »)
     else if(t.rel && t.rel.type==='ppavoir' && ciblable(t,R) && t.forms){
-      const f=t.forms, faux=[f[(t.rel.g||'m')+(t.rel.n||'s')], f.mp, f.fs].filter(w=>w && w!==t.w);
-      if(faux.length) cands.push({t,faux:[faux[0]],poids:3});   // l'erreur de la classe entière : on la propose souvent
+      // toutes les formes fausses sont possibles (« mangée », « mangés », « mangées »), l'accord avec le sujet revient deux fois plus souvent
+      const f=t.forms, accSujet=f[(t.rel.g||'m')+(t.rel.n||'s')];
+      const faux=[accSujet,accSujet,f.fs,f.mp,f.fp].filter(w=>w && w!==t.w);
+      if(faux.length) cands.push({t,faux,poids:3});   // l'erreur de la classe entière : on la propose souvent
     }
     // plus rare : une marque en trop (« il mangent », « une fleur fanées ») ; jamais une autre personne (« il mangeons »)
     else if(recv && t.nat!=='det' && t.nat!=='pro'){
