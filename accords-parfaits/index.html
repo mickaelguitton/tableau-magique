@@ -95,7 +95,7 @@ input,select{font-family:inherit}
    centrés verticalement, jamais plus larges que le titre.
    À droite : les jeux (l'essentiel, en grand), puis les options en petit.
    ========================================================= */
-#menu{--marge:7vh;padding:var(--marge) 3vw var(--marge) 3.5vw;gap:4vw}
+#menu{--marge:6vh;padding:var(--marge) 3vw var(--marge) 3.5vw;gap:4vw}
 .m-gauche{flex:none;display:flex;flex-direction:column}
 .m-titre{--t:clamp(36px,min(4.6vw,9vh),90px);--txt:clamp(13px,min(1.2vw,2.3vh),20px);flex:1;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;width:max-content}   /* titre en haut (aligné sur 1), classe en bas (alignée sur 3) */
 .m-titre .logo{font-size:var(--t);align-self:flex-start;margin-top:-.15em}
@@ -149,14 +149,14 @@ input,select{font-family:inherit}
 /* les jeux : grandes tuiles bleues (les deux bleus du titre) */
 .modes{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2vh .9vw}
 .mode{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.45em;text-align:center;border:2px solid var(--bleu-m);border-radius:16px;padding:.6em .5em .55em;
-  background:var(--bleu-l);color:#1A3F78;font-size:clamp(13px,min(1.05vw,2.2vh),20px);min-height:clamp(48px,11vh,150px);transition:background .2s,border-color .2s}
+  background:var(--bleu-l);color:#1A3F78;font-size:clamp(13px,min(1.05vw,2.2vh),20px);min-height:clamp(48px,9.5vh,135px);transition:background .2s,border-color .2s}
 .mode .ic{width:2.2em;height:2.2em;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--bleu);flex:none}
 .mode .ic svg{width:1.25em;height:1.25em}
 .mode b{display:block;font-weight:700;font-size:1.08em;line-height:1.15;color:var(--encre)}
 .mode span span{display:block;font-size:.8em;line-height:1.22;margin-top:.2em}
 @media (max-width:1600px) and (min-width:761px){ .mode span span{display:none} }   /* sous 1600 px : texte trop petit pour le fond de la classe */
 /* écran large mais peu haut (1920 × 950, 1366 × 650) : descriptions en infobulle, pour garder les options visibles */
-@media (min-aspect-ratio:19/10) and (min-width:761px){ .mode span span{display:none} }
+@media (min-aspect-ratio:19/10) and (min-width:761px){ .mode span span{display:none} .mode{padding:.45em .5em .4em} #domaines .coche{padding:.18em .85em} }
 .mode:hover{border-color:var(--bleu)}
 .mode.on{background:var(--bleu);border-color:var(--bleu);color:#EAF2FF}
 .mode.on b{color:#fff}
@@ -166,8 +166,8 @@ input,select{font-family:inherit}
 /* étapes 1 et 2 : l'accord, puis le défi */
 .m-q{display:flex;align-items:center;gap:.5em;font-size:clamp(14px,min(1.25vw,2.3vh),22px);font-weight:700;color:var(--encre);margin:0 0 .7vh}
 .num-etape{display:grid;place-items:center;width:1.55em;height:1.55em;border-radius:50%;background:var(--bleu);color:#fff;font-size:.85em;flex:none}
-.m-etape{margin-bottom:2.4vh}   /* bien séparer 1 (accords) et 2 (défis) */
-#domaines{display:flex;flex-direction:column;gap:.45em;font-size:clamp(12px,min(1.1vw,2.1vh),20px)}
+.m-etape{margin-bottom:1.8vh}   /* bien séparer 1 (accords) et 2 (défis) */
+#domaines{display:flex;flex-direction:column;gap:.4em;font-size:clamp(12px,min(1.05vw,2vh),20px)}   /* trois lignes de boutons : la colonne doit rester assez basse pour que les défis et les options ne se touchent pas */
 .ligne-accords{display:flex;flex-wrap:wrap;gap:.45em .5em}
 #domaines .coche{padding:.22em .85em;border-width:2px;white-space:nowrap}
 /* accords : mêmes couleurs que les tuiles des défis (bleu clair = non choisi, bleu foncé = choisi) */
@@ -688,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.15</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.16</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
