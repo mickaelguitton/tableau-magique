@@ -250,7 +250,7 @@ input,select{font-family:inherit}
   background:repeating-linear-gradient(to bottom,var(--portee) 0 .04em,transparent .04em .265em);z-index:0}
 .tok{position:relative;z-index:1;display:inline-flex;flex-direction:column;align-items:center;padding:.02em .14em .06em;border-radius:.22em;border-bottom:.08em solid transparent;transition:background .35s,border-color .35s,transform .25s,box-shadow .3s}
 .tok .w{white-space:nowrap}
-.tok .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);font-size:.28em;font-weight:700;white-space:nowrap;margin-top:.3em;color:var(--nom);opacity:0;transition:opacity .3s;background:var(--papier);padding:0 .3em;border-radius:.3em}
+.tok .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);font-size:.36em;font-weight:800;white-space:nowrap;margin-top:.3em;color:var(--nom);opacity:0;transition:opacity .3s;background:var(--papier);padding:0 .3em;border-radius:.3em}
 .tok.plain{color:var(--encre-2);font-weight:400}
 .tok.ponct{padding-left:0;padding-right:0}
 .tok.clic{cursor:pointer}
@@ -688,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.16</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.17</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2000,7 +2000,18 @@ function flechesBarrees(r){
   });
   return l;
 }
-function rendre(sp){ const r=rendreBrut(sp); r.barrees=flechesBarrees(r); return r; }
+// Participe passé avec avoir et COD placé avant : on retient l'auxiliaire pour l'entourer en rouge à la correction, comme pour le COD postposé.
+function auxiliairesCod(r){
+  const l=[];
+  r.toks.forEach((t,i)=>{
+    if(!t.rel || t.rel.type!=='ppcod') return;
+    const aux=r.toks.slice(0,i).reverse().find(x=>x.nat==='verbe' && x.dom==='sv');
+    const chaine=r.chaines.find(c=>c.type==='cod' && c.receveurs.includes(t.id));
+    if(aux && chaine) l.push({aux:aux.id,chaine});
+  });
+  return l;
+}
+function rendre(sp){ const r=rendreBrut(sp); r.barrees=flechesBarrees(r); r.auxCod=auxiliairesCod(r); return r; }
 function rendreBrut(sp){
   TID=0;
   const niv=sp.niv, toks=[], chaines=[];
@@ -2995,6 +3006,7 @@ function tracer(Q,animer){
   (Q.barrees||[]).forEach(b=>{ if((Q.dessinees && Q.dessinees.has(b.base)) || (Q.barreesMontrees && Q.barreesMontrees.has(b))){
     const ch={type:'barre',cote:'haut',couleur:'var(--vio)'}; b.donneurs.forEach(did=>liens.push({ch,base:b.base,did,rid:b.receveur,barre:true,aux:b.aux})); } });
   const entoures=new Set();   // auxiliaires déjà entourés
+  (Q.auxCod||[]).forEach(a=>{ if(Q.dessinees && Q.dessinees.has(a.chaine) && !entoures.has(a.aux)){ entoures.add(a.aux); entourerAuxiliaire(svg,parId(a.aux),pw,fs,animer(a.chaine,0)?delai:0,animer(a.chaine,0)); } });
   liens.forEach(({ch,base,did,rid,barre,aux})=>{
       const anim=animer(base,rid);
       const d=parId(did), r=parId(rid); if(!d||!r||!d.el||!r.el) return;
@@ -3472,7 +3484,7 @@ function nouvelleQuestion(R){
     if(R.mode==='dictee' && !R.doms.sv && !R.doms.pp && !R.doms.ppa && !R.doms.ppc && !R.doms.attr){   // seulement le groupe nominal : on dicte un groupe
       const g=faireRecette(Object.assign({},R,{mode:'genre'})); if(R.doms.adj && !g.sujet.adjs.length) continue; R=Object.assign({},R,{recette:g}); }
     const sp=R.recette||recetteVariee(R); delete R.recette; const r=rendre(sp);
-    const q={R,sp,toks:r.toks,chaines:r.chaines,barrees:r.barrees,etape:0};
+    const q={R,sp,toks:r.toks,chaines:r.chaines,barrees:r.barrees,auxCod:r.auxCod,etape:0};
     if(R.mode==='chaine'){ if(!choisirNoyau(q,sp)) continue; return q; }
     if(R.mode==='dictee'){   // court, et pas de construction en deux temps (« Ces tours, Jules les a faits ») sauf si seul le COD est travaillé
       const seulPPA=R.doms.ppc && !R.doms.det && !R.doms.adj && !R.doms.sv && !R.doms.pp && !R.doms.attr;
