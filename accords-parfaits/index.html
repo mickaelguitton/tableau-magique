@@ -688,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.14</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.15</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2018,11 +2018,11 @@ function rendreBrut(sp){
     toks.push(...C.toks,virgule());
     const S=rendreSujet(sp.sujet,niv,chaines); toks.push(...S.toks);
     const txtCod=texte(C.toks);
-    const pron=mot(sp.cod.n==='s'?"l'":'les','pro',{forms:{ms:"l'",fs:"l'",mp:'les',fp:'les'},key:sp.cod.g+sp.cod.n,glue:sp.cod.n==='s',dom:'ppa',recv:true,rel:{type:'proncod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
+    const pron=mot(sp.cod.n==='s'?"l'":'les','pro',{forms:{ms:"l'",fs:"l'",mp:'les',fp:'les'},key:sp.cod.g+sp.cod.n,glue:sp.cod.n==='s',dom:'ppc',recv:true,rel:{type:'proncod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
     const fa=conjugue('avoir',sp.temps==='pc'?'pr':'imp');
     const aux=mot(fa[S.p],'verbe',{forms:enFormes6(fa),key:'p'+S.p,dom:'sv',recv:true,rel:{type:'sv',suj:texte(S.toks),p:S.p,aux:'avoir'}});
     const fp=formesPP(participe(sp.verbe.inf),sp.verbe.inf);
-    const pp=mot(fp[sp.cod.g+sp.cod.n],'verbe',{forms:fp,key:sp.cod.g+sp.cod.n,dom:'ppa',recv:true,genreLibre:!!sp.cod.nom.epicene,rel:{type:'ppcod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
+    const pp=mot(fp[sp.cod.g+sp.cod.n],'verbe',{forms:fp,key:sp.cod.g+sp.cod.n,dom:'ppc',recv:true,genreLibre:!!sp.cod.nom.epicene,rel:{type:'ppcod',ant:txtCod,g:sp.cod.g,n:sp.cod.n}});
     toks.push(pron,aux,pp);
     finPhrase();
     chaineSV(S,[aux]);
@@ -2051,7 +2051,7 @@ function rendreBrut(sp){
     const fa=conjugue('avoir',sp.temps==='pc'?'pr':'imp');
     const aux=mot(fa[S2.p],'verbe',{forms:enFormes6(fa),key:'p'+S2.p,dom:'sv',recv:true,rel:{type:'sv',suj:texte(S2.toks),p:S2.p,aux:'avoir'}});
     const fp=formesPP(participe(sp.verbe.inf),sp.verbe.inf);
-    const pp=mot(fp[C.g+C.n],'verbe',{forms:fp,key:C.g+C.n,dom:'ppa',recv:true,genreLibre:!!C.epicene,rel:{type:'ppcod',ant:txtCod,g:C.g,n:C.n}});
+    const pp=mot(fp[C.g+C.n],'verbe',{forms:fp,key:C.g+C.n,dom:'ppc',recv:true,genreLibre:!!C.epicene,rel:{type:'ppcod',ant:txtCod,g:C.g,n:C.n}});
     const relSV={type:'sv',suj:txtCod,p:C.p,multi:false,inv:false,piege:null};
     const fe=conjugue(sp.etat,sp.temps==='pc'?'pr':'imp'), a=sp.attribut;
     const ve=mot(fe[C.p],'verbe',{forms:enFormes6(fe),key:'p'+C.p,dom:'sv',recv:true,rel:relSV});
@@ -2107,7 +2107,7 @@ const tempsPermis = (R,l) => l.filter(t=>R.temps.includes(t));
 function structuresPossibles(R){
   const d=R.doms, niv=R.niv, comp=tempsPermis(R,['pc','pqp']).length>0;
   const l=[];
-  const PP=d.pp||d.ppa;   // participe passé avec être (pp, CM1) ou avec avoir (ppa, CM2)
+  const PP=d.pp||d.ppa;   // participe passé avec être (pp, CM1) ou avec avoir et COD placé après (ppa, CM2) ; le COD placé avant (ppc) a ses propres structures plus bas
   if(d.det||d.adj||d.sv||(PP&&comp)) l.push(['simple',6]);
   if(niv>=3 && (d.sv||(PP&&comp))) l.push(['multi',1.5]);
   // attribut du sujet : CM2 (programme 2025 : « chaîne d'accords sujet/attribut du sujet »)
@@ -2117,9 +2117,13 @@ function structuresPossibles(R){
   if(niv>=4 && d.sv && tempsPermis(R,['pr','imp','fut']).length) l.push(['rel',1.2]);   // CM2 : « Les enfants qui jouent sont contents »
   if(niv>=4 && d.sv && tempsPermis(R,['pr','imp','fut','pc']).length) l.push(['invq',0.8]);   // question : jamais au passé simple (« Pourquoi dormit l'hippopotame ? »)
   // COD placé avant (avec avoir) : c'est le cas qui demande un accord, il doit revenir souvent
-  if(niv>=4 && d.ppa && comp) l.push(['cod', d.det||d.adj||d.sv||d.pp ? 3 : 14]);
-  // « Les cerises que Zoé a cueillies sont mûres » : CM2 seulement, quand le COD est travaillé, pour 20 % des phrases
-  if(niv>=4 && d.ppa && comp && l.length) l.push(['relq', l.reduce((t,x)=>t+x[1],0)*0.25]);   // 0,25 × les autres = 1/5 du total
+  // COD antéposé : la grande majorité avec un pronom (« Les tours, Jules les a faites »), peu avec une relative en « que »
+  const poidsCod = d.det||d.adj||d.sv||d.pp ? 3 : (d.ppa ? 9 : 14);   // avec « COD postposé » : à peu près autant de phrases des deux sortes
+  if(niv>=4 && d.ppc && comp){
+    l.push(['cod', poidsCod]);
+    // « Les cerises que Zoé a cueillies sont mûres » : CM2 seulement, environ 1 phrase sur 9 parmi les phrases à COD antéposé
+    l.push(['relq', poidsCod*0.13]);
+  }
   if(!l.length) l.push(['simple',1]);   // filet de sécurité : jamais de liste vide
   // « Le nom noyau » : dès le CM1, environ trois groupes sur dix ont un complément du nom (« le chien des voisins »)
   if(R.mode==='chaine' && niv>=3 && d.sv){ const e=l.find(x=>x[0]==='eloigne'), autres=l.filter(x=>x!==e).reduce((t,x)=>t+x[1],0); if(e) e[1]=autres*(niv>=4?0.6:0.45); }
@@ -2160,8 +2164,8 @@ function faireRecette(R){
   }
   const struct=R.structImposee || tirage(structuresPossibles(R));
   const sp={niv,struct};
-  const seulPP = (d.pp||d.ppa) && !d.det && !d.adj && !d.sv && !d.attr;
-  const adjObl = (d.adj && !d.det && !d.sv && !d.pp && !d.ppa) || (struct==='eloigne' && chance(0.5)) || (R.mode==='chaine' && chance(0.65));   // « Le nom noyau » : des groupes avec adjectifs (« les jeunes promeneurs du bois »)
+  const seulPP = (d.pp||d.ppa||d.ppc) && !d.det && !d.adj && !d.sv && !d.attr;
+  const adjObl = (d.adj && !d.det && !d.sv && !d.pp && !d.ppa && !d.ppc) || (struct==='eloigne' && chance(0.5)) || (R.mode==='chaine' && chance(0.65));   // « Le nom noyau » : des groupes avec adjectifs (« les jeunes promeneurs du bois »)
   let temps = seulPP ? tempsPermis(R,['pc','pqp']) : R.temps.slice();
   if(!temps.length) temps=R.temps.slice();
 
@@ -2265,7 +2269,8 @@ function faireRecette(R){
   if(compose && niv<3) aux='a';                        // accord avec être : à partir du CM1
   else if(compose && d.pp && d.ppa) aux = chance(0.55)?'e':'a';
   else if(compose && d.pp) aux = 'e';                  // participe passé avec être seulement
-  else if(compose && d.ppa) aux = 'a';                 // participe passé avec avoir seulement
+  else if(compose && (d.ppa||d.ppc)) aux = 'a';        // participe passé avec avoir seulement
+  if(compose && (struct==='cod'||struct==='relq')) aux='a';   // COD placé avant : toujours avec avoir
   if(compose && (struct==='inv'||struct==='invq')) aux='e';
   const filtre = v => (!aux||v.aux===aux) && (struct!=='inv'&&struct!=='invq' || !v.objOblig) && (struct!=='inv' || lieuxInversion(v).length) && (struct!=='invq' || !BESOIN_LIEU.has(v.inf)) && (struct!=='multi' || sujetsOk(v,niv).length>=2 || v.personnes);
   let verbes=verbesPossibles(niv,filtre);
@@ -2833,7 +2838,7 @@ function cleSujet(sp){
   return null;   // pronom : pas concerné
 }
 function recetteVariee(R){
-  const d=R.doms||{}, gn=d.det||d.adj||d.attr, verbe=d.sv||d.pp||d.ppa;
+  const d=R.doms||{}, gn=d.det||d.adj||d.attr, verbe=d.sv||d.pp||d.ppa||d.ppc;
   // les sacs repartent à zéro quand les réglages changent
   const sig=R.niv+'|'+R.personnes+'|'+(R.temps||[]).join()+'|'+Object.keys(d).filter(k=>d[k]).join();
   if(sig!==SACS.sig) SACS={sig,gn:[],pers:[],nb:[],temps:[]};
@@ -2841,7 +2846,7 @@ function recetteVariee(R){
   const vise={};
   // personne : avec « Toutes », une phrase sur deux à je, tu, nous, vous ; l'autre à la 3e personne
   // participe passé seul : seulement les temps composés (au présent, il n'y aurait rien à accorder)
-  const seulPP=(d.pp||d.ppa) && !d.det && !d.adj && !d.sv && !d.attr;
+  const seulPP=(d.pp||d.ppa||d.ppc) && !d.det && !d.adj && !d.sv && !d.attr;
   const tempsSac = seulPP && (R.temps||[]).some(t=>t==='pc'||t==='pqp') ? R.temps.filter(t=>t==='pc'||t==='pqp') : (R.temps||[]);
   const tempsVoulu = verbe && tempsSac.length>1 ? tirer('temps',tempsSac) : (verbe && tempsSac.length===1 && seulPP ? tempsSac[0] : null);
   const pers = verbe && R.personnes==='toutes' && tempsVoulu!=='ps' && !(R.temps||[]).every(t=>t==='ps') ? (R.persImposee ? (R.persImposee==='pro' ? hasard([0,1,3,4]) : '3') : tirer('pers',[0,1,3,4,'3','3','3','3','3','3'])) : '3';   // « Toutes » : 4 phrases sur 10 avec je, tu, nous ou vous, 6 avec un groupe nominal (le groupe nominal pèse au moins autant que sujet-verbe)   // passé simple : 3es personnes
@@ -2878,7 +2883,7 @@ if(typeof module!=='undefined') module.exports={plusDeTerminaisons,placerBonne,r
    9. AFFICHAGE DE LA PHRASE ET DES CHAÎNES
    ========================================================= */
 const $ = id => document.getElementById(id);
-const classeNat = t => t.nat==='verbe' && (t.dom==='pp'||t.dom==='ppa') ? 'c-vio' : (({det:'c-det',nom:'c-nom',nompropre:'c-nom',adj:'c-adj',pro:'c-pro',verbe:'c-ver'})[t.nat]||'');
+const classeNat = t => t.nat==='verbe' && (t.dom==='pp'||t.dom==='ppa'||t.dom==='ppc') ? 'c-vio' : (({det:'c-det',nom:'c-nom',nompropre:'c-nom',adj:'c-adj',pro:'c-pro',verbe:'c-ver'})[t.nat]||'');
 // partie du mot qui porte l'accord (soulignée en rouge)
 function marque(t){
   const w=t.w;
@@ -3170,7 +3175,8 @@ const DOMAINES = [
   {id:'sv',label:'Sujet et verbe',niv:0,c:'var(--ver)'},
   {id:'attr',label:'Sujet et attribut',niv:4,c:'var(--adj)'},
   {id:'pp',label:'Participe passé avec être',niv:3,c:'var(--vio)'},
-  {id:'ppa',label:'Participe passé avec avoir',niv:4,c:'var(--vio)'}   // CM2 : pas d'accord avec le sujet, accord avec le COD placé avant
+  {id:'ppa',label:'Participe passé avec avoir (COD postposé)',niv:4,c:'var(--vio)'},   // CM2 : jamais d'accord avec le sujet
+  {id:'ppc',label:'Participe passé avec avoir (COD antéposé)',niv:4,c:'var(--vio)'}    // CM2 : accord avec le COD placé avant le verbe
 ];
 // ordre de progression : d'abord repérer (genre, nombre, sujet, chaînes),
 // puis appliquer (choisir, écrire la fin, corriger, transformer)
@@ -3202,11 +3208,12 @@ const ICONES = {
   fleches: ic('<circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="18" r="1.6"/><path d="M6.5 6L19 17M6.5 18L19 7"/><path d="M15 17h4v-4"/>')
 };
 const SANS_MES_PHRASES = ['bascule','genre','bonsujet',...MODES_SUJET];
-const REGLAGES = {niv:4,mode:'genre',doms:{det:true,adj:true,sv:true,attr:true,pp:true,ppa:true},temps:{pr:true,imp:false,fut:false,ps:false,pc:false,pqp:false},personnes:'3',nombre:10,source:'fab',version:3};
+const REGLAGES = {niv:4,mode:'genre',doms:{det:true,adj:true,sv:true,attr:true,pp:true,ppa:true,ppc:true},temps:{pr:true,imp:false,fut:false,ps:false,pc:false,pqp:false},personnes:'3',nombre:10,source:'fab',version:3};
 // par défaut : présent seul, 3e personne ; le passé composé s'ajoute tout seul avec le participe passé
 function charger(){ try{ const s=JSON.parse(localStorage.getItem('accords-parfaits')||'null'); if(s) Object.assign(REGLAGES,s); }catch(e){}
   if(!MODES.some(m=>m.id===REGLAGES.mode)) REGLAGES.mode='genre';   // ancien réglage (« Je montre » retiré)
   delete REGLAGES.son;   // le son a été retiré
+  if(REGLAGES.doms.ppc===undefined) REGLAGES.doms.ppc=REGLAGES.doms.ppa!==false;   // « avec avoir » a été séparé en COD postposé / antéposé : on garde le choix d'avant
   DOMAINES.forEach(d=>{ if(REGLAGES.doms[d.id]===undefined) REGLAGES.doms[d.id]=true; });   // accord ajouté depuis (Sujet et attribut)
   // réglages d'avant novembre 2026 : nouveaux choix par défaut (présent seul, 3e personne, 10 phrases)
   if(!(REGLAGES.version>=3)){ REGLAGES.temps={pr:true,imp:false,fut:false,ps:false,pc:false,pqp:false}; REGLAGES.personnes='3'; REGLAGES.nombre=10; REGLAGES.version=3; }
@@ -3219,12 +3226,12 @@ function reglagesEffectifs(){
   let temps=TEMPS.filter(t=>t.niv<=niv && REGLAGES.temps[t.id]).map(t=>t.id);
   if(!temps.length) temps=['pr'];
   if(!Object.values(doms).some(Boolean)) doms.sv=true;
-  if((doms.pp||doms.ppa) && !temps.some(t=>t==='pc'||t==='pqp')) temps.push('pc');   // pas de participe passé sans temps composé
+  if((doms.pp||doms.ppa||doms.ppc) && !temps.some(t=>t==='pc'||t==='pqp')) temps.push('pc');   // pas de participe passé sans temps composé
   // l'attribut seul se travaille avec un verbe d'état au présent, à l'imparfait ou au futur
-  if(doms.attr && !doms.det && !doms.adj && !doms.sv && !doms.pp && !doms.ppa && !temps.some(t=>['pr','imp','fut'].includes(t))) temps.push('pr');
+  if(doms.attr && !doms.det && !doms.adj && !doms.sv && !doms.pp && !doms.ppa && !doms.ppc && !temps.some(t=>['pr','imp','fut'].includes(t))) temps.push('pr');
   const source = SANS_MES_PHRASES.includes(REGLAGES.mode) || !phrasesJouables().length ? 'fab' : REGLAGES.source;
   if(REGLAGES.mode==='chaine')   // « Le nom noyau » : toutes les constructions de groupes nominaux (sujet, complément, « le chien des voisins »…)
-    return {niv,doms:{det:true,adj:true,sv:true,attr:false,pp:false,ppa:false},temps,personnes:REGLAGES.personnes,mode:'chaine',nombre:REGLAGES.nombre,source};
+    return {niv,doms:{det:true,adj:true,sv:true,attr:false,pp:false,ppa:false,ppc:false},temps,personnes:REGLAGES.personnes,mode:'chaine',nombre:REGLAGES.nombre,source};
   if(MODES_SUJET.includes(REGLAGES.mode))   // sujet / verbe seulement, à la 3e personne
     { // défis sur le sujet : on garde les accords choisis qui dépendent du sujet (verbe, attribut, participe avec être)
       const ds={sv:doms.sv, pp:doms.pp, attr:doms.attr, ppa:false, adj:false, det:false};
@@ -3259,9 +3266,9 @@ function construireMenu(){
     const note=!dispo?'à partir du '+NIVEAUX[d.niv]:(d.note&&d.note[niv]||'');
     return '<button class="coche'+(on?' on':'')+(dispo?'':' off')+'" style="--c:'+d.c+'" data-d="'+d.id+'" title="'+note+'" aria-pressed="'+on+'">'+d.label+'</button>';   // pas encore disponible : grisé, « à partir du CM2 » en infobulle (la place manque)
   }).join('')+'</div>';
-  $('domaines').innerHTML=ligneAccords(['det','adj','sv','attr'])+ligneAccords(['pp','ppa']);   // accords simples, puis participe passé
+  $('domaines').innerHTML=ligneAccords(['det','adj','sv','attr'])+ligneAccords(['pp'])+ligneAccords(['ppa','ppc']);   // accords simples, puis participe passé
   // participe passé choisi à ce niveau, sans temps composé coché : le passé composé s'allume tout seul (il faut un participe à accorder)
-  const ppActif=DOMAINES.some(d=>(d.id==='pp'||d.id==='ppa') && d.niv<=niv && REGLAGES.doms[d.id]);
+  const ppActif=DOMAINES.some(d=>(d.id==='pp'||d.id==='ppa'||d.id==='ppc') && d.niv<=niv && REGLAGES.doms[d.id]);
   const allume = id => REGLAGES.temps[id] || (id==='pc' && ppActif && !REGLAGES.temps.pqp);
   $('temps').innerHTML=TEMPS.map(t=>{ const dispo=t.niv<=niv; return '<button class="puce'+(dispo&&allume(t.id)?' on':'')+(dispo&&!genre?'':' off')+'" data-t="'+t.id+'">'+t.label+'</button>'; }).join('');
   const sansMes=SANS_MES_PHRASES.includes(REGLAGES.mode);
@@ -3284,7 +3291,7 @@ function brancherMenu(){
     }
     else if(b.dataset.t){
       // passé composé allumé d'office par le participe passé : un clic ne peut pas l'éteindre
-      const ppActif=DOMAINES.some(d=>(d.id==='pp'||d.id==='ppa') && d.niv<=REGLAGES.niv && REGLAGES.doms[d.id]);
+      const ppActif=DOMAINES.some(d=>(d.id==='pp'||d.id==='ppa'||d.id==='ppc') && d.niv<=REGLAGES.niv && REGLAGES.doms[d.id]);
       if(b.dataset.t==='pc' && ppActif && !REGLAGES.temps.pc && !REGLAGES.temps.pqp) return;
       REGLAGES.temps[b.dataset.t]=!REGLAGES.temps[b.dataset.t];
     }
@@ -3323,10 +3330,10 @@ function regles(R){
   if(R.doms.attr && R.niv>=4) l.push(['var(--adj)',"L'attribut du sujet se trouve après un verbe d'état (être, sembler, paraître, devenir, rester). Il s'accorde en genre et en nombre avec le sujet.",'Les lionnes sont puissant<u>es</u>.<br>Ces fleurs semblent fané<u>es</u>.']);
   if(R.doms.pp && R.niv>=3)
     l.push(['var(--vio)',"Avec l'auxiliaire être, le participe passé s'accorde en genre et en nombre avec le sujet.",'Les filles sont arrivé<u>es</u>.']);
-  if(R.doms.ppa && R.niv>=4){
+  if(R.doms.ppa && R.niv>=4)
     l.push(['var(--vio)',"Avec l'auxiliaire avoir, le participe passé ne s'accorde jamais avec le sujet.",'Les filles ont joué.']);
+  if(R.doms.ppc && R.niv>=4)
     l.push(['var(--vio)',"Avec l'auxiliaire avoir, le participe passé s'accorde avec le COD seulement s'il est placé avant le verbe (le, la, l', les).",'Les fleurs, Léa les a cueilli<u>es</u>.']);
-  }
   return l;
 }
 function montrerRegle(R){
@@ -3462,13 +3469,13 @@ function nouvelleQuestion(R){
     }
     if(R.mode==='fleches'){ const f=defiFleches(R); return f ? {R,fleches:f,liens:{},etape:0} : null; }
     if(R.mode==='bonsujet') return defiQuiVaAvec(R);
-    if(R.mode==='dictee' && !R.doms.sv && !R.doms.pp && !R.doms.ppa && !R.doms.attr){   // seulement le groupe nominal : on dicte un groupe
+    if(R.mode==='dictee' && !R.doms.sv && !R.doms.pp && !R.doms.ppa && !R.doms.ppc && !R.doms.attr){   // seulement le groupe nominal : on dicte un groupe
       const g=faireRecette(Object.assign({},R,{mode:'genre'})); if(R.doms.adj && !g.sujet.adjs.length) continue; R=Object.assign({},R,{recette:g}); }
     const sp=R.recette||recetteVariee(R); delete R.recette; const r=rendre(sp);
     const q={R,sp,toks:r.toks,chaines:r.chaines,barrees:r.barrees,etape:0};
     if(R.mode==='chaine'){ if(!choisirNoyau(q,sp)) continue; return q; }
     if(R.mode==='dictee'){   // court, et pas de construction en deux temps (« Ces tours, Jules les a faits ») sauf si seul le COD est travaillé
-      const seulPPA=R.doms.ppa && !R.doms.det && !R.doms.adj && !R.doms.sv && !R.doms.pp && !R.doms.attr;
+      const seulPPA=R.doms.ppc && !R.doms.det && !R.doms.adj && !R.doms.sv && !R.doms.pp && !R.doms.attr;
       if(nbMots(q.toks)>DICTEE_MOTS[R.niv] || !r.chaines.length || (sp.struct==='cod' && !seulPPA)) continue;
       if(!marqueAccord(q.toks)) continue;   // « un lion », « la tomate » : rien à accorder, c'est une dictée de mots
       const cles=clesDictee(q,sp);
