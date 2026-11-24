@@ -688,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.13</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.14</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1996,7 +1996,7 @@ function flechesBarrees(r){
     if(!t.rel || t.rel.type!=='ppavoir') return;
     const aux=r.toks.slice(0,i).reverse().find(x=>x.nat==='verbe' && x.dom==='sv');
     const base=aux && r.chaines.find(c=>c.type==='sv' && c.receveurs.includes(aux.id));
-    if(base) l.push({base,donneurs:base.donneurs,receveur:t.id});
+    if(base) l.push({base,donneurs:base.donneurs,receveur:t.id,aux:aux.id});
   });
   return l;
 }
@@ -2988,8 +2988,9 @@ function tracer(Q,animer){
   const liens=[];
   (Q.chaines||[]).forEach(ch=>{ if(Q.dessinees && Q.dessinees.has(ch)) ch.receveurs.forEach(rid=>ch.donneurs.forEach(did=>liens.push({ch,base:ch,did,rid,barre:false}))); });
   (Q.barrees||[]).forEach(b=>{ if((Q.dessinees && Q.dessinees.has(b.base)) || (Q.barreesMontrees && Q.barreesMontrees.has(b))){
-    const ch={type:'barre',cote:'haut',couleur:'var(--vio)'}; b.donneurs.forEach(did=>liens.push({ch,base:b.base,did,rid:b.receveur,barre:true})); } });
-  liens.forEach(({ch,base,did,rid,barre})=>{
+    const ch={type:'barre',cote:'haut',couleur:'var(--vio)'}; b.donneurs.forEach(did=>liens.push({ch,base:b.base,did,rid:b.receveur,barre:true,aux:b.aux})); } });
+  const entoures=new Set();   // auxiliaires déjà entourés
+  liens.forEach(({ch,base,did,rid,barre,aux})=>{
       const anim=animer(base,rid);
       const d=parId(did), r=parId(rid); if(!d||!r||!d.el||!r.el) return;
       const T=trajetFleche(d,r,ch,pw,fs,obst);
@@ -3017,6 +3018,7 @@ function tracer(Q,animer){
           trait.setAttribute('stroke','#fff'); trait.setAttribute("stroke-width",fs*0.09); trait.setAttribute('stroke-linecap','round'); g.appendChild(trait); });
       }
       svg.appendChild(g);
+      if(barre && !entoures.has(aux)){ entoures.add(aux); entourerAuxiliaire(svg,parId(aux),pw,fs,anim?delai:0,anim); }
       if(anim){
         if(!allumes.has(d)){ allumes.add(d); d.el.classList.remove('allume'); void d.el.offsetWidth; d.el.classList.add('allume'); delai+=0.3; }
         g.style.opacity=0; g.style.transformOrigin=x1+'px '+y1+'px'; g.style.transform='scale(.15)';
@@ -3026,6 +3028,28 @@ function tracer(Q,animer){
         delai+=0.3;
       } else if(!barre) colorer(r,true);
   });
+}
+/* L'auxiliaire avoir est entouré en rouge à la correction du participe passé.
+   Le cadre reste dans les espaces autour du mot : il ne passe jamais sur une lettre des mots voisins. */
+function entourerAuxiliaire(svg,aux,pw,fs,delai,anim){
+  if(!aux || !aux.el) return;
+  const r=aux.el.getBoundingClientRect(), trait=fs*0.075;
+  // la place disponible à gauche, à droite, en haut et en bas : on regarde les mots voisins
+  let g=fs*0.12, d=fs*0.12, h=fs*0.1, b=fs*0.1;
+  document.querySelectorAll('#phrase .tok').forEach(t=>{
+    if(t===aux.el) return; const q=t.getBoundingClientRect();
+    const memeLigne = q.bottom>r.top+2 && q.top<r.bottom-2;
+    if(memeLigne && q.right<=r.left+1) g=Math.min(g,Math.max(0,(r.left-q.right)/2));
+    if(memeLigne && q.left>=r.right-1) d=Math.min(d,Math.max(0,(q.left-r.right)/2));
+  });
+  const m=trait/2+1;   // le trait est dessiné à l'extérieur de la boîte du mot
+  const cadre=document.createElementNS(NS,'rect');
+  cadre.setAttribute('x',r.left-pw.left-Math.max(g,m)); cadre.setAttribute('y',r.top-pw.top-Math.max(h,m));
+  cadre.setAttribute('width',r.width+Math.max(g,m)+Math.max(d,m)); cadre.setAttribute('height',r.height+Math.max(h,m)+Math.max(b,m));
+  cadre.setAttribute('rx',fs*0.16); cadre.setAttribute('fill','none'); cadre.setAttribute('stroke','var(--ko)'); cadre.setAttribute('stroke-width',trait);
+  cadre.setAttribute('class','liaison');
+  svg.appendChild(cadre);
+  if(anim){ cadre.style.opacity=0; cadre.style.transition='opacity .45s ease '+(delai+0.3)+'s'; requestAnimationFrame(()=>requestAnimationFrame(()=>{ cadre.style.opacity=1; })); }
 }
 /* Les flèches ne doivent jamais cacher une lettre.
    Pour chaque flèche on essaie plusieurs trajets (côté prévu, hauteurs croissantes, puis l'autre côté, et le passage entre
@@ -3060,6 +3084,7 @@ function trajetFleche(d,r,ch,pw,fs,obst){
     candidats.push({x1,y1,x2,y2,mx,ep,s:dessus?1:-1,cy:(y1+y2)/2+(dessus?1:-1)*fs*0.1});
   }
   [1,1.45,2,2.7].forEach(k=>candidats.push(bout(!haut0,k)));
+  if(ch.type==='barre') candidats.forEach(c=>c.pastille=true);
   let meilleur=candidats[0], mini=1e9;
   for(const c of candidats){ const n=croise(c,fs,obst); if(n<mini){ mini=n; meilleur=c; } if(n===0) break; }
   return meilleur;
@@ -3071,6 +3096,11 @@ function croise(c,fs,obst){
   // la pointe : un peu avant l'arrivée, dans la direction de la courbe
   const ang=Math.atan2(c.y2-c.cy,c.x2-c.mx), L=fs*0.2, l=fs*0.11, bx=c.x2-Math.cos(ang)*L, by=c.y2-Math.sin(ang)*L;
   pts.push([bx-Math.sin(ang)*l,by+Math.cos(ang)*l],[bx+Math.sin(ang)*l,by-Math.cos(ang)*l],[(c.x2+bx)/2,(c.y2+by)/2]);
+  // la pastille de la flèche barrée, au milieu de la courbe, ne doit pas non plus couvrir de lettres
+  if(c.pastille){
+    const mx=0.25*c.x1+0.5*c.mx+0.25*c.x2, my=0.25*c.y1+0.5*c.cy+0.25*c.y2, R=fs*0.34;
+    pts.push([mx,my]); for(let i=0;i<12;i++){ const a=i*Math.PI/6; pts.push([mx+R*Math.cos(a),my+R*Math.sin(a)]); }
+  }
   let n=0; pts.forEach(([x,y])=>{ if(obst.some(o=>x>o.g && x<o.d && y>o.h && y<o.b)) n++; });
   return n;
 }
