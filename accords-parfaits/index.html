@@ -688,7 +688,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.12</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.13</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -2962,6 +2962,12 @@ function dessinerChaines(Q,filtre,anim){
   Q.dessinees = Q.dessinees || new Set();
   const nouvelles=[];
   Q.chaines.forEach(ch=>{ if(filtre && !filtre(ch)) return; if(!Q.dessinees.has(ch)){ Q.dessinees.add(ch); } nouvelles.push(ch); });
+  // le mot demandé est un participe passé avec avoir : on montre la flèche barrée « pas d'accord avec le sujet »,
+  // même si aucune chaîne d'accord n'arrive sur lui
+  Q.barreesMontrees = Q.barreesMontrees || new Set();
+  (Q.barrees||[]).forEach(b=>{
+    if(Q.cible && Q.cible.id===b.receveur && !Q.barreesMontrees.has(b)){ Q.barreesMontrees.add(b); nouvelles.push(b.base); montrerDonneurs(Q,ch=>ch===b.base); }
+  });
   tracer(Q, ch => nouvelles.includes(ch) && (typeof anim==='function' ? anim(ch) : anim));
 }
 function redessinerLiaisons(){ if(Q && (Q.dessinees || Q.souligne)) tracer(Q, ()=>false); }
@@ -2981,7 +2987,7 @@ function tracer(Q,animer){
   // les liens à dessiner : les chaînes d'accord, puis les flèches barrées (participe passé avec avoir sans COD avant)
   const liens=[];
   (Q.chaines||[]).forEach(ch=>{ if(Q.dessinees && Q.dessinees.has(ch)) ch.receveurs.forEach(rid=>ch.donneurs.forEach(did=>liens.push({ch,base:ch,did,rid,barre:false}))); });
-  (Q.barrees||[]).forEach(b=>{ if(Q.dessinees && Q.dessinees.has(b.base)){
+  (Q.barrees||[]).forEach(b=>{ if((Q.dessinees && Q.dessinees.has(b.base)) || (Q.barreesMontrees && Q.barreesMontrees.has(b))){
     const ch={type:'barre',cote:'haut',couleur:'var(--vio)'}; b.donneurs.forEach(did=>liens.push({ch,base:b.base,did,rid:b.receveur,barre:true})); } });
   liens.forEach(({ch,base,did,rid,barre})=>{
       const anim=animer(base,rid);
