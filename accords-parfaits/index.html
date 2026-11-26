@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.20</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.21</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1666,7 +1666,7 @@ const OBJETS_SANS_POSS = new Set(['agrumes','animauxforet','animauxmer','animaux
 const UNIQUES = new Set(['papa','maman','papi','mamie']);
 const FAMILLE = new Set(['papa','maman','papi','mamie','frère','sœur','cousin','cousine','oncle','tante']);
 const OBJET_UNIQUE = new Set(['pelouse']);   // objets qu'on a en un seul exemplaire
-const LIEU_TEMPOREL = /^(en (automne|hiver|été|printemps)|au printemps|après la pluie|le soir|au petit matin|à la fin|au bout)/;   // « en automne » : pas de « ce matin » en plus
+const LIEU_TEMPOREL = /^(en (automne|hiver|été|printemps)|au printemps|après la pluie|le soir|au petit matin|à la fin|au bout|pour (Noël|l'anniversaire))/;   // « en automne » : pas de « ce matin » en plus
 // relatives (CM2) : « Les enfants qui jouent sont contents » / « Les cerises que Zoé a cueillies sont mûres ».
 // Le sens demande des garde-fous : on n'associe qu'un état qui ne contredit pas l'action.
 const REL_ETATS = new Set(['content','joyeux','calme','tranquille','fatigué','ravi','essoufflé','souriant','fier']);   // état du sujet de « qui »
@@ -1856,6 +1856,90 @@ const enFormes6 = arr => ({p0:arr[0],p1:arr[1],p2:arr[2],p3:arr[3],p4:arr[4],p5:
 function pronomSujet(p,g){ if(p===2) return g==='f'?'elle':'il'; if(p===5) return g==='f'?'elles':'ils'; return ['je','tu',null,'nous','vous'][p]; }
 const nombreDePersonne = p => p>=3?'p':'s';
 const PERS_LABEL = ['1re personne du singulier','2e personne du singulier','3e personne du singulier','1re personne du pluriel','2e personne du pluriel','3e personne du pluriel'];
+
+/* =========================================================
+   COHÉRENCE DU SENS (v1.21)
+   Les contrôles sont regroupés ici. Une combinaison douteuse est corrigée sur place
+   (complément de temps remplacé ou retiré, adjectif retiré) : la phrase n'est jamais retirée
+   au hasard une deuxième fois, donc aucune boucle possible. Chaque correction est comptée.
+   ========================================================= */
+// classe de chaque complément de temps (ceux qui n'y sont pas ne posent jamais de problème)
+const TEMPO_CLASSE = {'chaque matin':'matin','ce matin':'matin','un matin':'matin','chaque soir':'soir','ce soir':'soir','hier soir':'soir',
+  'pendant les vacances':'conge','le dimanche':'conge','dimanche prochain':'conge',"aujourd'hui":'jour','soudain':'brusque','tout à coup':'brusque'};
+// moments qui n'ont pas de sens dans une scène de journée
+const SCENE_SANS_TEMPO = {ecole:['soir','conge'],bibliotheque:['soir'],musee:['soir'],marche:['soir']};
+const LIEU_NUIT = /\b(nuit|étoiles?|lune)\b/;   // « dans la nuit » : ni matin ni « aujourd'hui »
+// verbes qui durent : « soudain » ne va pas avec eux (« ils dormirent soudain »)
+const VERBES_DUREE = new Set(['dormir','reposer','travailler','attendre','rester','promener','marcher','observer','surveiller','lire','jouer','danser','baigner','chanter','discuter','chuchoter','rouler','flotter','briller','nager','regarder','écouter']);
+// adjectifs d'état qui contredisent l'action du sujet : [verbes, adjectifs]
+const INCOMPAT_SUJET = [
+  [['dormir','reposer'],['pressé','occupé','essoufflé','affairé','énervé','excité','agité']],
+  [['hurler','crier','chanter','aboyer','siffler','rugir','klaxonner','jacasser','barrir','miauler','beugler','caqueter','meugler','bêler'],['silencieux','muet','discret']]];
+// adjectifs de l'objet qui contredisent le verbe : [verbes, adjectifs]
+const INCOMPAT_OBJET = [
+  [['souffler'],['éteint']], [['allumer'],['allumé']], [['oublier'],['perdu','oublié']],
+  [['manger','grignoter','picorer','brouter','goûter'],['abîmé','écrasé','pourri','cassé','déchiré']]];
+const verbeAdjIncompat = (table,inf,ms) => table.some(([v,a])=>v.includes(inf) && a.includes(ms));
+
+// raison pour laquelle le complément de temps t ne va pas avec la phrase sp ('' s'il va)
+function tempoIncompat(sp,t){
+  const c=TEMPO_CLASSE[t]; if(!c) return '';
+  const inf=sp.verbe && sp.verbe.inf, scene=sp.verbe && sp.verbe.sc && sp.verbe.sc.id;
+  if(c==='brusque' && sp.neg) return 'temps : « soudain » avec une négation';
+  if(c==='brusque' && inf && VERBES_DUREE.has(inf)) return 'temps : « soudain » avec un verbe qui dure';
+  if(scene && (SCENE_SANS_TEMPO[scene]||[]).includes(c)) return 'temps : moment absent de la scène';
+  if(sp.lieu && LIEU_NUIT.test(sp.lieu) && (c==='matin' || c==='jour')) return 'temps : matin ou jour avec « la nuit »';
+  return '';
+}
+// un complément de temps du bon temps verbal, compatible avec la phrase (null s'il n'y en a pas)
+function choisirTempo(sp){
+  const l=(TEMPOREL[sp.temps]||[]).filter(t=>!tempoIncompat(sp,t));
+  return l.length ? hasard(l) : null;
+}
+const adjsDe = s => !s ? [] : s.kind==='gn' ? s.adjs : (s.parts||[]).flatMap(adjsDe);   // adjectifs d'un sujet, même coordonné
+const retirerAdjs = (s,fn) => { if(!s) return; if(s.kind==='gn') s.adjs=s.adjs.filter(a=>!fn(a)); (s.parts||[]).forEach(p=>retirerAdjs(p,fn)); };
+
+// validation globale : liste des raisons pour lesquelles la phrase est douteuse (vide si tout va bien)
+function validerRecette(sp){
+  const raisons=[], inf=sp.verbe && sp.verbe.inf;
+  if(sp.tempo){ const x=tempoIncompat(sp,sp.tempo); if(x) raisons.push(x); }
+  if(inf){
+    if(adjsDe(sp.sujet).some(a=>verbeAdjIncompat(INCOMPAT_SUJET,inf,a.ms)) || (sp.detache && verbeAdjIncompat(INCOMPAT_SUJET,inf,sp.detache.ms))) raisons.push('état du sujet contraire à l\'action');
+    const obj=sp.objet||sp.cod;   // le COD antéposé (deux phrases) se contrôle comme un objet ordinaire
+    if(obj && obj.adjs && obj.adjs.some(a=>verbeAdjIncompat(INCOMPAT_OBJET,inf,a.ms))) raisons.push('adjectif de l\'objet contraire au verbe');
+  }
+  return raisons;
+}
+// remplace ou retire sur place ce que validerRecette a repéré
+function corrigerRecette(sp){
+  const inf=sp.verbe && sp.verbe.inf;
+  if(sp.tempo && tempoIncompat(sp,sp.tempo)){ sp.tempo=choisirTempo(sp); if(!sp.tempo) sp.tempoDebut=false; }
+  if(inf){
+    retirerAdjs(sp.sujet,a=>verbeAdjIncompat(INCOMPAT_SUJET,inf,a.ms));
+    if(sp.detache && verbeAdjIncompat(INCOMPAT_SUJET,inf,sp.detache.ms)) sp.detache=null;
+    const obj=sp.objet||sp.cod;
+    if(obj && obj.adjs) obj.adjs=obj.adjs.filter(a=>!verbeAdjIncompat(INCOMPAT_OBJET,inf,a.ms));
+  }
+}
+// compteurs du mode diagnostic (page ouverte avec ?diag=1) et du banc de test
+const DIAG_SENS = {recettes:0, corrigees:0, raisons:{}};
+window.DIAG_SENS = DIAG_SENS;
+function faireRecette(R){
+  const sp=faireRecetteBrute(R);
+  if(sp && sp.verbe){
+    DIAG_SENS.recettes++;
+    const raisons=validerRecette(sp);
+    if(raisons.length){ DIAG_SENS.corrigees++; raisons.forEach(r=>{ DIAG_SENS.raisons[r]=(DIAG_SENS.raisons[r]||0)+1; }); corrigerRecette(sp); }
+  }
+  return sp;
+}
+// mode diagnostic : petit cadre fixe en bas à gauche, qui ne déplace rien
+if(/[?&]diag\b/.test(location.search)){
+  const cadre=document.createElement('pre');
+  cadre.style.cssText='position:fixed;left:6px;bottom:6px;margin:0;padding:4px 8px;font:12px/1.3 monospace;background:rgba(255,255,255,.92);border:1px solid #888;z-index:9999;pointer-events:none';
+  document.body.appendChild(cadre);
+  setInterval(()=>{ const d=DIAG_SENS; cadre.textContent='Contrôle du sens : '+d.corrigees+' corrigées sur '+d.recettes+'\n'+Object.entries(d.raisons).map(([r,n])=>'  '+r+' : '+n).join('\n'); },500);
+}
 
 /* =========================================================
    5. FABRICATION DES PHRASES
@@ -2209,7 +2293,7 @@ const memeRacine = (x,y) => { const b=motsPleins(y).map(m=>m.slice(0,4)); return
 // COD placé avant : verbes « de mise en place » de la 1re phrase (l'objet existe avant l'action de la 2e phrase), jamais repris en 2e phrase
 const VERBES_CTX=['acheter','apporter','ramasser','recevoir','choisir','emporter','trouver','offrir'];
 const VERBES_PAS_APRES=[...VERBES_CTX,'vendre','gagner','chercher'];
-function faireRecette(R){
+function faireRecetteBrute(R){
   const niv=R.niv, d=R.doms;
   if(R.mode==='genre'){
     // dès le CE2, quelques groupes avec un complément du nom (« le chien des voisins ») : le genre et le nombre sont ceux du nom noyau, pas du complément
@@ -2321,7 +2405,7 @@ function faireRecette(R){
     if(!sp.attribut) return faireRecette(R);
     // au passé simple : un changement (devint, resta, parut…) plutôt que « fut », et pas de « soudain » devant un état
     if(sp.temps==='ps' && sp.etat==='être' && chance(0.6)) sp.etat=hasard(['devenir','rester','paraître','sembler']);
-    if(sp.temps!=='ps' && sp.etat!=='rester' && sp.etat!=='devenir' && chance(0.3)){ sp.tempo=hasard(TEMPOREL[sp.temps]); sp.tempoDebut=true; }   // pas « le dimanche, … restent prudentes »
+    if(sp.temps!=='ps' && sp.etat!=='rester' && sp.etat!=='devenir' && chance(0.3)){ sp.tempo=choisirTempo(sp); sp.tempoDebut=!!sp.tempo; }   // pas « le dimanche, … restent prudentes »
     if(niv>=2 && chance(0.12)) sp.neg=true;   // « Les poules ne sont pas affamées. »
     return sp;
   }
@@ -2432,7 +2516,7 @@ function faireRecette(R){
                if(l.length){ sp.cdn=hasard(l); sp.piege=sp.cdn.split(' ').pop(); } }
       }
     }
-    if(chance([0.08,0.15,0.25,0.25,0.25][niv])){ sp.tempo=hasard(TEMPOREL[sp.temps]);   // moins de compléments au CP et au CE1 sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
+    if(chance([0.08,0.15,0.25,0.25,0.25][niv])){ sp.tempo=choisirTempo(sp);   // moins de compléments au CP et au CE1 sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
       if(sp.lieu && (enCommun(sp.tempo,sp.lieu) || LIEU_TEMPOREL.test(sp.lieu))) sp.tempo=null; }
     // dès le CE2, un peu moins d'une phrase sur dix est négative : « Les poules ne picorent pas les graines. »
     // (jamais « naître » ; l'objet est défini, pas de « ne … pas des graines »)
@@ -3542,7 +3626,7 @@ function nouvelleQuestion(R){
     }
     if(R.mode==='pronom'){   // souvent un complément de temps en tête : « Hier, les poules… »
       const sp0=recetteVariee(R);
-      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && !(sp0.lieu && LIEU_TEMPOREL.test(sp0.lieu)) && chance([0.15,0.3,0.5,0.75,0.75][R.niv])){ sp0.tempo=hasard(TEMPOREL[sp0.temps]); sp0.tempoDebut=true; }
+      if(['simple','attr','multi'].includes(sp0.struct) && !sp0.tempoDebut && TEMPOREL[sp0.temps] && !(sp0.lieu && LIEU_TEMPOREL.test(sp0.lieu)) && chance([0.15,0.3,0.5,0.75,0.75][R.niv])){ const t=choisirTempo(sp0); if(t){ sp0.tempo=t; sp0.tempoDebut=true; } }
       R=Object.assign({},R,{recette:sp0});
     }
     if(R.mode==='fleches'){ const f=defiFleches(R); return f ? {R,fleches:f,liens:{},etape:0} : null; }
