@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.19</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.20</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -779,7 +779,7 @@ const SCENES_DATA = [
   objets:{
     oeufs:{n:"œuf|", a:"frais/fraîche gros/grosse< brun/brune blanc/blanche cassé/cassée* cuit/cuite*#1 ramassé/ramassée*#3"},
     fruits:{n:"|pomme |poire |prune |cerise", a:"mûr/mûre juteux/juteuse#2 sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée*#1 cueilli/cueillie*#2 abîmé/abîmée*#2 tombé/tombée*#2 pourri/pourrie*#3"},
-    legumes:{n:"|carotte |salade poireau|#2 |citrouille#1 |betterave#3 chou>choux|#2", a:"frais/fraîche gros/grosse< énorme#2 croquant/croquante#2 lavé/lavée*#1 coupé/coupée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2"},
+    legumes:{n:"|carotte |salade poireau|#2 |citrouille#1 |betterave#3 chou>choux|#2", a:"frais/fraîche gros/grosse< énorme#2 croquant/croquante#2@!citrouille@!betterave lavé/lavée*#1 coupé/coupée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2"},
     fourrage:{n:"|carotte |salade |pomme |betterave#3", a:"frais/fraîche gros/grosse< croquant/croquante#2 lavé/lavée*#1 coupé/coupée*#1"},
     graines:{n:"|graine", a:"petit/petite< doré/dorée*#1 séché/séchée*#2 semé/semée*#3"},
     vehicules:{n:"tracteur| |remorque#2", a:"rouge neuf/neuve#2 bruyant/bruyante#2 gros/grosse< lavé/lavée*#1 garé/garée*#1 abîmé/abîmée*#2 réparé/réparée*#3 cabossé/cabossée*#4"}
@@ -828,8 +828,8 @@ const SCENES_DATA = [
     adultes:{p:1, n:"maître|maîtresse#1 directeur|directrice#2 enseignant|enseignante#3 surveillant|surveillante#4", a:"patient/patiente#3 souriant/souriante#2 calme#1 pressé/pressée*#2 fatigué/fatiguée* occupé/occupée*#2 étonné/étonnée*#3 ravi/ravie*#3 satisfait/satisfaite*#4"}
   },
   objets:{
-    fournitures:{n:"crayon| cahier| livre| |règle |gomme stylo| |trousse classeur|#2 |feuille#1", a:"neuf/neuve#2 rouge bleu/bleue vert/verte petit/petite< gros/grosse< perdu/perdue*#1 abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2 corrigé/corrigée*#3 déchiré/déchirée*#2 froissé/froissée*#3 colorié/coloriée*#2"},
-    lectures:{n:"livre| |histoire#1 |poésie conte|#2 album|#2", a:"long/longue< joli/jolie< drôle#1 passionnant/passionnante#4 abîmé/abîmée*#2 préféré/préférée*#2 connu/connue*#3 illustré/illustrée*#3 emprunté/empruntée*#3"},
+    fournitures:{n:"crayon| cahier| livre| |règle |gomme stylo| |trousse classeur|#2 |feuille#1", a:"neuf/neuve#2 rouge bleu/bleue vert/verte petit/petite< gros/grosse< perdu/perdue*#1 abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2 corrigé/corrigée*#3@cahier@feuille déchiré/déchirée*#2@cahier@livre@feuille@classeur@trousse froissé/froissée*#3@cahier@feuille@classeur colorié/coloriée*#2@cahier@feuille"},
+    lectures:{n:"livre| |histoire#1 |poésie conte|#2 album|#2", a:"long/longue< joli/jolie< drôle#1 passionnant/passionnante#4 abîmé/abîmée*#2@livre@album préféré/préférée*#2 connu/connue*#3 illustré/illustrée*#3 emprunté/empruntée*#3@livre@album"},
     recitations:{n:"|poésie |leçon#1 |fable#4", a:"long/longue< court/courte#1 joli/jolie< appris/apprise*#2 préféré/préférée*#2 connu/connue*#3"},
     ecrits:{n:"|phrase |lettre |histoire#1 mot|", a:"long/longue< court/courte#1 joli/jolie< écrit/écrite*#2 terminé/terminée*#2 recopié/recopiée*#3 soigné/soignée*#3"},
     exercices:{n:"exercice|#2 |opération#3 problème|#3 calcul|#1", a:"difficile#2 long/longue< facile#1 terminé/terminée*#2 réussi/réussie*#2 corrigé/corrigée*#3 compliqué/compliquée*#3"},
@@ -875,7 +875,7 @@ const SCENES_DATA = [
     promeneurs:{p:1, n:"promeneur|promeneuse#3 randonneur|randonneuse#4 bûcheron|#3 enfant=", a:"courageux/courageuse#3 prudent/prudente#3 fatigué/fatiguée*#1 silencieux/silencieuse#4 mouillé/mouillée*#1 perdu/perdue*#2 essoufflé/essoufflée*#4 émerveillé/émerveillée*#4 équipé/équipée*#4"}
   },
   objets:{
-    noix:{n:"|noisette |châtaigne gland|#2 |noix", a:"petit/petite< gros/grosse< délicieux/délicieuse#3 cassé/cassée*#1 tombé/tombée*#2 séché/séchée*#2 ramassé/ramassée*#3 grillé/grillée*#3"},
+    noix:{n:"|noisette |châtaigne gland|#2 |noix", a:"petit/petite< gros/grosse< délicieux/délicieuse#3@!gland cassé/cassée*#1 tombé/tombée*#2 séché/séchée*#2 ramassé/ramassée*#3 grillé/grillée*#3@!gland"},
     baies:{n:"|mûre |fraise |myrtille#3 |framboise#2", a:"petit/petite< sucré/sucrée*#1 délicieux/délicieuse#3 sauvage#2 cueilli/cueillie*#2 écrasé/écrasée*#3"},
     champis:{n:"champignon| cèpe|#4", a:"gros/grosse< petit/petite< énorme#2 caché/cachée*#2 cueilli/cueillie*#2 ramassé/ramassée*#3"},
     bois:{n:"|branche |bûche#2 bâton|#1", a:"long/longue< sec/sèche#2 gros/grosse< lourd/lourde#2 coupé/coupée* cassé/cassée*#1 mouillé/mouillée*#1 tombé/tombée*#2 ramassé/ramassée*#3 pourri/pourrie*#3 scié/sciée*#4"},
@@ -921,7 +921,7 @@ const SCENES_DATA = [
     baigneurs:{p:1, n:"baigneur|baigneuse#3 enfant= nageur|nageuse#2 surfeur|surfeuse#4 touriste=#3 vacancier|vacancière#4 plongeur|plongeuse#3", a:"bronzé/bronzée*#2 courageux/courageuse#3 joyeux/joyeuse#2 prudent/prudente#3 fatigué/fatiguée*#1 sportif/sportive#2 mouillé/mouillée* allongé/allongée*#2 essoufflé/essoufflée*#4 équipé/équipée*#4 émerveillé/émerveillée*#4"},
     pecheurs:{p:1, n:"pêcheur|pêcheuse#2 marin|#1", a:"patient/patiente#3 courageux/courageuse#3 fatigué/fatiguée*#1 mouillé/mouillée* trempé/trempée*#3 équipé/équipée*#4 satisfait/satisfaite*#4"},
     meduses:{n:"|méduse#3", a:"transparent/transparente#3 petit/petite< énorme#2 échoué/échouée*#3"},
-    animauxmer:{n:"crabe| poisson| dauphin| |baleine#2 phoque|#3 |tortue requin|#3", a:"petit/petite< gros/grosse< rapide#1 gris/grise joueur/joueuse#2 énorme#2 curieux/curieuse#2 affamé/affamée*#1 blessé/blessée*#2 caché/cachée*#2 échoué/échouée*#3 effrayé/effrayée*#3"},
+    animauxmer:{n:"crabe| poisson| dauphin| |baleine#2 phoque|#3 |tortue requin|#3", a:"petit/petite< gros/grosse< rapide#1@!tortue gris/grise joueur/joueuse#2@dauphin@phoque@baleine énorme#2 curieux/curieuse#2 affamé/affamée*#1 blessé/blessée*#2 caché/cachée*#2 échoué/échouée*#3 effrayé/effrayée*#3"},
     oiseauxmer:{n:"|mouette goéland|#4", a:"blanc/blanche gris/grise bruyant/bruyante#2 affamé/affamée*#1 mouillé/mouillée*#1 perché/perchée*#3"}
   },
   objets:{
@@ -929,7 +929,7 @@ const SCENES_DATA = [
     chateaux:{n:"château|+de_sable#2", a:"grand/grande< petit/petite< énorme#2 mouillé/mouillée*#1 décoré/décorée*#2 abîmé/abîmée*#2 construit/construite*#4 écroulé/écroulée*#4"},
     poissons:{n:"poisson| |crevette#2 |sardine#3 crabe|", a:"petit/petite< gros/grosse< frais/fraîche cuit/cuite*#1 pêché/pêchée*#2 grillé/grillée*#3"},
     materiel:{n:"|serviette parasol|", a:"rouge bleu/bleue grand/grande< rayé/rayée*#3 coloré/colorée*#2 mouillé/mouillée* oublié/oubliée*#2 plié/pliée*#2 abîmé/abîmée*#2 troué/trouée*#3"},
-    jeux:{n:"|bouée ballon| |pelle seau|", a:"rouge bleu/bleue petit/petite< coloré/colorée*#2 cassé/cassée* perdu/perdue*#1 oublié/oubliée*#2 troué/trouée*#3 percé/percée*#3"},
+    jeux:{n:"|bouée ballon| |pelle seau|", a:"rouge bleu/bleue petit/petite< coloré/colorée*#2 cassé/cassée* perdu/perdue*#1 oublié/oubliée*#2 troué/trouée*#3@!pelle percé/percée*#3@!pelle"},
     oeufsmer:{n:"œuf|", a:"petit/petite< blanc/blanche caché/cachée*#2 pondu/pondue*#3"}
   },
   verbes:[
@@ -965,9 +965,9 @@ const SCENES_DATA = [
   cdn:["du zoo|de la réserve|du parc","des grands parcs|des réserves voisines"],
   groupes:{
     fauves:{n:"lion|lionne tigre|tigresse#3 |panthère#3 guépard|#4 léopard|#4", a:"puissant/puissante#3 affamé/affamée*#1 rapide#1 jeune<#2 majestueux/majestueuse#4 féroce#4 endormi/endormie* allongé/allongée*#2 blessé/blessée*#2 réveillé/réveillée*#2 enfermé/enfermée*#3 énervé/énervée*#3 agressif/agressive#4 agité/agitée*#3 effrayant/effrayante#3"},
-    grands:{n:"éléphant|éléphante#2 |girafe zèbre|#1 hippopotame|#3 rhinocéros|#4 crocodile|#3", a:"énorme#2 grand/grande< gros/grosse< lourd/lourde#2 calme#1 endormi/endormie* fatigué/fatiguée*#1 mouillé/mouillée*#1 affamé/affamée*#1 allongé/allongée*#2"},
+    grands:{n:"éléphant|éléphante#2 |girafe zèbre|#1 hippopotame|#3 rhinocéros|#4 crocodile|#3", a:"énorme#2@!zèbre grand/grande< gros/grosse< lourd/lourde#2@!zèbre calme#1 endormi/endormie* fatigué/fatiguée*#1 mouillé/mouillée*#1 affamé/affamée*#1 allongé/allongée*#2"},
     singes:{n:"singe|guenon#3 gorille|#2 chimpanzé|#3", a:"malin/maligne#3 joueur/joueuse#2 bruyant/bruyante#2 petit/petite< curieux/curieuse#2 affamé/affamée*#1 endormi/endormie*#1 caché/cachée*#2 perché/perchée*#3 amusé/amusée*#3 excité/excitée*#4"},
-    oiseauxzoo:{n:"perroquet|#2 |perruche#3 flamant|#4", a:"coloré/colorée*#2 rose endormi/endormie*#1 perché/perchée*#3 ébouriffé/ébouriffée*#3"},
+    oiseauxzoo:{n:"perroquet|#2 |perruche#3 flamant|#4", a:"coloré/colorée*#2 rose@flamant endormi/endormie*#1 perché/perchée*#3 ébouriffé/ébouriffée*#3"},
     visiteurs:{p:1, n:"soigneur|soigneuse#3 visiteur|visiteuse#3 vétérinaire=#4 enfant= photographe=#4", a:"attentif/attentive#3 prudent/prudente#3 émerveillé/émerveillée*#4 curieux/curieuse#2 fatigué/fatiguée* pressé/pressée*#2 étonné/étonnée*#3 ravi/ravie*#3 amusé/amusée*#3 impressionné/impressionnée*#4"}
   },
   objets:{
@@ -1010,13 +1010,13 @@ const SCENES_DATA = [
     clients:{p:1, n:"client|cliente#2", a:"pressé/pressée*#2 content/contente gourmand/gourmande#2 étonné/étonnée*#3 ravi/ravie*#3 satisfait/satisfaite*#4 déçu/déçue*#4"}
   },
   objets:{
-    patisseries:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |crêpe |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 chaud/chaude croustillant/croustillante#4 sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée* cuit/cuite*#1 décoré/décorée*#2 glacé/glacée*#3 brûlé/brûlée*#3 raté/ratée*#3 flambé/flambée*#4"},
+    patisseries:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |crêpe |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 chaud/chaude croustillant/croustillante#4@!gâteau sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée* cuit/cuite*#1 décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3 flambé/flambée*#4@gâteau@tarte@crêpe"},
     legumes:{n:"|tomate |carotte oignon|#2 poireau|#2 |courgette#3", a:"frais/fraîche gros/grosse< petit/petite< coupé/coupée* lavé/lavée*#1 cuit/cuite*#1 épluché/épluchée*#2 grillé/grillée*#3"},
-    fruits:{n:"|pomme |orange |fraise |banane |poire", a:"mûr/mûre juteux/juteuse#2 sucré/sucrée*#1 frais/fraîche coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2 écrasé/écrasée*#3"},
+    fruits:{n:"|pomme |orange |fraise |banane |poire", a:"mûr/mûre juteux/juteuse#2@!banane sucré/sucrée*#1 frais/fraîche coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2 écrasé/écrasée*#3"},
     epluchables:{n:"|pomme |orange |poire |banane", a:"mûr/mûre gros/grosse< coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2"},
     agrumes:{n:"citron|#2 |orange", a:"frais/fraîche gros/grosse< juteux/juteuse#2 coupé/coupée* pressé/pressée*#2"},
-    fours:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 croustillant/croustillante#4 petit/petite< gros/grosse< décoré/décorée*#2 glacé/glacée*#3 brûlé/brûlée*#3 raté/ratée*#3"},
-    vaisselle:{n:"|assiette verre| bol| |tasse plat|#2 |casserole#3", a:"propre#1 sale#1 lourd/lourde#2 fragile#3 grand/grande< cassé/cassée* lavé/lavée*#1 rangé/rangée*#2 essuyé/essuyée*#3 ébréché/ébréchée*#4 fendu/fendue*#3 sali/salie*#3 rempli/remplie*#2 vidé/vidée*#3"},
+    fours:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 croustillant/croustillante#4@!gâteau petit/petite< gros/grosse< décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3"},
+    vaisselle:{n:"|assiette verre| bol| |tasse plat|#2 |casserole#3", a:"propre#1 sale#1 lourd/lourde#2 fragile#3@!casserole grand/grande< cassé/cassée* lavé/lavée*#1 rangé/rangée*#2 essuyé/essuyée*#3 ébréché/ébréchée*#4 fendu/fendue*#3 sali/salie*#3 rempli/remplie*#2 vidé/vidée*#3"},
     pains:{n:"pain| |baguette", a:"croustillant/croustillante#4 chaud/chaude doré/dorée*#1 long/longue< coupé/coupée* cuit/cuite*#1 grillé/grillée*#3 tranché/tranchée*#3 brûlé/brûlée*#3"}
   },
   verbes:[
@@ -1043,7 +1043,7 @@ const SCENES_DATA = [
   lieux:"au stade|sur le terrain|dans le gymnase|sur la piste",
   cdn:["du club|de l'équipe|du village","des équipes voisines|de mes amis|des clubs voisins"],
   groupes:{
-    sportifs:{p:1, n:"joueur|joueuse#2 coureur|coureuse#3 champion|championne#3 athlète=#4 cycliste=#3 gardien|gardienne#3 débutant|débutante#3", a:"rapide#1 fort/forte#1 courageux/courageuse#3 agile#3 fatigué/fatiguée*#1 entraîné/entraînée*#4 jeune<#2 talentueux/talentueuse#4 blessé/blessée*#2 motivé/motivée*#3 concentré/concentrée*#3 ravi/ravie*#3 essoufflé/essoufflée*#4 épuisé/épuisée*#4 qualifié/qualifiée*#4 déçu/déçue*#4 ambitieux/ambitieuse#4"},
+    sportifs:{p:1, n:"joueur|joueuse#2 coureur|coureuse#3 champion|championne#3 athlète=#4 cycliste=#3 gardien|gardienne#3 débutant|débutante#3", a:"rapide#1 fort/forte#1 courageux/courageuse#3 agile#3 fatigué/fatiguée*#1 entraîné/entraînée*#4@!débutant jeune<#2 talentueux/talentueuse#4 blessé/blessée*#2 motivé/motivée*#3 concentré/concentrée*#3 ravi/ravie*#3 essoufflé/essoufflée*#4 épuisé/épuisée*#4 qualifié/qualifiée*#4@!débutant déçu/déçue*#4 ambitieux/ambitieuse#4"},
     nageurs:{p:1, n:"nageur|nageuse#2", a:"rapide#1 courageux/courageuse#3 fatigué/fatiguée*#1 mouillé/mouillée* essoufflé/essoufflée*#4 entraîné/entraînée*#4 épuisé/épuisée*#4"},
     public:{p:1, n:"spectateur|spectatrice#3 arbitre=#3 entraîneur|entraîneuse#4 supporter|#4", a:"enthousiaste#4 joyeux/joyeuse#2 nerveux/nerveuse#4 attentif/attentive#3 assis/assise*#1 étonné/étonnée*#3 ravi/ravie*#3 énervé/énervée*#3 déçu/déçue*#4 impressionné/impressionnée*#4"}
   },
@@ -1085,7 +1085,7 @@ const SCENES_DATA = [
     animauxville:{n:"pigeon| chien|chienne", a:"gris/grise petit/petite< affamé/affamée*#1 endormi/endormie*#1 mouillé/mouillée*#1 perdu/perdue*#2 abandonné/abandonnée*#3"}
   },
   objets:{
-    courrier:{n:"|lettre colis|#3 |carte journal>journaux|#3", a:"lourd/lourde#2 petit/petite< gros/grosse< envoyé/envoyée*#2 oublié/oubliée*#2 déchiré/déchirée*#2 plié/pliée*#2 reçu/reçue*#3 timbré/timbrée*#4"},
+    courrier:{n:"|lettre colis|#3 |carte journal>journaux|#3", a:"lourd/lourde#2@colis@journal petit/petite< gros/grosse<@colis@journal envoyé/envoyée*#2 oublié/oubliée*#2 déchiré/déchirée*#2 plié/pliée*#2 reçu/reçue*#3 timbré/timbrée*#4@!journal"},
     rues:{n:"|rue |place pont|#2 |avenue#3", a:"grand/grande< large#2 étroit/étroite#3 mouillé/mouillée*#1 animé/animée*#3 éclairé/éclairée*#3 ensoleillé/ensoleillée*#3 fleuri/fleurie*#3 illuminé/illuminée*#4 encombré/encombrée*#4 élargi/élargie*#4"},
     bus:{n:"bus| tramway|#4", a:"garé/garée*#1 arrêté/arrêtée*#3 rempli/remplie*#3"}
   },
@@ -1122,11 +1122,11 @@ const SCENES_DATA = [
     oiseauxjardin:{n:"merle| |mésange#3 moineau|#2 |pie", a:"petit/petite< noir/noire affamé/affamée*#1 mouillé/mouillée*#1 caché/cachée*#2 perché/perchée*#3"}
   },
   objets:{
-    plantes:{n:"|fleur |rose |tulipe#2 arbre| |salade#1 rosier|#3", a:"joli/jolie< jeune<#2 petit/petite< fragile#3 arrosé/arrosée*#2 fané/fanée*#2 planté/plantée*#3 odorant/odorante#4 coupé/coupée*#1 arraché/arrachée*#3 déraciné/déracinée*#4"},
+    plantes:{n:"|fleur |rose |tulipe#2 arbre| |salade#1 rosier|#3", a:"joli/jolie< jeune<#2 petit/petite< fragile#3 arrosé/arrosée*#2 fané/fanée*#2@!arbre planté/plantée*#3 odorant/odorante#4@fleur@rose@tulipe@rosier coupé/coupée*#1 arraché/arrachée*#3 déraciné/déracinée*#4"},
     graines:{n:"|graine", a:"petit/petite< séché/séchée*#2 semé/semée*#3"},
     outils:{n:"|pelle |bêche#4 râteau|#3 arrosoir|#2 |brouette#3 tuyau>tuyaux|#3", a:"lourd/lourde#2 neuf/neuve#2 petit/petite< cassé/cassée* abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2 rouillé/rouillée*#3 prêté/prêtée*#3"},
-    recolte:{n:"|tomate |fraise radis|#2 |courgette#3 haricot|#3", a:"mûr/mûre rouge frais/fraîche gros/grosse< coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2 ramassé/ramassée*#3 pourri/pourrie*#3"},
-    feuilles:{n:"|feuille |salade", a:"vert/verte tendre#2 jeune<#2 mouillé/mouillée*#1 abîmé/abîmée*#2 séché/séchée*#2 tombé/tombée*#2 fané/fanée*#2"},
+    recolte:{n:"|tomate |fraise radis|#2 |courgette#3 haricot|#3", a:"mûr/mûre@tomate@fraise rouge@tomate@fraise frais/fraîche gros/grosse< coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2 ramassé/ramassée*#3 pourri/pourrie*#3"},
+    feuilles:{n:"|feuille |salade", a:"vert/verte tendre#2 jeune<#2 mouillé/mouillée*#1 abîmé/abîmée*#2 séché/séchée*#2@!salade tombé/tombée*#2@!salade fané/fanée*#2"},
     pelouse:{n:"|pelouse", a:"mouillé/mouillée*#1 arrosé/arrosée*#2 tondu/tondue*#2 ensoleillé/ensoleillée*#3 ombragé/ombragée*#4"}
   },
   verbes:[
@@ -1157,7 +1157,7 @@ const SCENES_DATA = [
     boules:{n:"|boule+de_neige#1", a:"gros/grosse< petit/petite< fondu/fondue*#3 gelé/gelée*#3 tassé/tassée*#4"},
     igloos:{n:"igloo|#3 bonhomme>bonshommes|+de_neige#2", a:"grand/grande< petit/petite< décoré/décorée*#2 abîmé/abîmée*#2 fondu/fondue*#3 construit/construite*#4"},
     materielski:{n:"ski| |luge bâton|", a:"neuf/neuve#2 rouge long/longue< cassé/cassée* mouillé/mouillée*#1 abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2"},
-    vetements:{n:"|écharpe#3 bonnet| gant| anorak|#4", a:"chaud/chaude neuf/neuve#2 rouge mouillé/mouillée* perdu/perdue*#1 oublié/oubliée*#2 déchiré/déchirée*#2 troué/trouée*#3 tricoté/tricotée*#3"}
+    vetements:{n:"|écharpe#3 bonnet| gant| anorak|#4", a:"chaud/chaude neuf/neuve#2 rouge mouillé/mouillée* perdu/perdue*#1 oublié/oubliée*#2 déchiré/déchirée*#2 troué/trouée*#3 tricoté/tricotée*#3@!anorak"}
   },
   verbes:[
     "s'arrêter : skieurs ; l=au bord de la piste|devant le chalet",
@@ -1188,7 +1188,7 @@ const SCENES_DATA = [
     spectateurs:{p:1, n:"spectateur|spectatrice#3 enfant= invité|invitée#3", a:"émerveillé/émerveillée*#4 joyeux/joyeuse#2 attentif/attentive#3 ravi/ravie*#3 assis/assise*#1 étonné/étonnée*#3 amusé/amusée*#3 installé/installée*#3 impressionné/impressionnée*#4"}
   },
   objets:{
-    instruments:{n:"|guitare piano| tambour| |trompette#3 violon|#3 |flûte", a:"petit/petite< grand/grande< neuf/neuve#2 abîmé/abîmée*#2 oublié/oubliée*#2 décoré/décorée*#2 réparé/réparée*#3 accordé/accordée*#4 désaccordé/désaccordée*#4"},
+    instruments:{n:"|guitare piano| tambour| |trompette#3 violon|#3 |flûte", a:"petit/petite< grand/grande< neuf/neuve#2 abîmé/abîmée*#2 oublié/oubliée*#2 décoré/décorée*#2 réparé/réparée*#3 accordé/accordée*#4@guitare@piano@violon désaccordé/désaccordée*#4@guitare@piano@violon"},
     balles:{n:"|balle |quille#3 anneau|#3", a:"coloré/colorée*#2 petit/petite< perdu/perdue*#1 décoré/décorée*#2 peint/peinte*#3"},
     chansons:{n:"|chanson |mélodie#3", a:"joyeux/joyeuse#2 joli/jolie< triste#2 appris/apprise*#2 préféré/préférée*#2 connu/connue*#3 inventé/inventée*#3"},
     tours:{n:"tour|", a:"incroyable#4 étonnant/étonnante#4 réussi/réussie*#2 raté/ratée*#3 préparé/préparée*#3 applaudi/applaudie*#3 connu/connue*#3"}
@@ -1220,8 +1220,8 @@ const SCENES_DATA = [
   },
   objets:{
     jouets:{n:"jouet| |poupée ballon| puzzle|#3 |peluche#3 |toupie#4 jeu>jeux|#2 joujou>joujoux|#3", a:"neuf/neuve#2 petit/petite< joli/jolie< coloré/colorée*#2 cassé/cassée* perdu/perdue*#1 oublié/oubliée*#2 rangé/rangée*#2 abîmé/abîmée*#2 préféré/préférée*#2"},
-    livres:{n:"livre| conte|#3 |histoire#1 album|#2", a:"joli/jolie< passionnant/passionnante#4 drôle#1 abîmé/abîmée*#2 déchiré/déchirée*#2 préféré/préférée*#2 illustré/illustrée*#3 emprunté/empruntée*#3 connu/connue*#3 intéressant/intéressante#3 ennuyeux/ennuyeuse#4"},
-    linge:{n:"|chaussette |chemise pantalon|#2 pull| |jupe", a:"propre#1 sale#1 mouillé/mouillée*#3 lavé/lavée*#1 plié/pliée*#2 séché/séchée*#2 déchiré/déchirée*#2 repassé/repassée*#3 troué/trouée*#3 étendu/étendue*#3 froissé/froissée*#2 bleu/bleue"},
+    livres:{n:"livre| conte|#3 |histoire#1 album|#2", a:"joli/jolie< passionnant/passionnante#4 drôle#1 abîmé/abîmée*#2@livre@album@conte déchiré/déchirée*#2@livre@album@conte préféré/préférée*#2 illustré/illustrée*#3 emprunté/empruntée*#3@livre@album@conte connu/connue*#3 intéressant/intéressante#3 ennuyeux/ennuyeuse#4"},
+    linge:{n:"|chaussette |chemise pantalon|#2 pull| |jupe", a:"propre#1 sale#1 mouillé/mouillée*#3 lavé/lavée*#1 plié/pliée*#2 séché/séchée*#2 déchiré/déchirée*#2 repassé/repassée*#3@!chaussette troué/trouée*#3 étendu/étendue*#3 froissé/froissée*#2@!chaussette bleu/bleue"},
     photos:{n:"|photo", a:"joli/jolie< ancien/ancienne#3 abîmé/abîmée*#2 déchiré/déchirée*#2 oublié/oubliée*#2 encadré/encadrée*#3"},
     graines:{n:"|graine", a:"petit/petite< séché/séchée*#2"}
   },
@@ -1252,17 +1252,17 @@ const SCENES_DATA = [
   lieux:"dans la cour du château|sur les remparts|dans la grande salle|près du pont-levis|dans le donjon",
   cdn:["du château|du roi|du royaume|de la reine","des châteaux voisins|des royaumes voisins"],
   groupes:{
-    seigneurs:{p:1, n:"roi|reine prince|princesse chevalier|#2 seigneur|#3", a:"jeune<#2 courageux/courageuse#3 puissant/puissante#3 fier/fière#3 généreux/généreuse#4 élégant/élégante#4 fatigué/fatiguée* blessé/blessée*#2 armé/armée*#3 ravi/ravie*#3 couronné/couronnée*#4"},
+    seigneurs:{p:1, n:"roi|reine prince|princesse chevalier|#2 seigneur|#3", a:"jeune<#2 courageux/courageuse#3 puissant/puissante#3 fier/fière#3 généreux/généreuse#4 élégant/élégante#4 fatigué/fatiguée* blessé/blessée*#2 armé/armée*#3@chevalier@seigneur@roi@prince ravi/ravie*#3 couronné/couronnée*#4@roi@reine@prince@princesse"},
     serviteurs:{p:1, n:"garde=#2 |servante#3 forgeron|#3 cuisinier|cuisinière#2", a:"fidèle#2 attentif/attentive#3 habile#4 fatigué/fatiguée* occupé/occupée*#2 pressé/pressée*#2 chargé/chargée*#3"},
-    animauxchateau:{poss:1, n:"cheval>chevaux|jument#2 chien|chienne faucon|#4 dragon|#3", a:"grand/grande< noir/noire blanc/blanche rapide#1 fidèle#2 énorme#2 féroce#4 affamé/affamée*#1 dressé/dressée*#4 effrayé/effrayée*#3"}
+    animauxchateau:{poss:1, n:"cheval>chevaux|jument#2 chien|chienne faucon|#4 dragon|#3", a:"grand/grande< noir/noire blanc/blanche rapide#1 fidèle#2 énorme#2@!faucon féroce#4@!cheval affamé/affamée*#1 dressé/dressée*#4 effrayé/effrayée*#3"}
   },
   objets:{
     tresors:{n:"trésor| |couronne bijou>bijoux|#3 coffre|#2", a:"précieux/précieuse#3 brillant/brillante#2 lourd/lourde#2 ancien/ancienne#3 doré/dorée*#1 caché/cachée*#2 volé/volée*#3 perdu/perdue*#1"},
     armes:{n:"|épée bouclier| |lance#3 casque|#2 |armure#4", a:"lourd/lourde#2 brillant/brillante#2 neuf/neuve#2 solide#3 cassé/cassée* abîmé/abîmée*#2 décoré/décorée*#2 rouillé/rouillée*#3"},
-    banquet:{n:"gâteau|#1 |tarte |soupe pain| |galette#3 poulet|#2", a:"chaud/chaude délicieux/délicieuse#3 énorme#2 doré/dorée*#1 cuit/cuite*#1 grillé/grillée*#3"},
-    lettres:{n:"|lettre message|#2 |carte#2", a:"long/longue< court/courte#1 secret/secrète#3 important/importante#4 envoyé/envoyée*#2 déchiré/déchirée*#2 scellé/scellée*#4"},
+    banquet:{n:"gâteau|#1 |tarte |soupe pain| |galette#3 poulet|#2", a:"chaud/chaude délicieux/délicieuse#3 énorme#2@!soupe doré/dorée*#1@!soupe cuit/cuite*#1 grillé/grillée*#3@!soupe"},
+    lettres:{n:"|lettre message|#2 |carte#2", a:"long/longue<@!carte court/courte#1@!carte secret/secrète#3 important/importante#4 envoyé/envoyée*#2 déchiré/déchirée*#2 scellé/scellée*#4@lettre@message"},
     // ce que lisent les princes et les princesses (pas des lettres, demande de M. Guitton)
-    grimoires:{n:"livre| conte| |légende#2 parchemin|#3", a:"ancien/ancienne#2 long/longue< gros/grosse< précieux/précieuse#3 ouvert/ouverte*#2 illustré/illustrée*#3"}
+    grimoires:{n:"livre| conte| |légende#2 parchemin|#3", a:"ancien/ancienne#2 long/longue< gros/grosse<@!légende précieux/précieuse#3 ouvert/ouverte*#2 illustré/illustrée*#3"}
   },
   verbes:[
     "galoper : cheval jument ; l=dans la cour du château|près du pont-levis|le long des remparts",
@@ -1293,7 +1293,7 @@ const SCENES_DATA = [
   },
   objets:{
     cadeaux:{n:"cadeau|#1 |surprise#2 paquet|#2 |boîte", a:"gros/grosse< petit/petite< joli/jolie< mystérieux/mystérieuse#4 caché/cachée*#2 décoré/décorée*#2 emballé/emballée*#3 attendu/attendue*#4 choisi/choisie*#2"},
-    gourmandises:{n:"gâteau|#1 |tarte |crêpe bonbon| |glace#2 biscuit|#1", a:"délicieux/délicieuse#3 énorme#2 sucré/sucrée*#1 coupé/coupée* décoré/décorée*#2 glacé/glacée*#3"},
+    gourmandises:{n:"gâteau|#1 |tarte |crêpe bonbon| |glace#2 biscuit|#1", a:"petit/petite< délicieux/délicieuse#3 énorme#2 sucré/sucrée*#1 coupé/coupée*@!bonbon décoré/décorée*#2@!bonbon glacé/glacée*#3@!bonbon@!glace"},
     bougies:{n:"|bougie#2", a:"petit/petite< coloré/colorée*#2 allumé/allumée*#2 éteint/éteinte*#3"},
     ballons:{n:"ballon|", a:"rouge bleu/bleue gros/grosse< coloré/colorée*#2 gonflé/gonflée*#2 crevé/crevée*#3"},
     guirlandes:{n:"|guirlande#3", a:"long/longue< lumineux/lumineuse#4 coloré/colorée*#2 accroché/accrochée*#3"}
@@ -1327,10 +1327,10 @@ const SCENES_DATA = [
     acheteurs:{p:1, n:"client|cliente#2 passant|passante#3 habitant|habitante#4 enfant=", a:"content/contente curieux/curieuse#2 hésitant/hésitante#4 pressé/pressée*#2 chargé/chargée*#3 ravi/ravie*#3 satisfait/satisfaite*#4"}
   },
   objets:{
-    fleursmarche:{n:"|fleur |rose |tulipe#2 bouquet|#2 |marguerite#3", a:"joli/jolie< frais/fraîche coupé/coupée* fané/fanée*#2 cueilli/cueillie*#2 parfumé/parfumée*#3 emballé/emballée*#3"},
-    fromages:{n:"fromage|#2 yaourt|#3", a:"frais/fraîche crémeux/crémeuse#4 coupé/coupée* emballé/emballée*#3 affiné/affinée*#4 râpé/râpée*#2"},
+    fleursmarche:{n:"|fleur |rose |tulipe#2 bouquet|#2 |marguerite#3", a:"joli/jolie< frais/fraîche coupé/coupée* fané/fanée*#2 cueilli/cueillie*#2@!bouquet parfumé/parfumée*#3 emballé/emballée*#3"},
+    fromages:{n:"fromage|#2 yaourt|#3", a:"frais/fraîche crémeux/crémeuse#4 coupé/coupée*@fromage emballé/emballée*#3 affiné/affinée*#4@fromage râpé/râpée*#2@fromage"},
     marchepoissons:{n:"poisson| |sardine#3 |crevette#2", a:"frais/fraîche petit/petite< gros/grosse< pêché/pêchée*#2 emballé/emballée*#3"},
-    primeurs:{n:"|pomme |poire |orange |carotte |tomate melon|#2 |courgette#3", a:"mûr/mûre frais/fraîche juteux/juteuse#2 sucré/sucrée*#1 lavé/lavée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2 pesé/pesée*#3 pourri/pourrie*#2"},
+    primeurs:{n:"|pomme |poire |orange |carotte |tomate melon|#2 |courgette#3", a:"mûr/mûre@!carotte@!courgette frais/fraîche juteux/juteuse#2@!carotte@!courgette sucré/sucrée*#1@!carotte@!courgette lavé/lavée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2 pesé/pesée*#3 pourri/pourrie*#2"},
     paniers:{n:"panier| |caisse#3 sac| |cagette#4", a:"lourd/lourde#2 plein/pleine#1 vide#1 rempli/remplie*#3 chargé/chargée*#3 percé/percée*#3 renversé/renversée*#4"}
   },
   verbes:[
@@ -1356,7 +1356,7 @@ const SCENES_DATA = [
   groupes:{
     voyageurs:{p:1, n:"voyageur|voyageuse#3 passager|passagère#4 touriste=#3 enfant=", a:"joyeux/joyeuse#2 impatient/impatiente#4 fatigué/fatiguée* pressé/pressée*#2 assis/assise*#1 endormi/endormie*#1 perdu/perdue*#2 chargé/chargée*#3 installé/installée*#3"},
     cheminots:{p:1, n:"contrôleur|contrôleuse#4 conducteur|conductrice#3", a:"souriant/souriante#2 attentif/attentive#3 aimable#3 pressé/pressée*#2 occupé/occupée*#2"},
-    trains:{n:"train| |locomotive#3 wagon|#3", a:"rapide#1 long/longue< lent/lente#2 vide#1 plein/pleine#1 arrêté/arrêtée*#3 rempli/remplie*#3 retardé/retardée*#4"}
+    trains:{n:"train| |locomotive#3 wagon|#3", a:"rapide#1 long/longue<@train@wagon lent/lente#2 vide#1@train@wagon plein/pleine#1@train@wagon arrêté/arrêtée*#3 rempli/remplie*#3@train@wagon retardé/retardée*#4@train"}
   },
   objets:{
     bagages:{n:"|valise sac| bagage|#3 |sacoche#4", a:"lourd/lourde#2 gros/grosse< petit/petite< neuf/neuve#2 fermé/fermée*#2 oublié/oubliée*#2 perdu/perdue*#1 rempli/remplie*#3 étiqueté/étiquetée*#4"},
@@ -1428,7 +1428,7 @@ const SCENES_DATA = [
   },
   objets:{
     oeuvres:{n:"tableau| |statue |sculpture |peinture |photographie#3 portrait|#3", a:"célèbre#2 magnifique#2 grand/grande< petit/petite< joli/jolie< précieux/précieuse#3 fragile#3 exposé/exposée*#3 protégé/protégée*#3 restauré/restaurée*#4 coloré/colorée*#3"},
-    salles:{n:"|salle |galerie |exposition", a:"grand/grande< petit/petite< joli/jolie< vaste#3 lumineux/lumineuse#3 silencieux/silencieuse#2 éclairé/éclairée*#3 rénové/rénovée*#4"}
+    salles:{n:"|salle |galerie |exposition", a:"grand/grande< petit/petite< joli/jolie< vaste#3 lumineux/lumineuse#3 silencieux/silencieuse#2 éclairé/éclairée*#3 rénové/rénovée*#4@!exposition"}
   },
   verbes:[
     "admirer : visiteurs ; O=oeuvres ; l=dans la galerie|dans la grande salle|dans le musée",
@@ -1500,7 +1500,7 @@ const SCENES_DATA = [
     artisans:{p:1, n:"menuisier|menuisière#2 mécanicien|mécanicienne#2 ouvrier|ouvrière maçon|maçonne#3 peintre=#3 électricien|électricienne#4", a:"courageux/courageuse patient/patiente#2 soigneux/soigneuse#3 appliqué/appliquée*#2 occupé/occupée*#2 concentré/concentrée*#3 fatigué/fatiguée* habile#3 sérieux/sérieuse#3 pressé/pressée*#2 souriant/souriante#2 expérimenté/expérimentée*#4 petit/petite< grand/grande<"}
   },
   objets:{
-    meubles:{n:"|chaise |table |étagère |armoire banc| tabouret|", a:"petit/petite< grand/grande< joli/jolie< solide#2 lourd/lourde#2 neuf/neuve#2 carré/carrée#3 rond/ronde#3 cassé/cassée*#2 abîmé/abîmée*#2 terminé/terminée*#3 fabriqué/fabriquée*#3"},
+    meubles:{n:"|chaise |table |étagère |armoire banc| tabouret|", a:"petit/petite< grand/grande< joli/jolie< solide#2 lourd/lourde#2 neuf/neuve#2 carré/carrée#3@table@tabouret rond/ronde#3@table@tabouret cassé/cassée*#2 abîmé/abîmée*#2 terminé/terminée*#3 fabriqué/fabriquée*#3"},
     outils:{n:"marteau>marteaux| |scie tournevis| |pince |perceuse pinceau>pinceaux|", a:"petit/petite< gros/grosse< grand/grande< neuf/neuve#2 lourd/lourde#2 léger/légère#2 solide#2 pratique#2 rouillé/rouillée*#3 prêté/prêtée*#3 perdu/perdue*#2 rangé/rangée*#2 nettoyé/nettoyée*#3 posé/posée*#3"},
     planches:{n:"|planche |poutre", a:"long/longue< gros/grosse< épais/épaisse#2 fin/fine#2 lourd/lourde#2 sec/sèche#2 lisse#3 cassé/cassée*#2 abîmé/abîmée*#2 rangé/rangée*#2 posé/posée*#3 empilé/empilée*#3"},
     murs:{n:"mur| |clôture |barrière", a:"grand/grande< petit/petite< blanc/blanche bleu/bleue vert/verte jaune gris/grise neuf/neuve#2 solide#2 haut/haute#2 abîmé/abîmée*#2 cassé/cassée*#2 terminé/terminée*#3 réparé/réparée*#3"},
@@ -1542,7 +1542,7 @@ const SCENES_DATA = [
     ciel:{n:"nuage| |étoile", a:"petit/petite< grand/grande< gros/grosse< blanc/blanche lointain/lointaine#3 isolé/isolée*#3 caché/cachée*#2 doré/dorée*#3"},
     chutes:{n:"flocon| |goutte", a:"petit/petite< gros/grosse< froid/froide#2 brillant/brillante#2 léger/légère#3 isolé/isolée*#3 gelé/gelée*#3"},
     vegetaux:{n:"|feuille |fleur", a:"petit/petite< grand/grande< joli/jolie< jaune rouge frais/fraîche#2 fané/fanée*#3 séché/séchée*#3 mouillé/mouillée*#2 coloré/colorée*#3"},
-    eaux:{n:"|rivière ruisseau>ruisseaux| |vague", a:"petit/petite< grand/grande< long/longue< calme#2 tranquille#2 froid/froide#2 bruyant/bruyante#3 agité/agitée*#3 rapide#2"},
+    eaux:{n:"|rivière ruisseau>ruisseaux| |vague", a:"petit/petite< grand/grande< long/longue< calme#2@!vague tranquille#2@!vague froid/froide#2 bruyant/bruyante#3 agité/agitée*#3 rapide#2"},
     meteo:{n:"vent| |pluie |neige", a:"doux/douce#2 froid/froide#2 léger/légère#2 glacé/glacée*#3 soudain/soudaine#4"}
   },
   objets:{
@@ -1631,12 +1631,22 @@ function lireNom(tok){
   if(b){ const [s,p]=b.split('>'); n.fs=s; n.fp=p||pluriel(s); }
   return n;
 }
+// « croquant/croquante#2@!citrouille » : réservé aux noms cités (@nom) ou interdit à certains noms (@!nom) du groupe
 function lireAdj(tok){
+  let seulement=null, sauf=null; const ia=tok.indexOf('@');
+  if(ia>=0){ const r=tok.slice(ia+1).split('@'); tok=tok.slice(0,ia); seulement=r.filter(x=>x[0]!=='!'); sauf=r.filter(x=>x[0]==='!').map(x=>x.slice(1)); if(!seulement.length) seulement=null; }
   let [t,niv]=lireNiveau(tok);
   const pp=t.includes('*'); t=t.replace('*','');          // * = participe passé employé comme adjectif
   const av=t.endsWith('<'); if(av) t=t.slice(0,-1);
   const [ms,fs0]=t.split('/'); const fs=fs0||ms;
-  return {ms,fs,mp:/(eau)$/.test(ms)?ms+'x':(/[sx]$/.test(ms)?ms:ms+'s'),fp:fs+'s',pos:av?'av':'ap',niv,pp};
+  return {ms,fs,mp:/(eau)$/.test(ms)?ms+'x':(/[sx]$/.test(ms)?ms:ms+'s'),fp:fs+'s',pos:av?'av':'ap',niv,pp,seulement,sauf};
+}
+// cet adjectif va-t-il avec ce nom ? (sans étiquette : avec tous les noms du groupe)
+const nomCite = (n,x) => n.ms===x || n.fs===x;
+const adjVaAvecNom = (a,n) => (!a.seulement || a.seulement.some(x=>nomCite(n,x))) && !(a.sauf && a.sauf.some(x=>nomCite(n,x)));
+// contrôle des données : un nom cité qui n'existe pas dans le groupe est sans doute une faute de frappe
+function verifierNomsCites(lieu,noms,adjs){
+  adjs.forEach(a=>[...(a.seulement||[]),...(a.sauf||[])].forEach(x=>{ if(!noms.some(n=>nomCite(n,x))) console.warn('Adjectif '+a.ms+' : nom inconnu « '+x+' » dans '+lieu); }));
 }
 const lireAdjs = s => s ? s.split(/\s+/).filter(Boolean).map(lireAdj) : [];
 const AUX_ETRE = new Set(['naître','repartir','ressortir','remonter','redescendre','arriver','partir','sortir','entrer','rentrer','tomber','rester','monter','descendre','venir','revenir','aller','retourner','passer']);   // passer : « le train est passé » (sans complément)
@@ -1686,13 +1696,15 @@ function chargerLexique(){
     Object.entries(sd.groupes).forEach(([k,g])=>{
       const adjs=lireAdjs(g.a);
       const noms=g.n.split(/\s+/).filter(Boolean).map(lireNom);
-      noms.forEach(n=>{ n.adjs=adjs; n.t=g.p?'p':'a'; n.poss=!!g.poss; n.groupe=k; n.scene=sc.id; TOUS_NOMS.push(n); });
+      noms.forEach(n=>{ n.adjs=adjs.filter(a=>adjVaAvecNom(a,n)); n.t=g.p?'p':'a'; n.poss=!!g.poss; n.groupe=k; n.scene=sc.id; TOUS_NOMS.push(n); });
+      verifierNomsCites(sc.id+'/'+k,noms,adjs);
       sc.groupes[k]={noms,adjs,personnes:!!g.p};
     });
     Object.entries(sd.objets).forEach(([k,o])=>{
       const adjs=lireAdjs(o.a);
       const noms=o.n.split(/\s+/).filter(Boolean).map(lireNom);
-      noms.forEach(n=>{ n.adjs=adjs; n.t='o'; n.poss=!OBJETS_SANS_POSS.has(k); n.scene=sc.id; TOUS_NOMS.push(n); });   // pas de « ta crevette pêchée »
+      noms.forEach(n=>{ n.adjs=adjs.filter(a=>adjVaAvecNom(a,n)); n.t='o'; n.poss=!OBJETS_SANS_POSS.has(k); n.scene=sc.id; TOUS_NOMS.push(n); });   // pas de « ta crevette pêchée »
+      verifierNomsCites(sc.id+'/'+k,noms,adjs);
       sc.objets[k]={noms,adjs};
     });
     sd.verbes.forEach(ligne=>{
@@ -1858,6 +1870,25 @@ const genresPossibles = nom => [nom.ms&&'m', nom.fs&&'f'].filter(Boolean);
 // le genre ne se voit pas, ce qui trouble les plus jeunes (demande de M. Guitton)
 const ok = (x,niv) => x.niv<=niv && !(x.epicene && niv<3);
 
+// Deux adjectifs ensemble : jamais de contraires (« petit et énorme »), jamais deux adjectifs qui disent à peu près la même chose (« content et ravi »).
+// Format « a:b c d » = a ne va pas avec b, c, d ; les familles « a b c » = deux à deux. Tout le reste reste permis (associations originales comprises).
+const ADJ_CONTRAIRES = `petit:grand gros énorme vaste|minuscule:grand gros énorme vaste|long:court|large:étroit|épais:fin|gros:fin
+calme:bruyant agité énervé excité agressif féroce nerveux dissipé impatient|tranquille:agité bruyant apeuré effrayé énervé nerveux
+sage:dissipé agité bavard|attentif:distrait|concentré:distrait|studieux:dissipé|sérieux:drôle joueur dissipé|drôle:ennuyeux triste
+endormi:réveillé agité énervé excité essoufflé bruyant joueur affairé|content:triste déçu|joyeux:triste déçu|ravi:déçu|souriant:déçu triste|satisfait:déçu|amusé:ennuyeux
+frais:pourri cuit séché fané abîmé|mûr:pourri|sec:mouillé trempé|mouillé:séché tondu|propre:sale sali|lavé:sale sali|nettoyé:sale sali
+neuf:abîmé cassé déchiré rouillé cabossé ancien|plein:vide vidé|rempli:vide vidé|chargé:vide|ouvert:fermé|allumé:éteint
+gelé:chaud fondu brûlant|chaud:froid glacé gelé|doux:froid glacé|froid:brûlant|cassé:réparé|rangé:perdu oublié|réussi:raté refusé
+construit:écroulé|solide:cassé fragile abîmé écroulé|rapide:lent|léger:lourd|agile:lent|vif:lent|assis:allongé accroupi|courageux:peureux apeuré effrayé
+silencieux:bruyant bavard|facile:difficile compliqué|passionnant:ennuyeux|caché:exposé affiché|énorme:gros grand vaste minuscule`;
+const ADJ_REDONDANTS = `apeuré effrayé peureux|fatigué épuisé|content ravi satisfait joyeux|agité énervé excité nerveux dissipé|agressif féroce
+soigneux soigné appliqué organisé|difficile compliqué|cassé abîmé déchiré ébréché fendu cabossé troué percé crevé écroulé
+lavé nettoyé essuyé|mouillé trempé|séché sec|cueilli ramassé|perdu oublié|cuit grillé brûlé flambé|froid glacé gelé frigorifié|chaud brûlant|petit minuscule`;
+const ADJ_INCOMPAT = (() => { const m=new Map(), lie=(a,b)=>{ if(!m.has(a)) m.set(a,new Set()); m.get(a).add(b); if(!m.has(b)) m.set(b,new Set()); m.get(b).add(a); };
+  ADJ_CONTRAIRES.split(/[|\n]/).forEach(l=>{ const [a,reste]=l.split(':'); reste.split(' ').forEach(b=>lie(a,b)); });
+  ADJ_REDONDANTS.split(/[|\n]/).forEach(l=>{ const f=l.split(' '); f.forEach((a,i)=>f.slice(i+1).forEach(b=>lie(a,b))); });
+  return m; })();
+const adjIncompatibles = (x,y) => !!(ADJ_INCOMPAT.get(x) && ADJ_INCOMPAT.get(x).has(y));
 function choisirAdjs(niv,nom,o){
   const dispo = nom.adjs.filter(a=>ok(a,niv) && !(nom.suffixe && a.pos==='ap'));
   if(!dispo.length) return [];
@@ -1872,12 +1903,12 @@ function choisirAdjs(niv,nom,o){
   const p1 = o.adjObligatoire ? 1 : (o.objet ? 0.45 : [0.5,0.55,0.6,0.6,0.6][niv]);
   if(chance(p1)){ const a1=tirer(dispo) || (o.adjObligatoire ? hasard(dispo) : null); if(a1) res.push(a1); }
   if(res.length && niv>=2 && !o.objet && chance(0.25)){
-    const autre = dispo.filter(a=>a.pos!==res[0].pos && !(a.pp && res[0].pp));
+    const autre = dispo.filter(a=>a.pos!==res[0].pos && !(a.pp && res[0].pp) && !adjIncompatibles(a.ms,res[0].ms));
     const a2=autre.length && tirer(autre); if(a2) res.push(a2);
   }
   // dès le CE2 : deux adjectifs après le nom, reliés par « et » (« des fruits mûrs et sucrés »)
   if(niv>=2 && res.length===1 && res[0].pos==='ap' && chance(0.2)){
-    const autre = dispo.filter(a=>a.pos==='ap' && a!==res[0] && !(a.pp && res[0].pp) && !enCommun(a.ms,res[0].ms));
+    const autre = dispo.filter(a=>a.pos==='ap' && a!==res[0] && !(a.pp && res[0].pp) && !enCommun(a.ms,res[0].ms) && !adjIncompatibles(a.ms,res[0].ms));
     if(autre.length) res.push(hasard(autre));
   }
   return res;
@@ -2232,7 +2263,7 @@ function faireRecette(R){
     sp.etat=tirage([['être',5],['sembler',2],['paraître',1],['rester',1]]);
     // le sujet n'a ni l'état qu'on lui attribue, ni un état qui contredit l'action (« les lapins cachés qui sautent »)
     const IMMO=['endormi','allongé','attaché','enfermé','accroupi','perché','posé','échoué','assis','installé','caché','arrêté','blessé','garé'];
-    sp.sujet.adjs=sp.sujet.adjs.filter(a=>a.ms!==sp.attribut.ms && !IMMO.includes(a.ms) && !enCommun(a.ms,v2.inf.slice(0,-2))).slice(0,1);   // un seul adjectif : la phrase est déjà longue
+    sp.sujet.adjs=sp.sujet.adjs.filter(a=>a.ms!==sp.attribut.ms && !adjIncompatibles(a.ms,sp.attribut.ms) && !IMMO.includes(a.ms) && !enCommun(a.ms,v2.inf.slice(0,-2))).slice(0,1);   // un seul adjectif : la phrase est déjà longue
     const radR=v2.inf.replace(/(er|ir|re)$/,'');
     if(radR.length>3 && (nom.ms||nom.fs||'').startsWith(radR.slice(0,6))) return faireRecette(R);
     // dans la relative : un complément d'objet ou un lieu
@@ -2264,7 +2295,7 @@ function faireRecette(R){
     sp.etat=tirage([['être',5],['sembler',1.5]]);
     // pas d'adjectif qui redit le verbe ou l'état, pas de participe (« les carottes lavées que Léa a épluchées »)
     const rad=v2.inf.replace(/(er|ir|re)$/,'');
-    sp.sujet.adjs=sp.sujet.adjs.filter(a=>!a.pp && !OBJ_ETATS.has(a.ms) && !(rad.length>=3 && a.ms.startsWith(rad))).slice(0,1);   // ni état (« les caisses pleines … semblaient vides »), ni participe
+    sp.sujet.adjs=sp.sujet.adjs.filter(a=>!a.pp && !OBJ_ETATS.has(a.ms) && !adjIncompatibles(a.ms,sp.attribut.ms) && !(rad.length>=3 && a.ms.startsWith(rad))).slice(0,1);   // ni état (« les caisses pleines … semblaient vides »), ni participe
     if(OBJET_UNIQUE.has(nom.fs||nom.ms)){ sp.sujet.n='s'; if(!/^pos/.test(sp.sujet.det)) sp.sujet.det='def'; }
     // celui qui agit : un prénom ou un groupe nominal défini
     const sujets=sujetsOk(v2,niv).filter(n=>n.groupe!==nom.groupe || !nom.groupe);
@@ -2286,7 +2317,7 @@ function faireRecette(R){
     // un champion est déjà agile, rapide… : pas de « les champions deviennent agiles »
     if(sp.etat==='devenir' && /^(champion|athlète)/.test(nom.ms||nom.fs)) sp.etat='être';
     const pris=sp.sujet.adjs.map(a=>a.ms);
-    sp.attribut=hasard(nom.adjs.filter(a=>attrOk(a) && !pris.includes(a.ms)));
+    sp.attribut=hasard(nom.adjs.filter(a=>attrOk(a) && !pris.includes(a.ms) && !pris.some(p=>adjIncompatibles(a.ms,p))));
     if(!sp.attribut) return faireRecette(R);
     // au passé simple : un changement (devint, resta, parut…) plutôt que « fut », et pas de « soudain » devant un état
     if(sp.temps==='ps' && sp.etat==='être' && chance(0.6)) sp.etat=hasard(['devenir','rester','paraître','sembler']);
@@ -2410,7 +2441,7 @@ function faireRecette(R){
     // dès le CM1 : un adjectif détaché en tête de phrase, qui dit l'état du sujet (« Fatigués, les soldats… »)
     if(niv>=3 && R.doms.adj && struct==='simple' && sp.sujet.kind==='gn' && R.mode!=='bonsujet' && chance(0.18)){
       const pris=sp.sujet.adjs.map(a=>a.ms), immobile=!sp.objet;   // un sujet « endormi » ne court pas
-      const l=sp.sujet.nom.adjs.filter(a=>a.pos==='ap' && ok(a,niv) && !pris.includes(a.ms) && (a.pp || ATTR_ETATS.has(a.ms))
+      const l=sp.sujet.nom.adjs.filter(a=>a.pos==='ap' && ok(a,niv) && !pris.includes(a.ms) && !pris.some(p=>adjIncompatibles(a.ms,p)) && (a.pp || ATTR_ETATS.has(a.ms))
         && !(IMMOBILE_TETE.includes(a.ms)));
       if(l.length){ sp.detache=hasard(l); sp.sujet.adjs=[];   // le sujet n'a pas d'autre adjectif (« Réveillés, les papas fatigués » se contredit)
         if(sp.tempoDebut) sp.tempoDebut=false; if(DEBUT_SEUL.has(sp.tempo)) sp.tempo=null; }
