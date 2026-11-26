@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.24</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.25</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1495,7 +1495,7 @@ const SCENES_DATA = [
 
 { id:'atelier',
   lieux:"dans l'atelier|au garage|sur le chantier|dans la cour|devant la maison",
-  cdn:["du quartier|du village|de la ville","de nos voisins|des villages voisins|des environs"],
+  cdn:["du quartier|du village|de la ville","des villages voisins|des environs|des quartiers voisins"],   // pas « l'ouvrière de nos voisins »
   groupes:{
     artisans:{p:1, n:"menuisier|menuisière#2 mécanicien|mécanicienne#2 ouvrier|ouvrière maçon|maçonne#3 peintre=#3 électricien|électricienne#4", a:"courageux/courageuse patient/patiente#2 soigneux/soigneuse#3 appliqué/appliquée*#2 occupé/occupée*#2 concentré/concentrée*#3 fatigué/fatiguée* habile#3 sérieux/sérieuse#3 pressé/pressée*#2 souriant/souriante#2 expérimenté/expérimentée*#4 petit/petite< grand/grande<"}
   },
@@ -1878,7 +1878,10 @@ const INCOMPAT_SUJET = [
 // adjectifs de l'objet qui contredisent le verbe : [verbes, adjectifs]
 const INCOMPAT_OBJET = [
   [['souffler'],['éteint']], [['allumer'],['allumé']], [['oublier'],['perdu','oublié']],
-  [['manger','grignoter','picorer','brouter','goûter'],['abîmé','écrasé','pourri','cassé','déchiré']]];
+  [['manger','grignoter','picorer','brouter','goûter'],['abîmé','écrasé','pourri','cassé','déchiré']],
+  [['porter','utiliser','nettoyer','ranger'],['perdu']],            // « elle portait les pinces perdues »
+  [['scier','poncer','clouer','fabriquer'],['posé','empilé']],       // « elle sciait des poutres posées »
+  [['poser'],['posé']]];
 const verbeAdjIncompat = (table,inf,ms) => table.some(([v,a])=>v.includes(inf) && a.includes(ms));
 // « pressé, occupé, essoufflé, affairé » : on les accepte seulement avec un verbe de déplacement, d'effort ou de travail
 // (liste blanche : « un facteur pressé arrivait », mais pas « un campeur pressé chantait »)
