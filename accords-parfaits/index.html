@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.21</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.22</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1913,7 +1913,7 @@ function validerRecette(sp){
 // remplace ou retire sur place ce que validerRecette a repéré
 function corrigerRecette(sp){
   const inf=sp.verbe && sp.verbe.inf;
-  if(sp.tempo && tempoIncompat(sp,sp.tempo)){ sp.tempo=choisirTempo(sp); if(!sp.tempo) sp.tempoDebut=false; }
+  if(sp.tempo && tempoIncompat(sp,sp.tempo)){ sp.tempo=choisirTempo(sp); if(!sp.tempo) sp.tempoDebut=false; else if(DEBUT_SEUL.has(sp.tempo) && !sp.detache) sp.tempoDebut=true; }
   if(inf){
     retirerAdjs(sp.sujet,a=>verbeAdjIncompat(INCOMPAT_SUJET,inf,a.ms));
     if(sp.detache && verbeAdjIncompat(INCOMPAT_SUJET,inf,sp.detache.ms)) sp.detache=null;
@@ -2516,8 +2516,10 @@ function faireRecetteBrute(R){
                if(l.length){ sp.cdn=hasard(l); sp.piege=sp.cdn.split(' ').pop(); } }
       }
     }
-    if(chance([0.08,0.15,0.25,0.25,0.25][niv])){ sp.tempo=choisirTempo(sp);   // moins de compléments au CP et au CE1 sp.tempoDebut = DEBUT_SEUL.has(sp.tempo) || chance(0.5);
-      if(sp.lieu && (enCommun(sp.tempo,sp.lieu) || LIEU_TEMPOREL.test(sp.lieu))) sp.tempo=null; }
+    if(chance([0.08,0.15,0.25,0.25,0.25][niv])){ sp.tempo=choisirTempo(sp);   // moins de compléments au CP et au CE1
+      if(sp.lieu && (enCommun(sp.tempo,sp.lieu) || LIEU_TEMPOREL.test(sp.lieu))) sp.tempo=null;
+      // « Soudain, … » : certains compléments vont toujours en tête, les autres une fois sur deux
+      sp.tempoDebut = !!sp.tempo && (DEBUT_SEUL.has(sp.tempo) || chance(0.5)); }
     // dès le CE2, un peu moins d'une phrase sur dix est négative : « Les poules ne picorent pas les graines. »
     // (jamais « naître » ; l'objet est défini, pas de « ne … pas des graines »)
     if(niv>=2 && (struct==='simple'||struct==='multi') && sp.verbe.inf!=='naître' && chance(0.12)){
