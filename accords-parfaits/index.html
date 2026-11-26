@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.25</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.26</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -769,7 +769,8 @@ input,select{font-family:inherit}
 const SCENES_DATA = [
 { id:'ferme',
   lieux:"dans la cour de la ferme|près de l'étable|dans le pré|derrière la grange|au bord de la mare",
-  cdn:["de la ferme|du voisin|de la fermière|de mon grand-père","des voisins|de mes grands-parents|des fermiers"],
+  cdn:["de la ferme|~du voisin|~de la fermière|~de mon grand-père","~des voisins|~de mes grands-parents|~des fermiers|des fermes voisines"],
+  sansPoss:"fermiers",
   groupes:{
     volaille:{poss:1, n:"coq| poussin| |poule canard|cane |oie dindon|dinde#2", a:"petit/petite< affamé/affamée*#1 blanc/blanche bruyant/bruyante#2 curieux/curieuse#2 dodu/dodue#3 endormi/endormie*#1 mouillé/mouillée*#1 apeuré/apeurée*#3 ébouriffé/ébouriffée*#3"},
     betail:{poss:1, n:"|vache mouton| |chèvre cochon| cheval>chevaux|jument#2 âne|ânesse#3 veau|#2 agneau|#2 taureau|#3", a:"gros/grosse< grand/grande< calme#1 tranquille#2 affamé/affamée*#1 têtu/têtue#3 brun/brune noir/noire blanc/blanche robuste#4 endormi/endormie* fatigué/fatiguée*#1 mouillé/mouillée*#1 attaché/attachée*#2 apeuré/apeurée*#3"},
@@ -822,7 +823,8 @@ const SCENES_DATA = [
 
 { id:'ecole',
   lieux:"dans la classe|dans la cour de récréation|à la bibliothèque|dans le gymnase|dans le couloir",
-  cdn:["de la classe|de l'école|du village","des voisins|de mes cousins|de nos voisins"],
+  cdn:["de la classe|de l'école|du village","~des voisins|~de mes cousins|~de nos voisins|des écoles voisines"],
+  sansPoss:"adultes",
   groupes:{
     eleves:{p:1, poss:1, n:"élève= enfant= écolier|écolière#2 garçon|fille camarade=#3 copain|copine", a:"sage#1 attentif/attentive#3 curieux/curieuse#2 joyeux/joyeuse#2 bavard/bavarde#2 studieux/studieuse#4 petit/petite< grand/grande< concentré/concentrée*#3 sérieux/sérieuse#3 fatigué/fatiguée* assis/assise*#1 endormi/endormie*#1 appliqué/appliquée*#2 réveillé/réveillée*#2 puni/punie*#2 distrait/distraite*#3 dissipé/dissipée*#3 étonné/étonnée*#3 émerveillé/émerveillée*#4 travailleur/travailleuse#3 gentil/gentille#2 agité/agitée*#3"},
     adultes:{p:1, n:"maître|maîtresse#1 directeur|directrice#2 enseignant|enseignante#3 surveillant|surveillante#4", a:"patient/patiente#3 souriant/souriante#2 calme#1 pressé/pressée*#2 fatigué/fatiguée* occupé/occupée*#2 étonné/étonnée*#3 ravi/ravie*#3 satisfait/satisfaite*#4"}
@@ -1003,7 +1005,8 @@ const SCENES_DATA = [
 
 { id:'cuisine',
   lieux:"dans la cuisine|à la boulangerie|au marché|dans la salle à manger",
-  cdn:["de la boulangerie|du marché|du quartier","des voisins|de mes amis|du quartier"],
+  cdn:["de la boulangerie|du marché|du quartier","~des voisins|~de mes amis|du quartier"],
+  sansPoss:"cuisiniers clients",
   groupes:{
     cuisiniers:{p:1, n:"cuisinier|cuisinière#2 boulanger|boulangère#2 pâtissier|pâtissière#3 marchand|marchande#1", a:"habile#4 pressé/pressée*#2 souriant/souriante#2 attentif/attentive#3 fatigué/fatiguée* occupé/occupée*#2 appliqué/appliquée*#2 concentré/concentrée*#3 satisfait/satisfaite*#4"},
     famille:{p:1, poss:1, n:"papa|maman enfant= garçon|fille", a:"gourmand/gourmande#2 affamé/affamée*#1 pressé/pressée*#2 content/contente fatigué/fatiguée* assis/assise*#1 réveillé/réveillée*#2 installé/installée*#3 ravi/ravie*#3"},
@@ -1041,7 +1044,8 @@ const SCENES_DATA = [
 
 { id:'sport',
   lieux:"au stade|sur le terrain|dans le gymnase|sur la piste",
-  cdn:["du club|de l'équipe|du village","des équipes voisines|de mes amis|des clubs voisins"],
+  cdn:["du club|de l'équipe|du village","des équipes voisines|~de mes amis|des clubs voisins"],
+  sansPoss:"sportifs nageurs public",
   groupes:{
     sportifs:{p:1, n:"joueur|joueuse#2 coureur|coureuse#3 champion|championne#3 athlète=#4 cycliste=#3 gardien|gardienne#3 débutant|débutante#3", a:"rapide#1 fort/forte#1 courageux/courageuse#3 agile#3 fatigué/fatiguée*#1 entraîné/entraînée*#4@!débutant jeune<#2 talentueux/talentueuse#4 blessé/blessée*#2 motivé/motivée*#3 concentré/concentrée*#3 ravi/ravie*#3 essoufflé/essoufflée*#4 épuisé/épuisée*#4 qualifié/qualifiée*#4@!débutant déçu/déçue*#4 ambitieux/ambitieuse#4"},
     nageurs:{p:1, n:"nageur|nageuse#2", a:"rapide#1 courageux/courageuse#3 fatigué/fatiguée*#1 mouillé/mouillée* essoufflé/essoufflée*#4 entraîné/entraînée*#4 épuisé/épuisée*#4"},
@@ -1076,7 +1080,8 @@ const SCENES_DATA = [
 
 { id:'ville',
   lieux:"dans la rue|au carrefour|sur le trottoir|devant la mairie|dans le parc|près de la gare",
-  cdn:["de la ville|du quartier|de la mairie","des voisins|des grandes villes|des quartiers voisins"],
+  cdn:["de la ville|du quartier|de la mairie","~des voisins|des grandes villes|des quartiers voisins"],
+  sansPoss:"policiers citadins musiciens",
   groupes:{
     policiers:{p:1, n:"policier|policière#3", a:"attentif/attentive#3 prudent/prudente#3 souriant/souriante#2 fatigué/fatiguée* occupé/occupée*#2 pressé/pressée*#2 concentré/concentrée*#3"},
     citadins:{p:1, n:"passant|passante#3 facteur|factrice#3 piéton|piétonne#4 voisin|voisine habitant|habitante#4", a:"pressé/pressée*#2 prudent/prudente#3 souriant/souriante#2 distrait/distraite*#4 poli/polie#1 fatigué/fatiguée* mouillé/mouillée*#1 occupé/occupée*#2 perdu/perdue*#2 étonné/étonnée*#3 chargé/chargée*#3 essoufflé/essoufflée*#4"},
@@ -1113,7 +1118,8 @@ const SCENES_DATA = [
 
 { id:'jardin',
   lieux:"dans le jardin|dans le potager|près de la haie|sous le cerisier|dans la serre",
-  cdn:["du jardin|de la voisine|du potager","des voisins|de mes grands-parents"],
+  cdn:["du jardin|~de la voisine|du potager","~des voisins|~de mes grands-parents|des jardins voisins"],
+  sansPoss:"insectes rampants fourmis oiseauxjardin",
   groupes:{
     jardiniers:{p:1, poss:1, n:"jardinier|jardinière#3 papi|mamie enfant= voisin|voisine", a:"patient/patiente#3 soigneux/soigneuse#4 courageux/courageuse#3 fatigué/fatiguée* mouillé/mouillée*#1 occupé/occupée*#2 appliqué/appliquée*#2 ravi/ravie*#3 accroupi/accroupie*#4 courbé/courbée*#4"},
     insectes:{n:"|abeille papillon| |coccinelle |guêpe#3", a:"petit/petite< coloré/colorée*#2 rapide#1 endormi/endormie*#1 posé/posée*#2 caché/cachée*#2 affairé/affairée*#4"},
@@ -1421,7 +1427,8 @@ const SCENES_DATA = [
 
 { id:'musee',
   lieux:"dans le musée|dans la galerie|dans la grande salle|devant le tableau|à l'exposition",
-  cdn:["du village|de la ville|de l'école","des villages voisins|des écoles voisines|de nos voisins"],
+  cdn:["du village|de la ville|de l'école","des villages voisins|des écoles voisines|~de nos voisins"],
+  sansPoss:"personnel",
   groupes:{
     visiteurs:{p:1, n:"visiteur|visiteuse touriste=#3 enfant=#3 garçon|fille", a:"curieux/curieuse#2 attentif/attentive#3 silencieux/silencieuse#2 émerveillé/émerveillée*#4 étonné/étonnée*#3 fatigué/fatiguée* content/contente ravi/ravie*#3 intéressé/intéressée*#3 concentré/concentrée*#3 sage#1 petit/petite< grand/grande<"},
     personnel:{p:1, n:"guide=#3 gardien|gardienne#2 conférencier|conférencière#4", a:"aimable#2 souriant/souriante#2 patient/patiente#3 attentif/attentive#3 sérieux/sérieuse#3 occupé/occupée*#2 calme#2 fatigué/fatiguée* poli/polie#3 passionné/passionnée*#4"}
@@ -1452,7 +1459,8 @@ const SCENES_DATA = [
 
 { id:'camping',
   lieux:"au bord du lac|près du ruisseau|dans la clairière|sous les pins|au pied de la colline",
-  cdn:["de la colonie|du village|de l'école","des villages voisins|de mes cousins|de nos voisins"],
+  cdn:["de la colonie|du village|de l'école","des villages voisins|~de mes cousins|~de nos voisins"],
+  sansPoss:"moniteurs",
   groupes:{
     campeurs:{p:1, n:"campeur|campeuse randonneur|randonneuse scout|scoute#3 garçon|fille", a:"courageux/courageuse#2 prudent/prudente#2 patient/patiente#3 joyeux/joyeuse#1 content/contente fatigué/fatiguée* souriant/souriante#2 enthousiaste#3 essoufflé/essoufflée*#3 équipé/équipée*#3 trempé/trempée*#3 pressé/pressée*#2 petit/petite< grand/grande<"},
     moniteurs:{p:1, n:"moniteur|monitrice animateur|animatrice#2 guide=#3", a:"patient/patiente#3 souriant/souriante#2 attentif/attentive#3 sérieux/sérieuse#3 occupé/occupée*#2 pressé/pressée*#2 aimable#2 fatigué/fatiguée* calme#2"}
@@ -1536,7 +1544,7 @@ const SCENES_DATA = [
 
 { id:'nature',
   lieux:"dans le ciel|sur la ville|dans la vallée|sur la plaine|au-dessus de la forêt",
-  cdn:["de la vallée|de la montagne|du village","des montagnes voisines|des villages voisins|des environs"],
+  cdn:["de la vallée|de la montagne|du village","des montagnes voisines|des vallées voisines|des forêts voisines"],
   sansCdn:"vague goutte flocon étoile",   // « les vagues de la vallée » n'a pas de sens
   groupes:{
     ciel:{n:"nuage| |étoile", a:"petit/petite< grand/grande< gros/grosse< blanc/blanche lointain/lointaine#3 isolé/isolée*#3 caché/cachée*#2 doré/dorée*#3"},
@@ -1692,7 +1700,7 @@ const TOUS_VERBES = [];
 const TOUS_NOMS = [];      // pour le jeu « genre et nombre »
 function chargerLexique(){
   SCENES_DATA.forEach(sd=>{
-    const sc={id:sd.id, lieux:sd.lieux.split('|'), cdn:sd.cdn.map(x=>x.split('|')), sansCdn:new Set((sd.sansCdn||'').split(/\s+/).filter(Boolean)), groupes:{}, objets:{}, verbes:[]};
+    const sc={id:sd.id, lieux:sd.lieux.split('|'), cdn:sd.cdn.map(l=>l.split('|').map(c=>c.replace(/^~/,''))), possCdn:new Set(sd.cdn.join('|').split('|').filter(c=>c[0]==='~').map(c=>c.slice(1))), sansPoss:new Set((sd.sansPoss||'').split(/\s+/).filter(Boolean)), sansCdn:new Set((sd.sansCdn||'').split(/\s+/).filter(Boolean)), groupes:{}, objets:{}, verbes:[]};
     Object.entries(sd.groupes).forEach(([k,g])=>{
       const adjs=lireAdjs(g.a);
       const noms=g.n.split(/\s+/).filter(Boolean).map(lireNom);
@@ -1892,6 +1900,15 @@ const etatIncompat = (inf,ms) => verbeAdjIncompat(INCOMPAT_SUJET,inf,ms) || (ADJ
 // objet présenté pour la première fois : « elles prêtaient des règles », pas « les règles » (on ne les connaît pas encore)
 const VERBES_OBJET_NOUVEAU = new Set(['prêter','emprunter','offrir','apporter','acheter','vendre','cacher','oublier']);
 
+// compléments du nom permis pour ce nom (singulier : on prend la liste du pluriel, et inversement, pour l'exercice du piège)
+// un « ~ » devant un complément le marque comme possesseur (« de nos voisins ») ; les groupes de sansPoss n'en reçoivent pas :
+// « le policier de nos voisins », « l'abeille de mes cousins » n'ont pas de sens
+function cdnPour(sc,nom,n){
+  const l = n==='s' ? sc.cdn[1] : sc.cdn[0];
+  if(!(nom.groupe && sc.sansPoss.has(nom.groupe))) return l;
+  const sans=l.filter(c=>!sc.possCdn.has(c));
+  return sans.length ? sans : l;
+}
 // raison pour laquelle le complément de temps t ne va pas avec la phrase sp ('' s'il va)
 function tempoIncompat(sp,t){
   const c=TEMPO_CLASSE[t]; if(!c) return '';
@@ -2504,8 +2521,7 @@ function faireRecetteBrute(R){
   if(struct==='eloigne' && sp.sujet.kind==='gn' && FAMILLE.has(sp.sujet.nom.ms||sp.sujet.nom.fs)) return faireRecette(R);
   if(struct==='eloigne' && sp.sujet.kind==='gn' && sp.verbe.sc.sansCdn.has(sp.sujet.nom.ms||sp.sujet.nom.fs)) return faireRecette(R);   // « les vagues de la vallée » : sans sens
   if(struct==='eloigne' && sp.sujet.kind==='gn'){
-    const [cs,cp]=sp.verbe.sc.cdn;
-    const liste=(sp.sujet.n==='s'?cp:cs), propres=liste.filter(c=>!enCommun(c,formesGN(sp.sujet)));
+    const liste=cdnPour(sp.verbe.sc,sp.sujet.nom,sp.sujet.n), propres=liste.filter(c=>!enCommun(c,formesGN(sp.sujet)));
     sp.cdn = hasard(propres.length?propres:liste);
     if(!propres.length) sp.sujet.adjs=sp.sujet.adjs.filter(a=>!enCommun(a.ms+' '+a.fs,sp.cdn));
     sp.piege = sp.cdn.split(' ').pop();
@@ -2526,7 +2542,7 @@ function faireRecetteBrute(R){
         const autres=sp.verbe.lieux.filter(l=>!commun(l,sp.cdn));
         if(autres.length) sp.lieu=hasard(autres);
         else if(!BESOIN_LIEU.has(sp.verbe.inf)) sp.lieu=null;
-        else { const [cs,cp]=sp.verbe.sc.cdn, l=(sp.sujet.n==='s'?cp:cs).filter(c=>!commun(sp.lieu,c));
+        else { const l=cdnPour(sp.verbe.sc,sp.sujet.nom,sp.sujet.n).filter(c=>!commun(sp.lieu,c));
                if(l.length){ sp.cdn=hasard(l); sp.piege=sp.cdn.split(' ').pop(); } }
       }
     }
@@ -2838,7 +2854,7 @@ let SAC_BONS=[];
 // CM1-CM2 : parfois un complément du nom piège derrière un sujet (« le cousin des voisins ») ; jamais s'il répète le lieu de la phrase
 function avecComplement(sp,s,txt,p){
   if(sp.verbe && sp.verbe.sc && s.kind==='gn' && !FAMILLE.has(s.nom.ms||s.nom.fs) && !sp.verbe.sc.sansCdn.has(s.nom.ms||s.nom.fs) && chance(p)){
-    const [cs,cp]=sp.verbe.sc.cdn, l=(s.n==='s'?cp:cs).filter(c=>!enCommun(c,txt) && !memeRacine(txt,c) && !(sp.lieu && enCommun(c,sp.lieu)));
+    const l=cdnPour(sp.verbe.sc,s.nom,s.n).filter(c=>!enCommun(c,txt) && !memeRacine(txt,c) && !(sp.lieu && enCommun(c,sp.lieu)));
     if(l.length) return txt+' '+hasard(l);
   }
   return txt;
