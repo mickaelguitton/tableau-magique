@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.23</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.24</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -1880,6 +1880,14 @@ const INCOMPAT_OBJET = [
   [['souffler'],['éteint']], [['allumer'],['allumé']], [['oublier'],['perdu','oublié']],
   [['manger','grignoter','picorer','brouter','goûter'],['abîmé','écrasé','pourri','cassé','déchiré']]];
 const verbeAdjIncompat = (table,inf,ms) => table.some(([v,a])=>v.includes(inf) && a.includes(ms));
+// « pressé, occupé, essoufflé, affairé » : on les accepte seulement avec un verbe de déplacement, d'effort ou de travail
+// (liste blanche : « un facteur pressé arrivait », mais pas « un campeur pressé chantait »)
+const ADJ_URGENCE = new Set(['pressé','occupé','essoufflé','affairé']);
+const VERBES_EFFORT = new Set(['aller','arriver','partir','venir','revenir','rentrer','repartir','sortir','entrer','descendre','monter','redescendre','ressortir','retourner','passer','courir','traverser','dépêcher','approcher','fuir','sauter','sautiller','grimper','nager','pédaler','rouler','démarrer','freiner','galoper','glisser','skier','surfer','porter','emporter','apporter','ranger','préparer','travailler','vendre','acheter','emballer','distribuer','réparer','nettoyer','laver','fabriquer','construire','poncer','scier','clouer','peser','mesurer','vérifier','corriger','classer','remplir','cuisiner','cuire','écrire','copier','chercher','composter','conduire','attraper','arroser','planter','semer','tondre','récolter','cueillir','ramasser','éplucher','installer','dresser','mettre','poser','tirer','pousser','creuser','surveiller','soigner','nourrir','guider','aider','éloigner','échauffer','entraîner']);
+// l'état de ce sujet contredit-il l'action ? (deux sortes de règles : liste noire par verbe, liste blanche pour l'urgence)
+const etatIncompat = (inf,ms) => verbeAdjIncompat(INCOMPAT_SUJET,inf,ms) || (ADJ_URGENCE.has(ms) && !VERBES_EFFORT.has(inf));
+// objet présenté pour la première fois : « elles prêtaient des règles », pas « les règles » (on ne les connaît pas encore)
+const VERBES_OBJET_NOUVEAU = new Set(['prêter','emprunter','offrir','apporter','acheter','vendre','cacher','oublier']);
 
 // raison pour laquelle le complément de temps t ne va pas avec la phrase sp ('' s'il va)
 function tempoIncompat(sp,t){
@@ -1904,7 +1912,8 @@ function validerRecette(sp){
   const raisons=[], inf=sp.verbe && sp.verbe.inf;
   if(sp.tempo){ const x=tempoIncompat(sp,sp.tempo); if(x) raisons.push(x); }
   if(inf){
-    if(adjsDe(sp.sujet).some(a=>verbeAdjIncompat(INCOMPAT_SUJET,inf,a.ms)) || (sp.detache && verbeAdjIncompat(INCOMPAT_SUJET,inf,sp.detache.ms))) raisons.push('état du sujet contraire à l\'action');
+    if(adjsDe(sp.sujet).some(a=>etatIncompat(inf,a.ms)) || (sp.detache && etatIncompat(inf,sp.detache.ms))) raisons.push('état du sujet contraire à l\'action');
+    if(sp.objet && sp.objet.det==='def' && VERBES_OBJET_NOUVEAU.has(inf)) raisons.push('objet défini alors qu\'il n\'est pas encore connu');
     const obj=sp.objet||sp.cod;   // le COD antéposé (deux phrases) se contrôle comme un objet ordinaire
     if(obj && obj.adjs && obj.adjs.some(a=>verbeAdjIncompat(INCOMPAT_OBJET,inf,a.ms))) raisons.push('adjectif de l\'objet contraire au verbe');
   }
@@ -1915,8 +1924,10 @@ function corrigerRecette(sp){
   const inf=sp.verbe && sp.verbe.inf;
   if(sp.tempo && tempoIncompat(sp,sp.tempo)){ sp.tempo=choisirTempo(sp); if(!sp.tempo) sp.tempoDebut=false; else if(DEBUT_SEUL.has(sp.tempo) && !sp.detache) sp.tempoDebut=true; }
   if(inf){
-    retirerAdjs(sp.sujet,a=>verbeAdjIncompat(INCOMPAT_SUJET,inf,a.ms));
-    if(sp.detache && verbeAdjIncompat(INCOMPAT_SUJET,inf,sp.detache.ms)) sp.detache=null;
+    retirerAdjs(sp.sujet,a=>etatIncompat(inf,a.ms));
+    if(sp.detache && etatIncompat(inf,sp.detache.ms)) sp.detache=null;
+    // déterminant défini : remplacé par un indéfini ou un démonstratif (« ne … pas des règles » n'existe pas : avec la négation, seulement le démonstratif)
+    if(sp.objet && sp.objet.det==='def' && VERBES_OBJET_NOUVEAU.has(inf)) sp.objet.det = sp.neg ? 'dem' : hasard(['ind','ind','dem']);
     const obj=sp.objet||sp.cod;
     if(obj && obj.adjs) obj.adjs=obj.adjs.filter(a=>!verbeAdjIncompat(INCOMPAT_OBJET,inf,a.ms));
   }
