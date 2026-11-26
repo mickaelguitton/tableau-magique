@@ -1236,6 +1236,12 @@ function downloadDocx(){
    ========================================================= */
 $('board').addEventListener('click', e => { const c = e.target.closest('.cell'); if(c) clickCell(+c.dataset.i); });
 $('slots').addEventListener('click', e => { const c = e.target.closest('.slot[data-key]'); if(c) showSolution(c.dataset.key); });
+// Après une réponse fausse, un clic en dehors de la grille efface les cases rouges et le calcul affiché
+document.addEventListener('click', e => {
+  if(!S.wrong || e.target.closest('#board')) return;
+  Object.assign(S, { sel:[], flash:null, eq:null, wrong:false });
+  render();
+});
 $('modes').addEventListener('click', e => {
   const b = e.target.closest('button'); if(b && b.dataset.mode!==S.mode) setMode(b.dataset.mode);
 });
