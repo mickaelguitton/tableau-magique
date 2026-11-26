@@ -691,7 +691,7 @@ input,select{font-family:inherit}
   <div><button class="btn clair" id="btnRejouer">Rejouer</button><button class="btn" id="btnFinMenu">Menu</button></div>
 </div></div>
 <canvas id="feu"></canvas>
-<div class="signature">M. Guitton<span class="app-version"> – v1.22</span></div>
+<div class="signature">M. Guitton<span class="app-version"> – v1.23</span></div>
 
 <!-- Présentation de l'outil : lisible par les collègues (bouton « ? ») et par les moteurs de recherche.
      Mise en forme et ouverture : portail.js -->
@@ -781,7 +781,7 @@ const SCENES_DATA = [
     fruits:{n:"|pomme |poire |prune |cerise", a:"mûr/mûre juteux/juteuse#2 sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée*#1 cueilli/cueillie*#2 abîmé/abîmée*#2 tombé/tombée*#2 pourri/pourrie*#3"},
     legumes:{n:"|carotte |salade poireau|#2 |citrouille#1 |betterave#3 chou>choux|#2", a:"frais/fraîche gros/grosse< énorme#2 croquant/croquante#2@!citrouille@!betterave lavé/lavée*#1 coupé/coupée*#1 abîmé/abîmée*#2 cueilli/cueillie*#2"},
     fourrage:{n:"|carotte |salade |pomme |betterave#3", a:"frais/fraîche gros/grosse< croquant/croquante#2 lavé/lavée*#1 coupé/coupée*#1"},
-    graines:{n:"|graine", a:"petit/petite< doré/dorée*#1 séché/séchée*#2 semé/semée*#3"},
+    graines:{n:"|graine", a:"petit/petite< doré/dorée*#1@!graine séché/séchée*#2 semé/semée*#3"},
     vehicules:{n:"tracteur| |remorque#2", a:"rouge neuf/neuve#2 bruyant/bruyante#2 gros/grosse< lavé/lavée*#1 garé/garée*#1 abîmé/abîmée*#2 réparé/réparée*#3 cabossé/cabossée*#4"}
   },
   verbes:[
@@ -828,7 +828,7 @@ const SCENES_DATA = [
     adultes:{p:1, n:"maître|maîtresse#1 directeur|directrice#2 enseignant|enseignante#3 surveillant|surveillante#4", a:"patient/patiente#3 souriant/souriante#2 calme#1 pressé/pressée*#2 fatigué/fatiguée* occupé/occupée*#2 étonné/étonnée*#3 ravi/ravie*#3 satisfait/satisfaite*#4"}
   },
   objets:{
-    fournitures:{n:"crayon| cahier| livre| |règle |gomme stylo| |trousse classeur|#2 |feuille#1", a:"neuf/neuve#2 rouge bleu/bleue vert/verte petit/petite< gros/grosse< perdu/perdue*#1 abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2 corrigé/corrigée*#3@cahier@feuille déchiré/déchirée*#2@cahier@livre@feuille@classeur@trousse froissé/froissée*#3@cahier@feuille@classeur colorié/coloriée*#2@cahier@feuille"},
+    fournitures:{n:"crayon| cahier| livre| |règle |gomme stylo| |trousse classeur|#2 |feuille#1", a:"neuf/neuve#2 rouge@!règle@!gomme bleu/bleue@!règle@!gomme vert/verte@!règle@!gomme blanc/blanche@gomme petit/petite< gros/grosse< perdu/perdue*#1 abîmé/abîmée*#2 oublié/oubliée*#2 rangé/rangée*#2 corrigé/corrigée*#3@cahier@feuille déchiré/déchirée*#2@cahier@livre@feuille@classeur@trousse froissé/froissée*#3@cahier@feuille@classeur colorié/coloriée*#2@cahier@feuille"},
     lectures:{n:"livre| |histoire#1 |poésie conte|#2 album|#2", a:"long/longue< joli/jolie< drôle#1 passionnant/passionnante#4 abîmé/abîmée*#2@livre@album préféré/préférée*#2 connu/connue*#3 illustré/illustrée*#3 emprunté/empruntée*#3@livre@album"},
     recitations:{n:"|poésie |leçon#1 |fable#4", a:"long/longue< court/courte#1 joli/jolie< appris/apprise*#2 préféré/préférée*#2 connu/connue*#3"},
     ecrits:{n:"|phrase |lettre |histoire#1 mot|", a:"long/longue< court/courte#1 joli/jolie< écrit/écrite*#2 terminé/terminée*#2 recopié/recopiée*#3 soigné/soignée*#3"},
@@ -1010,12 +1010,12 @@ const SCENES_DATA = [
     clients:{p:1, n:"client|cliente#2", a:"pressé/pressée*#2 content/contente gourmand/gourmande#2 étonné/étonnée*#3 ravi/ravie*#3 satisfait/satisfaite*#4 déçu/déçue*#4"}
   },
   objets:{
-    patisseries:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |crêpe |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 chaud/chaude croustillant/croustillante#4@!gâteau sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée* cuit/cuite*#1 décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3 flambé/flambée*#4@gâteau@tarte@crêpe"},
+    patisseries:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |crêpe |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1@!gâteau@!madeleine chaud/chaude croustillant/croustillante#4@!gâteau sucré/sucrée*#1 petit/petite< gros/grosse< coupé/coupée* cuit/cuite*#1 décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3 flambé/flambée*#4@gâteau@tarte@crêpe"},
     legumes:{n:"|tomate |carotte oignon|#2 poireau|#2 |courgette#3", a:"frais/fraîche gros/grosse< petit/petite< coupé/coupée* lavé/lavée*#1 cuit/cuite*#1 épluché/épluchée*#2 grillé/grillée*#3"},
     fruits:{n:"|pomme |orange |fraise |banane |poire", a:"mûr/mûre juteux/juteuse#2@!banane sucré/sucrée*#1 frais/fraîche coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2 écrasé/écrasée*#3"},
     epluchables:{n:"|pomme |orange |poire |banane", a:"mûr/mûre gros/grosse< coupé/coupée* lavé/lavée*#1 abîmé/abîmée*#2"},
     agrumes:{n:"citron|#2 |orange", a:"frais/fraîche gros/grosse< juteux/juteuse#2 coupé/coupée* pressé/pressée*#2"},
-    fours:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1 croustillant/croustillante#4@!gâteau petit/petite< gros/grosse< décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3"},
+    fours:{n:"gâteau|#1 |tarte croissant| |brioche biscuit|#1 |madeleine#3", a:"délicieux/délicieuse#3 doré/dorée*#1@!gâteau@!madeleine croustillant/croustillante#4@!gâteau petit/petite< gros/grosse< décoré/décorée*#2@!croissant@!brioche glacé/glacée*#3@!croissant@!brioche brûlé/brûlée*#3 raté/ratée*#3"},
     vaisselle:{n:"|assiette verre| bol| |tasse plat|#2 |casserole#3", a:"propre#1 sale#1 lourd/lourde#2 fragile#3@!casserole grand/grande< cassé/cassée* lavé/lavée*#1 rangé/rangée*#2 essuyé/essuyée*#3 ébréché/ébréchée*#4 fendu/fendue*#3 sali/salie*#3 rempli/remplie*#2 vidé/vidée*#3"},
     pains:{n:"pain| |baguette", a:"croustillant/croustillante#4 chaud/chaude doré/dorée*#1 long/longue< coupé/coupée* cuit/cuite*#1 grillé/grillée*#3 tranché/tranchée*#3 brûlé/brûlée*#3"}
   },
@@ -1259,7 +1259,7 @@ const SCENES_DATA = [
   objets:{
     tresors:{n:"trésor| |couronne bijou>bijoux|#3 coffre|#2", a:"précieux/précieuse#3 brillant/brillante#2 lourd/lourde#2 ancien/ancienne#3 doré/dorée*#1 caché/cachée*#2 volé/volée*#3 perdu/perdue*#1"},
     armes:{n:"|épée bouclier| |lance#3 casque|#2 |armure#4", a:"lourd/lourde#2 brillant/brillante#2 neuf/neuve#2 solide#3 cassé/cassée* abîmé/abîmée*#2 décoré/décorée*#2 rouillé/rouillée*#3"},
-    banquet:{n:"gâteau|#1 |tarte |soupe pain| |galette#3 poulet|#2", a:"chaud/chaude délicieux/délicieuse#3 énorme#2@!soupe doré/dorée*#1@!soupe cuit/cuite*#1 grillé/grillée*#3@!soupe"},
+    banquet:{n:"gâteau|#1 |tarte |soupe pain| |galette#3 poulet|#2", a:"chaud/chaude délicieux/délicieuse#3 énorme#2@!soupe doré/dorée*#1@!soupe@!poulet@!gâteau cuit/cuite*#1 grillé/grillée*#3@!soupe"},
     lettres:{n:"|lettre message|#2 |carte#2", a:"long/longue<@!carte court/courte#1@!carte secret/secrète#3 important/importante#4 envoyé/envoyée*#2 déchiré/déchirée*#2 scellé/scellée*#4@lettre@message"},
     // ce que lisent les princes et les princesses (pas des lettres, demande de M. Guitton)
     grimoires:{n:"livre| conte| |légende#2 parchemin|#3", a:"ancien/ancienne#2 long/longue< gros/grosse<@!légende précieux/précieuse#3 ouvert/ouverte*#2 illustré/illustrée*#3"}
