@@ -150,8 +150,9 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 .eq .n-res{ color:var(--wrong); }                      /* …et le résultat obtenu, en rouge */
 .eq .in{ display:flex; align-items:center; gap:.25em; }
 
-.count{ display:flex; align-items:baseline; justify-content:center; gap:8px; font-weight:800; font-size:clamp(20px, 3.2vh, 40px); color:var(--muted); }
-.count b{ font-size:clamp(34px, 5.6vh, 68px); color:var(--ink); }
+.count{ display:flex; align-items:baseline; justify-content:center; gap:.3em; white-space:nowrap; font-weight:800;
+  font-size:clamp(22px, min(4.6vh, 12cqi), 50px); color:var(--muted); }   /* une seule taille pour « 3 / 5 solutions » ; réduite si la colonne est étroite */
+.count b{ color:var(--ink); }
 .count.done b{ color:var(--accent); }
 .actions{ margin-top:auto; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 
@@ -868,6 +869,7 @@ function render(){
   $('count').className = 'count' + (n===total ? ' done' : '');
   $('count').innerHTML = `<b>${n}</b> / ${total} ${total>1 ? 'solutions' : 'solution'}`;
   $('btnHint').disabled = $('btnAll').disabled = n===total;
+  const cnt = $('count'); cnt.style.fontSize = ''; fitWidth(cnt, parseFloat(getComputedStyle(cnt).fontSize), 18);   // « 12 / 12 solutions » tient toujours dans sa largeur
   renderSlots();
   drawStrokes();
 }
