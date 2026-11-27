@@ -105,6 +105,21 @@ self.OUTILS = [
   },
 
   {
+    dossier: 'trio-duo',
+    domaine: 'maths',
+    version: '1.7',
+    nom: 'Duo Trio',
+    niveau: 'calcul mental · du CE2 au CM2',
+    texte: 'Un jeu de calcul mental à projeter au tableau, sur une grille de nombres. En Duo, on cherche deux nombres voisins '
+         + 'dont la somme, la différence ou le produit donne la cible. En Trio, on multiplie deux nombres voisins puis on ajoute '
+         + 'ou on retranche un troisième, aligné avec eux. Les élèves proposent des cases, le calcul se vérifie tout seul, '
+         + 'et on peut dévoiler une ou toutes les solutions. Réglages simples (taille de la grille, opérations, cibles) '
+         + 'et fiches Word à imprimer avec corrigé.',
+    donnees: ['trio-duo-reglages'],
+    couleur: '#7262D0', ombre: '#D9D3F5'
+  },
+
+  {
     dossier: 'geometrie',
     domaine: 'maths',
     version: '2.4',
@@ -157,21 +172,6 @@ self.OUTILS = [
          + 'Fiches à imprimer avec corrigé.',
     donnees: ['aiguilles-du-temps'],
     couleur: '#2B4C8C', ombre: '#C3D2F0'
-  },
-
-  {
-    dossier: 'trio-duo',
-    domaine: 'maths',
-    version: '1.7',
-    nom: 'Duo Trio',
-    niveau: 'calcul mental · du CE2 au CM2',
-    texte: 'Un jeu de calcul mental à projeter au tableau, sur une grille de nombres. En Duo, on cherche deux nombres voisins '
-         + 'dont la somme, la différence ou le produit donne la cible. En Trio, on multiplie deux nombres voisins puis on ajoute '
-         + 'ou on retranche un troisième, aligné avec eux. Les élèves proposent des cases, le calcul se vérifie tout seul, '
-         + 'et on peut dévoiler une ou toutes les solutions. Réglages simples (taille de la grille, opérations, cibles) '
-         + 'et fiches Word à imprimer avec corrigé.',
-    donnees: ['trio-duo-reglages'],
-    couleur: '#7262D0', ombre: '#D9D3F5'
   },
 
   {
