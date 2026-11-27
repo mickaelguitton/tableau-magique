@@ -307,13 +307,12 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 .btn:hover{ border-color:var(--accent); }
 .btn.primary{ background:var(--accent); color:#fff; border-color:transparent; }
 /* Bouton « ? » et fenêtre « À propos » (mise en page commune : ../portail.js) aux couleurs choisies :
-   le bouton et le titre suivent le jeu affiché (menthe ou lavande), Duo et Trio ont leur couleur, le reste est en ambre */
+   le bouton « ? » suit le jeu affiché (menthe ou lavande), « Duo » et « Trio » gardent chacun leur couleur (titre et rubriques), le reste est en ambre */
 body .bouton-aide{ background:var(--accent); }
 body .bouton-aide:focus-visible{ outline-color:var(--accent); }
-body #aPropos h2{ color:var(--accent); }
+body #aPropos h2 .duo, body #aPropos h3.duo{ color:var(--duo); }
+body #aPropos h2 .trio, body #aPropos h3.trio{ color:var(--trio); }
 body #aPropos h3{ color:color-mix(in srgb, var(--hint) 72%, black); }
-body #aPropos h3.duo{ color:var(--duo); }
-body #aPropos h3.trio{ color:var(--trio); }
 body #aPropos .bas button{ background:color-mix(in srgb, var(--hint) 45%, white); color:color-mix(in srgb, var(--hint) 45%, black); }
 /* Petits écrans : l'intitulé au-dessus de ses boutons */
 @media (max-width:600px){
@@ -417,7 +416,7 @@ body #aPropos .bas button{ background:color-mix(in srgb, var(--hint) 45%, white)
      Lisible par les collègues et par les moteurs de recherche. -->
 <dialog id="aPropos" aria-labelledby="titreAPropos">
   <article>
-    <h2 id="titreAPropos">Duo Trio</h2>
+    <h2 id="titreAPropos"><span class="duo">Duo</span> <span class="trio">Trio</span></h2>
     <p class="chapeau">Un jeu de calcul mental à projeter au tableau, du CE2 au CM2 : on cherche dans une grille de nombres les cases qui donnent la cible.</p>
 
     <h3>À quoi sert cet outil ?</h3>
