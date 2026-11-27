@@ -163,8 +163,12 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
   gap:1.4%; padding:2.2%;
   background:var(--card); border-radius:30px;
   box-shadow:0 18px 40px rgba(36,34,58,.12), 0 2px 0 var(--line);
-  container-type:inline-size;
+  container-type:inline-size; position:relative;
 }
+.traits{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.traits line{ stroke:var(--accent); stroke-linecap:round; opacity:.85; }
+.traits line.neuf{ stroke-dasharray:1; animation:trace .35s ease-out; }
+@keyframes trace{ from{ stroke-dashoffset:1; } to{ stroke-dashoffset:0; } }
 .cell{
   border:0; border-radius:20%; background:#fff; cursor:pointer; color:var(--ink); padding:0;
   font-weight:800; font-size:calc(100cqw / var(--n) * .54); line-height:1;
@@ -864,6 +868,30 @@ function render(){
   $('count').innerHTML = `<b>${n}</b> / ${total} ${total>1 ? 'solutions' : 'solution'}`;
   $('btnHint').disabled = $('btnAll').disabled = n===total;
   renderSlots();
+  drawStrokes();
+}
+
+// Traits sur la grille : un trait de la couleur du jeu barre les cases de chaque solution trouvée ou dévoilée,
+// jusqu'à la prochaine cible ou grille. Seuls les traits nouveaux s'animent (tracé du début à la fin).
+const traced = new Set();
+function drawStrokes(){
+  const b = $('board'), cells = b.querySelectorAll('.cell');
+  if(!cells.length) return;
+  if(!S.found.size) traced.clear();
+  let svg = b.querySelector('svg.traits');
+  if(!svg){ svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'traits'); b.appendChild(svg); }
+  svg.setAttribute('viewBox', `0 0 ${b.clientWidth} ${b.clientHeight}`);
+  const ctr = i => [cells[i].offsetLeft + cells[i].offsetWidth/2, cells[i].offsetTop + cells[i].offsetHeight/2];
+  const side = cells[0].offsetWidth, list = solutions();
+  svg.innerHTML = [...S.found.keys()].map(k => {
+    const sol = list.find(x => x.key===k); if(!sol) return '';
+    // les deux cases les plus éloignées (en Trio, la case « de départ » du calcul n'est pas forcément à un bout)
+    let a, z, far = -1;
+    sol.cells.forEach(i => sol.cells.forEach(j => { const d = Math.hypot(ctr(i)[0]-ctr(j)[0], ctr(i)[1]-ctr(j)[1]); if(d > far){ far = d; a = ctr(i); z = ctr(j); } }));
+    const dx = z[0]-a[0], dy = z[1]-a[1], L = Math.hypot(dx, dy) || 1, ex = side*.3;   // le trait dépasse un peu des cases
+    return `<line class="${traced.has(k) ? '' : 'neuf'}" pathLength="1" x1="${a[0]-dx/L*ex}" y1="${a[1]-dy/L*ex}" x2="${z[0]+dx/L*ex}" y2="${z[1]+dy/L*ex}" stroke-width="${side*.09}"/>`;
+  }).join('');
+  S.found.forEach((_, k) => traced.add(k));
 }
 
 // Taille de texte la plus grande (au plus max px) pour que l'élément tienne dans sa largeur
