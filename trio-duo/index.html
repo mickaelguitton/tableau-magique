@@ -380,14 +380,14 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
       <div class="row"><span>Grille</span><div class="seg" data-set="duo.size" data-vals="4,5,6" data-labels="4 × 4,5 × 5,6 × 6"></div></div>
       <div class="row"><span>Opérations</span><div class="seg" id="duoOps" data-vals="add,sub,mul" data-labels="addition,soustraction,multiplication"></div></div>
       <div class="row"><span>Nombres</span><div class="seg" data-set="duo.range" data-vals="5,9" data-labels="1 à 5,1 à 9"></div></div>
-      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="duo.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Toutes"></div></div>
+      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="duo.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Au hasard"></div></div>
       <div class="row" id="rowDuoOne"><span>Multiplier par 1</span><div class="seg" data-set="duo.one" data-vals="1,0" data-labels="autorisé,interdit"></div></div>
     </div>
     <div class="set-part" data-game="trio">
       <div class="row"><span>Calcul</span><div class="seg" data-set="trio.calc" data-vals="pm,plus,minus,add" data-labels="× puis + ou −,× puis +,× puis −,+ puis + ou −"></div></div>
       <div class="row"><span>Grille</span><div class="seg" data-set="trio.size" data-vals="5,6,7" data-labels="5 × 5,6 × 6,7 × 7"></div></div>
       <div class="row"><span>Cibles</span><div class="seg" data-set="trio.max" data-vals="30,50,90" data-labels="jusqu'à 30,jusqu'à 50,jusqu'à 90"></div></div>
-      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="trio.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Toutes"></div></div>
+      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="trio.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Au hasard"></div></div>
       <div class="row" id="rowTrioOne"><span>Multiplier par 1</span><div class="seg" data-set="trio.one" data-vals="1,0" data-labels="autorisé,interdit"></div></div>
     </div>
     <div class="modal-foot"><button class="btn primary" data-close>Fermer</button></div>
@@ -437,11 +437,12 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
     <h3 class="amber">Au tableau</h3>
     <p>Cliquer sur les cases proposées par un élève, dans l'ordre du calcul : en Trio, les deux premières cases cliquées sont multipliées. Le calcul se vérifie tout seul.
       Les cases d'un calcul juste restent colorées 4 secondes. Cliquer de nouveau sur la dernière case l'enlève.
-      Après une réponse fausse, les cases restent rouges : cliquer sur la dernière case pour la changer, ou ailleurs pour recommencer. Le compteur indique combien de solutions existent pour la cible.</p>
+      Après une réponse fausse, les cases restent rouges : cliquer sur la dernière case pour la changer, sur une autre case ou en dehors de la grille pour recommencer. Le compteur indique combien de solutions existent pour la cible.</p>
     <p>Pour choisir la cible, cliquer dessus, taper le nombre puis appuyer sur Entrée.
       Si ce nombre ne peut pas être obtenu sur la grille, la cible devient rouge.
       Chaque clic sur « Montrer une solution » en dévoile une de plus. « Montrer toutes les solutions » les dévoile toutes d'un coup.
       Un clic sur une solution de la liste colore ses cases sur la grille.</p>
+    <p>Dans les réglages, « Solutions par cible » règle la difficulté : une cible qui a peu de solutions (1 à 4) est plus difficile, une cible qui en a beaucoup (9 et plus) est plus facile, « Au hasard » ne filtre rien. Un choix qui n'est pas possible avec les réglages du moment est grisé. Les fiches Word suivent les mêmes réglages.</p>
     <h3 class="amber">En classe</h3>
     <p>Un rituel de calcul mental sur ardoise ou à l'oral : multiplication, addition et soustraction, tables de multiplication, priorité de la multiplication. Réglages de la taille de la grille, des opérations et des cibles pour adapter la difficulté. Des fiches Word avec corrigé se téléchargent pour prolonger le jeu sur papier.</p>
     <p class="note">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0. Il fonctionne sans connexion, sans compte et sans publicité.</p>
@@ -1041,7 +1042,8 @@ refreshers.push(printNote);
 
 function printNote(){
   const c = printCfg();
-  const extra = P.mode==='trio' ? `calcul ${trioCalc(c).label}, cibles jusqu'à ${c.max}` : `nombres de 1 à ${c.range}`;
+  const extra = (P.mode==='trio' ? `calcul ${trioCalc(c).label}, cibles jusqu'à ${c.max}` : `nombres de 1 à ${c.range}`)
+    + ({ 4:', cibles à 1 à 4 solutions', 8:', cibles à 5 à 8 solutions', 9:', cibles à 9 solutions ou plus' }[c.lim] ?? '');
   const n = P.layout==='diff' ? 2*P.n : P.n, pl = x => x>1 ? 's' : '';
   $('pN').textContent = P.n;
   tint($('printModal'), P.mode);
