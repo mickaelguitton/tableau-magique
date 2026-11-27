@@ -306,6 +306,15 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 }
 .btn:hover{ border-color:var(--accent); }
 .btn.primary{ background:var(--accent); color:#fff; border-color:transparent; }
+/* Bouton « ? » et fenêtre « À propos » (mise en page commune : ../portail.js) aux couleurs choisies :
+   le bouton et le titre suivent le jeu affiché (menthe ou lavande), Duo et Trio ont leur couleur, le reste est en ambre */
+body .bouton-aide{ background:var(--accent); }
+body .bouton-aide:focus-visible{ outline-color:var(--accent); }
+body #aPropos h2{ color:var(--accent); }
+body #aPropos h3{ color:color-mix(in srgb, var(--hint) 72%, black); }
+body #aPropos h3.duo{ color:var(--duo); }
+body #aPropos h3.trio{ color:var(--trio); }
+body #aPropos .bas button{ background:color-mix(in srgb, var(--hint) 45%, white); color:color-mix(in srgb, var(--hint) 45%, black); }
 /* Petits écrans : l'intitulé au-dessus de ses boutons */
 @media (max-width:600px){
   .modal{ padding:20px 16px; border-radius:22px; }
@@ -414,10 +423,10 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
     <h3>À quoi sert cet outil ?</h3>
     <p>Duo Trio affiche au TBI ou au vidéoprojecteur une grille de nombres et une cible. Les élèves proposent des cases, le calcul se vérifie tout seul, et les solutions se dévoilent une à une ou toutes ensemble. Les grilles et les solutions sont générées automatiquement, avec des réglages simples pour adapter la difficulté. C’est un outil gratuit, sans compte, sans publicité, qui fonctionne aussi sans connexion une fois installé.</p>
 
-    <h3>Duo</h3>
+    <h3 class="duo">Duo</h3>
     <p>Trouver deux nombres voisins (en ligne, en colonne ou en diagonale) dont la somme, la différence ou le produit donne la cible. Les opérations se choisissent dans les réglages.</p>
 
-    <h3>Trio</h3>
+    <h3 class="trio">Trio</h3>
     <p>Trouver trois nombres alignés qui se touchent (en ligne, en colonne ou en diagonale). On multiplie les deux premiers (deux nombres voisins), puis on ajoute ou on soustrait le troisième pour obtenir la cible. Exemple pour 37 : (6 × 5) + 7 ou (8 × 5) − 3. Variantes dans les réglages : ajouter seulement, soustraire seulement, ou sans multiplication (4 + 5 − 3).</p>
 
     <h3>Au tableau</h3>

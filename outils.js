@@ -162,7 +162,7 @@ self.OUTILS = [
   {
     dossier: 'trio-duo',
     domaine: 'maths',
-    version: '1.4',
+    version: '1.5',
     nom: 'Duo Trio',
     niveau: 'calcul mental · du CE2 au CM2',
     texte: 'Un jeu de calcul mental à projeter au tableau, sur une grille de nombres. En Duo, on cherche deux nombres voisins '
