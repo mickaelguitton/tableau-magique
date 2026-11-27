@@ -293,7 +293,6 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 .modal p{ font-size:18px; line-height:1.5; }
 .modal .ex{ white-space:nowrap; font-size:1.15em; }
 .note{ color:var(--muted); font-size:16px !important; }
-.limit-note{ margin:10px 0 0; color:color-mix(in srgb, var(--hint) 55%, black); }
 .row{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 0;
   border-bottom:1px solid color-mix(in srgb, var(--accent) 18%, white); }
 .row:last-of-type{ border-bottom:0; }
@@ -302,6 +301,7 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 .seg{ display:flex; gap:6px; background:color-mix(in srgb, var(--accent) 12%, white); padding:5px; border-radius:14px; flex-wrap:wrap; }
 .seg button{ border:0; background:transparent; padding:8px 16px; border-radius:10px; font-weight:800; font-size:18px; cursor:pointer; color:var(--ink); }
 .seg button.on{ background:var(--accent); color:#fff; }
+.seg button:disabled{ opacity:.35; cursor:default; }   /* tranche impossible avec ces réglages */
 .stepper{ display:flex; align-items:center; gap:10px; }
 .stepper button{ width:42px; height:42px; border-radius:12px; border:2px solid color-mix(in srgb, var(--accent) 25%, white); background:#fff; color:var(--ink); font-size:24px; font-weight:900; cursor:pointer; }
 .stepper output{ min-width:2ch; text-align:center; font-size:24px; font-weight:900; }
@@ -380,17 +380,15 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
       <div class="row"><span>Grille</span><div class="seg" data-set="duo.size" data-vals="4,5,6" data-labels="4 × 4,5 × 5,6 × 6"></div></div>
       <div class="row"><span>Opérations</span><div class="seg" id="duoOps" data-vals="add,sub,mul" data-labels="addition,soustraction,multiplication"></div></div>
       <div class="row"><span>Nombres</span><div class="seg" data-set="duo.range" data-vals="5,9" data-labels="1 à 5,1 à 9"></div></div>
-      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="duo.lim" data-vals="4,8,0" data-labels="4 au plus,8 au plus,sans limite"></div></div>
+      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="duo.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Toutes"></div></div>
       <div class="row" id="rowDuoOne"><span>Multiplier par 1</span><div class="seg" data-set="duo.one" data-vals="1,0" data-labels="autorisé,interdit"></div></div>
-      <p class="note limit-note" data-game="duo" hidden>Avec ces réglages, la grille affichée n'a aucune cible avec si peu de solutions : toutes ses cibles sont proposées.</p>
     </div>
     <div class="set-part" data-game="trio">
       <div class="row"><span>Calcul</span><div class="seg" data-set="trio.calc" data-vals="pm,plus,minus,add" data-labels="× puis + ou −,× puis +,× puis −,+ puis + ou −"></div></div>
       <div class="row"><span>Grille</span><div class="seg" data-set="trio.size" data-vals="5,6,7" data-labels="5 × 5,6 × 6,7 × 7"></div></div>
       <div class="row"><span>Cibles</span><div class="seg" data-set="trio.max" data-vals="30,50,90" data-labels="jusqu'à 30,jusqu'à 50,jusqu'à 90"></div></div>
-      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="trio.lim" data-vals="4,8,0" data-labels="4 au plus,8 au plus,sans limite"></div></div>
+      <div class="row"><span>Solutions par cible</span><div class="seg" data-set="trio.lim" data-vals="4,8,9,0" data-labels="1 à 4,5 à 8,9 et plus,Toutes"></div></div>
       <div class="row" id="rowTrioOne"><span>Multiplier par 1</span><div class="seg" data-set="trio.one" data-vals="1,0" data-labels="autorisé,interdit"></div></div>
-      <p class="note limit-note" data-game="trio" hidden>Avec ces réglages, la grille affichée n'a aucune cible avec si peu de solutions : toutes ses cibles sont proposées.</p>
     </div>
     <div class="modal-foot"><button class="btn primary" data-close>Fermer</button></div>
   </div>
@@ -462,7 +460,7 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
    ========================================================= */
 // size : taille de la grille        max : plus grande cible (Trio)
 // ops  : opérations (Duo)           range : nombres de 1 à 5 ou de 1 à 9 (Duo)
-// lim  : nombre maximal de solutions pour qu'une cible soit tirée (0 = sans limite)
+// lim  : tranche du nombre de solutions d'une cible tirée : 4 = de 1 à 4, 8 = de 5 à 8, 9 = 9 et plus, 0 = toutes
 // one  : multiplication par 1 autorisée (1) ou interdite (0)
 // calc : calcul de Trio (voir TRIO_CALC)
 const DEFAULTS = {
@@ -601,20 +599,36 @@ function solve(grid, N, mode, cfg){
   return map;
 }
 
-// Cibles qui respectent la limite de solutions (cfg.lim, 0 = sans limite)
-const limitedTargets = (sols, cfg) => [...sols.keys()].filter(t => !cfg.lim || sols.get(t).length <= cfg.lim);
-// Cibles qui peuvent être tirées : celles qui respectent la limite ; s'il n'y en a aucune, toutes
-// (la fenêtre Réglages le signale, voir limitNote)
+// Tranches du nombre de solutions par cible (clé = valeur du réglage lim)
+const TRANCHES = { 4:[1,4], 8:[5,8], 9:[9,Infinity], 0:[1,Infinity] };
+const inTranche = (n, lim) => { const [a,b] = TRANCHES[lim] ?? TRANCHES[0]; return n>=a && n<=b; };
+// Cibles dont le nombre de solutions est dans la tranche choisie (cfg.lim)
+const limitedTargets = (sols, cfg) => [...sols.keys()].filter(t => inTranche(sols.get(t).length, cfg.lim));
+// Cibles qui peuvent être tirées : celles de la tranche ; s'il n'y en a aucune, toutes
+// (le bouton de la tranche est alors grisé dans Réglages, voir tranchesPossibles)
 function targetPool(sols, cfg){
   const ok = limitedTargets(sols, cfg);
   return ok.length ? ok : [...sols.keys()];
+}
+
+// Tranches réellement possibles avec les réglages d'un jeu (hors tranche choisie) : on essaie
+// quelques grilles et on regarde combien de solutions ont leurs cibles. Mémorisé par réglages.
+const tranchesCache = new Map();
+function tranchesPossibles(mode){
+  const { lim, ...cfg } = settings[mode], key = mode + JSON.stringify(cfg);
+  if(!tranchesCache.has(key)){
+    const counts = new Set();
+    for(let k=0;k<60;k++) solve(makeGrid(mode, cfg), cfg.size, mode, cfg).forEach(l => counts.add(l.length));
+    tranchesCache.set(key, Object.keys(TRANCHES).filter(k => [...counts].some(n => inTranche(n, +k))));
+  }
+  return tranchesCache.get(key);
 }
 
 // Tire plusieurs grilles et garde celle qui offre le plus de cibles respectant la limite
 function bestGrid(mode, cfg = settings[mode]){
   const enough = mode==='duo' ? 8 : trioCalc(cfg).first==='+' ? 12 : Math.min(cfg.max*0.6, 30);   // sans ×, cibles ≤ 27
   let best = null;
-  for(let t=0;t<40 && !(best && best.score>=enough);t++){
+  for(let t=0;t<150 && !(best && best.score>=enough) && (t<40 || !best.score);t++){   // au-delà de 40 essais, seulement si aucune cible ne convient
     const grid = makeGrid(mode, cfg), sols = solve(grid, cfg.size, mode, cfg);
     const score = limitedTargets(sols, cfg).length;
     if(!best || score>best.score) best = { grid, sols, N:cfg.size, score };
@@ -1003,9 +1017,9 @@ const SG = { game:'trio' };
 bindSeg($('setGame'), SG, 'game');
 refreshers.push(() => {
   document.querySelectorAll('.set-part').forEach(d => d.hidden = d.dataset.game!==SG.game);
-  // limite de solutions impossible à respecter sur la grille affichée
-  document.querySelectorAll('.limit-note').forEach(n =>
-    n.hidden = n.dataset.game!==S.mode || limitedTargets(S.sols, settings[S.mode]).length>0);
+  // tranches de solutions impossibles avec les réglages du jeu affiché : boutons grisés
+  const ok = tranchesPossibles(SG.game);
+  document.querySelectorAll(`[data-set="${SG.game}.lim"] button`).forEach(b => b.disabled = !ok.includes(b.dataset.v));
   tint($('setModal'), SG.game);
 });
 
