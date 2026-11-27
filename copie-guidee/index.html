@@ -1247,12 +1247,21 @@ function decorate(el){
   const nodes = []; while(walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(n => {
     const txt = n.textContent;
-    const re = /(?<!\p{L})\p{Lu}|[.,;:!?…«»“”"()\[\]]|(?<![\p{L}\p{N}])[—–-](?![\p{L}\p{N}])/gu;
+    /* un nombre romain (III, XIV, XIXe…) est coloré en entier : sinon seule sa première lettre serait rouge et « IIIème » se lirait « Ilème » */
+    const re = /(?<![\p{L}\p{N}])[IVXLCDM]{2,}(?=(?:ème|eme|ère|er|e|è)?(?![\p{L}\p{N}]))|(?<!\p{L})\p{Lu}|[.,;:!?…«»“”"()\[\]]|(?<![\p{L}\p{N}])[—–-](?![\p{L}\p{N}])/gu;
     let last = 0, found = false, m;
     const frag = document.createDocumentFragment();
     while((m = re.exec(txt)) !== null){
       found = true;
       if(m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+      if(m[0].length > 1){                               /* nombre romain : chaque lettre en majuscule colorée */
+        const romain = ROMAN_RE.test(m[0]);
+        [...m[0]].forEach((c, i) => {
+          if(!romain && i > 0){ frag.appendChild(document.createTextNode(c)); return; }   /* mot en capitales qui n'est pas un nombre romain : première lettre seulement */
+          const s = document.createElement('span'); s.className = 'maj'; s.textContent = c; frag.appendChild(s);
+        });
+        last = m.index + m[0].length; continue;
+      }
       const sp = document.createElement('span');
       sp.className = /^\p{Lu}$/u.test(m[0]) ? 'maj' : 'pt';
       sp.textContent = m[0];

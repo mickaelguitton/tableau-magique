@@ -52,7 +52,7 @@ self.OUTILS = [
   {
     dossier: 'copie-guidee',
     domaine: 'francais',
-    version: '1.3',
+    version: '1.4',
     nom: 'La copie guidée',
     niveau: 'cycles 2 et 3',
     texte: 'Application inspirée de l’outil Copilote de Mathilde Lollier, pour faciliter la copie d’un texte. '
