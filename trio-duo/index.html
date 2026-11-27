@@ -167,6 +167,7 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 }
 .traits{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .traits line{ stroke:var(--accent); stroke-linecap:round; opacity:.85; }
+.traits line.montree{ stroke:color-mix(in srgb, var(--hint) 55%, black); }   /* solution dévoilée : ambre foncé, visible sur les cases ambre */
 .traits line.neuf{ stroke-dasharray:1; animation:trace .35s ease-out; }
 @keyframes trace{ from{ stroke-dashoffset:1; } to{ stroke-dashoffset:0; } }
 .cell{
@@ -872,7 +873,7 @@ function render(){
 }
 
 // Traits sur la grille : un trait de la couleur du jeu barre les cases de chaque solution trouvée ou dévoilée,
-// jusqu'à la prochaine cible ou grille. Seuls les traits nouveaux s'animent (tracé du début à la fin).
+// (ambre pour une solution dévoilée), jusqu'à la prochaine cible ou grille. Seuls les traits nouveaux s'animent (tracé du début à la fin).
 const traced = new Set();
 function drawStrokes(){
   const b = $('board'), cells = b.querySelectorAll('.cell');
@@ -889,7 +890,7 @@ function drawStrokes(){
     let a, z, far = -1;
     sol.cells.forEach(i => sol.cells.forEach(j => { const d = Math.hypot(ctr(i)[0]-ctr(j)[0], ctr(i)[1]-ctr(j)[1]); if(d > far){ far = d; a = ctr(i); z = ctr(j); } }));
     const dx = z[0]-a[0], dy = z[1]-a[1], L = Math.hypot(dx, dy) || 1, ex = side*.3;   // le trait dépasse un peu des cases
-    return `<line class="${traced.has(k) ? '' : 'neuf'}" pathLength="1" x1="${a[0]-dx/L*ex}" y1="${a[1]-dy/L*ex}" x2="${z[0]+dx/L*ex}" y2="${z[1]+dy/L*ex}" stroke-width="${side*.09}"/>`;
+    return `<line class="${S.found.get(k)==='hint' ? 'montree ' : ''}${traced.has(k) ? '' : 'neuf'}" pathLength="1" x1="${a[0]-dx/L*ex}" y1="${a[1]-dy/L*ex}" x2="${z[0]+dx/L*ex}" y2="${z[1]+dy/L*ex}" stroke-width="${side*.1}"/>`;
   }).join('');
   S.found.forEach((_, k) => traced.add(k));
 }
