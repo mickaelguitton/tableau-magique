@@ -56,11 +56,6 @@
      'third' = le 3e nombre de Trio (ajouté ou soustrait) : couleur du jeu foncée */
   --font:"Fredoka", ui-rounded, "Segoe UI", system-ui, sans-serif;
 }
-.sec-duo{ --accent:var(--duo); }            /* parties Duo / Trio de la fenêtre « ? » */
-.sec-trio{ --accent:var(--trio); }
-.modal .sec-duo, .modal .sec-trio{
-  background:color-mix(in srgb, var(--accent) 5%, white); border-radius:18px; padding:2px 18px 8px; margin-bottom:12px;
-}
 
 *{ box-sizing:border-box; }
 [hidden]{ display:none !important; }        /* un élément caché le reste, même s'il a un display (ex. .row) */
@@ -291,7 +286,6 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 .modal h2{ margin:0 0 18px; font-size:30px; }
 .modal h3{ margin:22px 0 10px; font-size:22px; color:var(--accent); }
 .modal p{ font-size:18px; line-height:1.5; }
-.modal .ex{ white-space:nowrap; font-size:1.15em; }
 .note{ color:var(--muted); font-size:16px !important; }
 .row{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 0;
   border-bottom:1px solid color-mix(in srgb, var(--accent) 18%, white); }
@@ -312,13 +306,9 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
 }
 .btn:hover{ border-color:var(--accent); }
 .btn.primary{ background:var(--accent); color:#fff; border-color:transparent; }
-/* Parties communes aux deux jeux (fenêtre « ? ») : ambre, comme les boutons « Montrer… » */
-.modal h3.amber{ color:color-mix(in srgb, var(--hint) 72%, black); }
-.btn.amber{ background:color-mix(in srgb, var(--hint) 45%, white); color:color-mix(in srgb, var(--hint) 45%, black); border-color:transparent; }
 /* Petits écrans : l'intitulé au-dessus de ses boutons */
 @media (max-width:600px){
   .modal{ padding:20px 16px; border-radius:22px; }
-  .modal .sec-duo, .modal .sec-trio{ padding:2px 12px 6px; }
   .row{ flex-direction:column; align-items:flex-start; gap:8px; }
   .seg button{ font-size:16px; padding:8px 12px; }
   .btn{ font-size:17px; padding:10px 16px; }
@@ -366,7 +356,6 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
     <div class="slots" id="slots"></div>
     <div class="foot">
       <span class="sign">M. Guitton<span class="app-version"> – v1.0</span></span>
-      <button class="round" id="btnHelp" aria-label="À propos">?</button>
     </div>
   </aside>
 </div>
@@ -415,43 +404,46 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
   </div>
 </div>
 
-<!-- Fenêtre : à propos -->
-<div class="overlay" id="ovHelp">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Duo Trio">
-    <h2>Duo Trio</h2>
-    <p>Duo Trio est un jeu de calcul mental gratuit, à projeter au tableau, du CE2 au CM2. Les élèves cherchent dans une grille de nombres les cases qui donnent la cible : un jeu de type « Trio » ou « Duo », avec grilles et solutions générées automatiquement.</p>
-    <div class="sec-duo">
-      <h3>Duo</h3>
-      <p>Trouver deux nombres voisins (en ligne, en colonne ou en diagonale) dont la somme, la différence ou le produit donne la cible.
-        Les opérations se choisissent dans les réglages.</p>
-    </div>
-    <div class="sec-trio">
-      <h3>Trio</h3>
-      <p>Trouver trois nombres alignés qui se touchent (en ligne, en colonne ou en diagonale).
-        On multiplie les deux premiers (deux nombres voisins), puis on ajoute ou on soustrait le troisième pour obtenir la cible.
-        Exemple pour 37 : (6 × 5) + 7 ou (8 × 5) − 3.
-        Variantes dans les réglages : ajouter seulement, soustraire seulement, ou sans multiplication (4 + 5 − 3).</p>
-      <p>Sur la grille, quand le calcul est juste, les deux nombres multipliés s'affichent en lavande et le troisième en lavande foncée :
-        <b class="ex"><span style="color:var(--accent)">(6 × 5)</span> + <span style="color:color-mix(in srgb, var(--accent) 62%, black)">7</span> = 37</b></p>
-    </div>
-    <h3 class="amber">Au tableau</h3>
-    <p>Cliquer sur les cases proposées par un élève, dans l'ordre du calcul : en Trio, les deux premières cases cliquées sont multipliées. Le calcul se vérifie tout seul.
-      Les cases d'un calcul juste restent colorées 4 secondes. Cliquer de nouveau sur la dernière case l'enlève.
-      Après une réponse fausse, les cases restent rouges : cliquer sur la dernière case pour la changer, sur une autre case ou en dehors de la grille pour recommencer. Le compteur indique combien de solutions existent pour la cible.</p>
-    <p>Pour choisir la cible, cliquer dessus, taper le nombre puis appuyer sur Entrée.
-      Si ce nombre ne peut pas être obtenu sur la grille, la cible devient rouge.
-      Chaque clic sur « Montrer une solution » en dévoile une de plus. « Montrer toutes les solutions » les dévoile toutes d'un coup.
-      Un clic sur une solution de la liste colore ses cases sur la grille.</p>
-    <p>Dans les réglages, « Solutions par cible » règle la difficulté : une cible qui a peu de solutions (1 à 4) est plus difficile, une cible qui en a beaucoup (9 et plus) est plus facile, « Au hasard » ne filtre rien. Un choix qui n'est pas possible avec les réglages du moment est grisé. Les fiches Word suivent les mêmes réglages.</p>
-    <h3 class="amber">En classe</h3>
-    <p>Un rituel de calcul mental sur ardoise ou à l'oral : multiplication, addition et soustraction, tables de multiplication, priorité de la multiplication. Réglages de la taille de la grille, des opérations et des cibles pour adapter la difficulté. Des fiches Word avec corrigé se téléchargent pour prolonger le jeu sur papier.</p>
-    <p class="note">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0. Il fonctionne sans connexion, sans compte et sans publicité.</p>
-    <h3 class="amber">Remerciements</h3>
-    <p class="note">D'après le jeu Trio de Heinz Wittenberg (Ravensburger), la version en ligne de Julien Pavageau (trio.acamus.net),
-      trio.mathslozano.fr et Duo de micetf.fr.</p>
-    <div class="modal-foot"><button class="btn amber" data-close>Fermer</button></div>
-  </div>
-</div>
+<!-- Présentation de l'outil, dans la forme commune à tous les outils du portail (mise en page, bouton « ? » et ouverture : voir ../portail.js).
+     Lisible par les collègues et par les moteurs de recherche. -->
+<dialog id="aPropos" aria-labelledby="titreAPropos">
+  <article>
+    <h2 id="titreAPropos">Duo Trio</h2>
+    <p class="chapeau">Un jeu de calcul mental à projeter au tableau, du CE2 au CM2 : on cherche dans une grille de nombres les cases qui donnent la cible.</p>
+
+    <h3>À quoi sert cet outil ?</h3>
+    <p>Duo Trio affiche au TBI ou au vidéoprojecteur une grille de nombres et une cible. Les élèves proposent des cases, le calcul se vérifie tout seul, et les solutions se dévoilent une à une ou toutes ensemble. Les grilles et les solutions sont générées automatiquement, avec des réglages simples pour adapter la difficulté. C’est un outil gratuit, sans compte, sans publicité, qui fonctionne aussi sans connexion une fois installé.</p>
+
+    <h3>Duo</h3>
+    <p>Trouver deux nombres voisins (en ligne, en colonne ou en diagonale) dont la somme, la différence ou le produit donne la cible. Les opérations se choisissent dans les réglages.</p>
+
+    <h3>Trio</h3>
+    <p>Trouver trois nombres alignés qui se touchent (en ligne, en colonne ou en diagonale). On multiplie les deux premiers (deux nombres voisins), puis on ajoute ou on soustrait le troisième pour obtenir la cible. Exemple pour 37 : (6 × 5) + 7 ou (8 × 5) − 3. Variantes dans les réglages : ajouter seulement, soustraire seulement, ou sans multiplication (4 + 5 − 3).</p>
+
+    <h3>Au tableau</h3>
+    <p>Cliquer sur les cases proposées par un élève, dans l’ordre du calcul : en Trio, les deux premières cases cliquées sont multipliées. Le calcul se vérifie tout seul. Les cases d’un calcul juste restent colorées 4 secondes, et cliquer de nouveau sur la dernière case l’enlève. Après une réponse fausse, les cases restent rouges : cliquer sur la dernière case pour la changer, sur une autre case ou en dehors de la grille pour recommencer. Le compteur indique combien de solutions existent pour la cible.</p>
+    <p>Pour choisir la cible, cliquer dessus, taper le nombre puis appuyer sur Entrée. Si ce nombre ne peut pas être obtenu sur la grille, la cible devient rouge. Chaque clic sur « Montrer une solution » en dévoile une de plus, « Montrer toutes les solutions » les dévoile toutes d’un coup, et un clic sur une solution de la liste colore ses cases sur la grille.</p>
+
+    <h3>Réglages et fiches Word</h3>
+    <ul>
+      <li><b>Réglages :</b> taille de la grille, opérations (Duo), type de calcul et plus grande cible (Trio), multiplication par 1 autorisée ou non.</li>
+      <li><b>Solutions par cible :</b> une cible qui a peu de solutions (1 à 4) est plus difficile, une cible qui en a beaucoup (9 et plus) est plus facile, « Au hasard » ne filtre rien. Un choix impossible avec les réglages du moment est grisé.</li>
+      <li><b>Fiches Word :</b> des feuilles A4 à imprimer, avec une ou plusieurs cibles par fiche, deux fiches identiques ou différentes par feuille, et le corrigé. Elles suivent les mêmes réglages.</li>
+    </ul>
+
+    <h3>En classe</h3>
+    <ul>
+      <li>En rituel de calcul mental, sur ardoise ou à l’oral : multiplication, addition, soustraction, tables de multiplication, priorité de la multiplication.</li>
+      <li>En différenciation : la taille de la grille, les nombres et le nombre de solutions s’adaptent à chaque groupe.</li>
+      <li>Sur papier, avec les fiches Word et leur corrigé.</li>
+    </ul>
+
+    <h3>Remerciements</h3>
+    <p>D’après le jeu Trio de Heinz Wittenberg (Ravensburger), la version en ligne de Julien Pavageau (trio.acamus.net), trio.mathslozano.fr et Duo de micetf.fr.</p>
+    <p class="licence">Outil créé par Mickaël Guitton, enseignant en CM2, gratuit et partagé sous licence CC BY-NC 4.0 : on peut l’utiliser, le copier et le modifier en citant l’auteur, sans usage commercial.</p>
+  </article>
+  <div class="bas"><button type="button" data-fermer-a-propos>Fermer</button></div>
+</dialog>
 
 <script>
 'use strict';
@@ -1271,7 +1263,6 @@ $('btnGrid').addEventListener('click', newBoard);
 $('btnHint').addEventListener('click', showHint);
 $('btnAll').addEventListener('click', showAll);
 $('btnSettings').addEventListener('click', () => { SG.game = S.mode; refreshAll(); openOv('ovSettings'); });   // ouverte sur le jeu affiché
-$('btnHelp').addEventListener('click', () => openOv('ovHelp'));
 $('btnPrint').addEventListener('click', () => {
   Object.assign(P, { mode:S.mode, ops:[...settings.duo.ops], calc:settings.trio.calc });
   refreshAll(); openOv('ovPrint');
