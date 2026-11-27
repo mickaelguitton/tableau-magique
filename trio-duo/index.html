@@ -242,7 +242,7 @@ html.dans-portail .portail-accueil{ display:inline-flex !important; align-items:
   .board{ width:min(calc(100vh - 20px), calc(100vw - 300px)); align-self:start; position:sticky; top:10px; }
   .target{ --tw:min(90px, 24vh); }
   .eq{ font-size:26px; }
-  .slots{ min-height:200px; }
+  .slots{ min-height:200px; overflow:visible; }
 }
 
 /* Portrait (téléphone, tablette) : choix du jeu, cible et calcul, grille, boutons, solutions */
@@ -922,6 +922,11 @@ function fitSlots(list, rowh){
 // Une case par solution, dessinée dès l'apparition de la cible.
 // La hauteur d'une case est calculée pour en voir 8 ; s'il y en a plus, la colonne défile.
 let slotsSig = '';
+// Hauteur d'une case de solution. Sur téléphone (portrait ou paysage) la page défile et la colonne des solutions
+// s'allonge avec son contenu : la hauteur est donc fixe (mesurer la colonne ferait grossir les cases dès qu'il y en a plus de 8).
+// Sur grand écran la colonne a une hauteur propre : 8 cases la remplissent, au moins 56 px (lisible de loin), puis elle défile.
+const PHONE_PORTRAIT = matchMedia('(max-aspect-ratio: 1/1)'), PHONE_LANDSCAPE = matchMedia('(orientation: landscape) and (max-height: 560px)');
+const slotRowHeight = box => PHONE_PORTRAIT.matches ? 52 : PHONE_LANDSCAPE.matches ? 56 : Math.max(56, (box.clientHeight - 8*7) / 8);
 function renderSlots(){
   const list = solutions(), box = $('slots'), found = [...S.found.entries()];
   const sig = [S.target, list.length, box.clientHeight, box.clientWidth, ...found.map(f => f.join(':'))].join('|');
@@ -929,7 +934,7 @@ function renderSlots(){
   const otherTarget = slotsSig.split('|')[0] !== String(S.target);
   slotsSig = sig;
 
-  const rowh = Math.max(56, (box.clientHeight - 8*7) / 8);        // au moins 56 px : lisible de loin (sinon la colonne défile)
+  const rowh = slotRowHeight(box);
   box.style.setProperty('--rowh', rowh + 'px');
   const keep = box.scrollTop;
   box.innerHTML = list.map((_,i) => {
