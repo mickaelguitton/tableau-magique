@@ -28,7 +28,8 @@
   Le glisse-nombre : multiplier et diviser par 10, 100, 1 000 (CE1 au CM2)
   D'après Éduscol, « Fractions et nombres décimaux au cycle 3 », annexe 4 « Le glisse-nombre ».
   Principe : la virgule reste fixe, ce sont les chiffres qui glissent.
-  v6.8 : intégration au portail « Le tableau magique » ; bouton « Recommencer » retiré.
+  v1.0 : version du portail « Le tableau magique » (numérotation reprise à 1.0) ; bouton « Recommencer » retiré ;
+         phrase « n rangs vers la gauche » sur la même ligne que « × 10 ».
   v3.1 : réglages communs aux deux écrans ; le dé et les boutons suivent le niveau.
   v2.3 : glisse-nombre comme en v2.0 ; choix de la série dans « Réglages de la série ».
   v2.1 : écran épuré (choix dans Réglages), interrupteur à bande glissante, chrono 3 min au plus.
@@ -586,7 +587,7 @@ html.dans-portail .portail-accueil{display:grid !important}
 
 <div id="decompte" aria-hidden="true"><span></span></div>
 
-<div class="signature-bas">M. Guitton<span class="app-version"> – v6.8</span></div>
+<div class="signature-bas">M. Guitton<span class="app-version"> – v1.0</span></div>
 
 <script>
 /* =========================================================
@@ -851,7 +852,7 @@ function afficherPastilles(){
          + `<path d="M${p(.5)} L${x2},${y0} L${p(-.5)}" fill="none" stroke="${coul}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`
          + `<text x="${xm}" y="${(y0+cy)/2 + fs + 4}" text-anchor="middle" font-size="${fs}" fill="${coul}">${lab}</text>`;
   }
-  // Phrase « n rangs vers la gauche / droite » sur la même ligne que les arcs :
+  // Phrase « n rangs vers la gauche / droite » sur la même ligne que « × 10 » / « : 10 » (même ligne de base) :
   // à droite des arcs pour une multiplication, à gauche pour une division (du côté d'où part le nombre)
   const n = Math.abs(s_), xs = [0, n].map(k => colDe(etat.depart.hi + k*sens)*cw + cw/2);
   const phrase = `${n} rang${n>1 ? 's' : ''} vers la ${s_>0 ? 'gauche' : 'droite'}`;
@@ -860,7 +861,7 @@ function afficherPastilles(){
   if(cote==='droite' && Math.max(...xs) + .25*cw + lp > W + .3*cw) cote = 'gauche';   // pas de place : de l'autre côté
   if(cote==='gauche' && Math.min(...xs) - .25*cw - lp < -.3*cw) cote = 'droite';
   const xp = cote==='droite' ? Math.max(...xs) + .25*cw : Math.min(...xs) - .25*cw;
-  svg += `<text class="phrase" x="${xp}" y="${(y0+cy)/2 + fs*.35}" text-anchor="${cote==='droite' ? 'start' : 'end'}" font-size="${fp}" fill="${coul}">${phrase}</text>`;
+  svg += `<text class="phrase" x="${xp}" y="${(y0+cy)/2 + fs + 4}" text-anchor="${cote==='droite' ? 'start' : 'end'}" font-size="${fp}" fill="${coul}">${phrase}</text>`;
   const e = document.createElementNS('http://www.w3.org/2000/svg','svg');
   e.setAttribute('class','arcs'); e.setAttribute('width', nbCols()*cw); e.setAttribute('height', h);
   Object.assign(e.style, {left:'0px', top:g.fin+'px'});

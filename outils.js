@@ -122,7 +122,7 @@ self.OUTILS = [
   {
     dossier: 'glisse-nombre',
     domaine: 'maths',
-    version: '6.8',
+    version: '1.0',
     nom: 'Le glisse-nombre',
     niveau: 'calcul mental · du CE1 au CM2',
     texte: 'Un glisse-nombre interactif à projeter au tableau : la virgule reste fixe, ce sont les chiffres qui glissent pour multiplier '
