@@ -125,9 +125,9 @@ self.OUTILS = [
     version: '6.8',
     nom: 'Le glisse-nombre',
     niveau: 'calcul mental · du CE1 au CM2',
-    texte: 'Un glisse-nombre à projeter au tableau : la virgule reste fixe, ce sont les chiffres qui glissent pour multiplier '
+    texte: 'Un glisse-nombre interactif à projeter au tableau : la virgule reste fixe, ce sont les chiffres qui glissent pour multiplier '
          + 'ou diviser par 10, 100 ou 1 000. Niveaux CE1 à CM2, entiers et décimaux, séries de calculs chronométrées '
-         + 'avec correction sur le tableau. À imprimer : glisse-nombre à fabriquer, tableaux de numération et fiches Word avec corrigé.',
+         + 'avec correction avec le glisse-nombre au tableau. À imprimer : glisse-nombre à fabriquer, tableaux de numération et fiches Word avec corrigé.',
     donnees: ['glisse-nombre-v1', 'gn-chrono'],
     couleur: '#0F7A5F', ombre: '#BDE9D9'
   },
