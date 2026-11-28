@@ -2396,6 +2396,7 @@ function faireRecetteBrute(R){
     if(objs.length && (v2.objOblig || chance(0.6))){
       obj=choisirGN(niv,hasard(objs),{objet:true});
       if(sp.sujet.n==='p' && obj.n==='s' && !OBJET_UNIQUE.has(obj.nom.fs||obj.nom.ms) && chance(0.8)) obj.n='p';
+      if(obj.adjs) obj.adjs=obj.adjs.filter(x=>!verbeAdjIncompat(INCOMPAT_OBJET,v2.inf,x.ms));   // « qui remplissaient les cagettes pleines »
       if(OBJET_UNIQUE.has(obj.nom.fs||obj.nom.ms)){ obj.n='s'; if(!/^pos/.test(obj.det)) obj.det='def'; }
       if(/^pos/.test(obj.det) && obj.det==='pos3' && sp.sujet.n!=='s') obj.det='def';
       obj.adjs=obj.adjs.filter(a=>!enCommun(a.ms+' '+a.fs,formesGN(sp.sujet)+' '+sp.attribut.ms) && !(radR.length>=3 && a.ms.startsWith(radR)));
@@ -2547,7 +2548,7 @@ function faireRecetteBrute(R){
       if(enCommun(sp.lieu,obj)){ const autres=sp.verbe.lieux.filter(l=>!enCommun(l,obj)); sp.lieu = autres.length ? hasard(autres) : (BESOIN_LIEU.has(sp.verbe.inf)?sp.lieu:null); } }
     // pas de répétition entre le complément du nom et le lieu (« les enfants du zoo … au zoo »)
     if(sp.cdn && sp.lieu){
-      const commun = enCommun;
+      const commun = (x,y) => { const b=String(y).toLowerCase().split(/[ ',]/).filter(m=>m==='zoo'); return enCommun(x,y) || (b.length>0 && /\bzoo\b/i.test(x)); };   // « zoo » n'a que 3 lettres
       if(commun(sp.lieu,sp.cdn)){
         const autres=sp.verbe.lieux.filter(l=>!commun(l,sp.cdn));
         if(autres.length) sp.lieu=hasard(autres);
