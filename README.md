@@ -22,6 +22,7 @@ On peut installer le portail comme une application (ordinateur, tablette) depuis
 - [La fabrique à figures](https://mickaelguitton.github.io/tableau-magique/geometrie/) : géométrie simplifiée au tableau, cycle 3.
 - [Les aiguilles du temps · Tic-Tac Time](https://mickaelguitton.github.io/tableau-magique/lire-l-heure/) : lire l'heure, en français et en anglais.
 - [Duo Trio](https://mickaelguitton.github.io/tableau-magique/trio-duo/) : jeu de calcul mental sur grille (somme, différence, produit), du CE2 au CM2. Fiches Word avec corrigé.
+- [Le glisse-nombre](https://mickaelguitton.github.io/tableau-magique/glisse-nombre/) : multiplier et diviser par 10, 100, 1 000, du CE1 au CM2. Glisse-nombre à fabriquer, tableaux de numération, fiches Word avec corrigé.
 
 ## Vie de la classe
 
